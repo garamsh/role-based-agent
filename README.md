@@ -27,8 +27,9 @@ Clones to `~/.local/share/role-based-agent`, then asks which tools to install in
 
 Roles are symlinked, so there is no second copy to fall behind. A real file you put at a target path is left alone unless you pass `--force`.
 
+Re-run the same command to update. A run that finds something already installed refreshes it without asking, so the picker appears only on a first install; the flags below remain the way to add a tool to an existing one.
+
 ```bash
-./install.sh --update        # pull the source and refresh installed tools
 ./install.sh --tool claude   # target one tool, skipping the picker
 ./install.sh --yes           # accept detected tools without prompting
 ./install.sh --list          # show targets and exit
