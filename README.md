@@ -12,19 +12,21 @@ These live on your machine rather than in a project repo because they describe h
 curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 ```
 
-Clones to `~/.local/share/role-based-agent` and symlinks each role into every supported tool found on the host:
+Clones to `~/.local/share/role-based-agent`, then asks which tools to install into — arrows move, space toggles, enter confirms. Tools found on the host are pre-selected:
 
 | Tool | Target | Detected by |
 |---|---|---|
 | Claude Code | `~/.claude/agents/` | `claude` on `PATH`, or `~/.claude/` exists |
 | opencode | `~/.config/opencode/agents/` | `opencode` on `PATH`, or `~/.config/opencode/` exists |
 
-A tool you do not have is skipped. Re-running the same command is the update.
+Roles are symlinked, so there is no second copy to fall behind. A real file you put at a target path is left alone unless you pass `--force`.
 
 ```bash
-./install.sh --tool claude   # target one tool explicitly
+./install.sh --update        # pull the source and refresh installed tools
+./install.sh --tool claude   # target one tool, skipping the picker
+./install.sh --yes           # accept detected tools without prompting
 ./install.sh --list          # show targets and exit
-./install.sh --uninstall     # remove the links
+./install.sh --uninstall     # remove the symlinks
 ```
 
 To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. `ROLE_AGENT_DIR` overrides the clone location for the piped form. Requires `git`.
