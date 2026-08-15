@@ -10,10 +10,20 @@ Three roles divide the work: a **PM** on `main` that reviews, merges, and superv
 curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 ```
 
-This clones the repo to `~/.local/share/role-based-agent` and symlinks each role file into both tools:
+This clones the repo to `~/.local/share/role-based-agent` and symlinks each role file into every supported tool it finds on the host:
 
-- `~/.claude/agents/` — Claude Code
-- `~/.config/opencode/agents/` — opencode
+| Tool | Target | Detected by |
+|---|---|---|
+| Claude Code | `~/.claude/agents/` | `claude` on `PATH`, or `~/.claude/` exists |
+| opencode | `~/.config/opencode/agents/` | `opencode` on `PATH`, or `~/.config/opencode/` exists |
+
+A tool you do not have is skipped, so the installer never creates config directories for tools that are not there. Override detection with `--tool`:
+
+```bash
+./install.sh --tool claude            # only Claude Code
+./install.sh --tool claude,opencode   # both, regardless of detection
+./install.sh --list                   # show targets and exit
+```
 
 Because these are symlinks, no copies exist, so no copy can drift. **Re-running the same command is the update** — it fast-forwards the clone and refreshes the links.
 
@@ -24,7 +34,7 @@ git clone git@github.com:garamsh/role-based-agent.git ~/Workspace/role-based-age
 ~/Workspace/role-based-agent/install.sh
 ```
 
-`ROLE_AGENT_DIR` overrides the clone location for the piped form. `./install.sh --uninstall`, run from a clone, removes the links it created. Existing regular files at a target path are never overwritten; the installer skips them and says so.
+`ROLE_AGENT_DIR` overrides the clone location for the piped form. `./install.sh --uninstall`, run from a clone, sweeps every known target so nothing is orphaned. Existing regular files at a target path are never overwritten; the installer skips them and says so.
 
 Requires `git`. The script is POSIX `sh`, so `| sh` and `| bash` both work.
 
