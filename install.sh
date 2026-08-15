@@ -3,11 +3,12 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
-# Pick the tools in the prompt: arrows move, space toggles, enter installs.
-# Roles are symlinked, so `--update` is enough to refresh every tool at once.
+# The same command installs and updates: a re-run refreshes whatever is already
+# installed, with no prompt. The picker appears only when nothing is installed
+# yet and a terminal is attached; arrows move, space toggles, enter installs.
+# Roles are symlinked, so one run refreshes every tool at once.
 # A real file you put at a target path is never replaced without --force.
 #
-#   --update                 pull the source and refresh installed tools
 #   --tool claude,opencode   install only to these, skipping the picker
 #   --yes                    accept the detected tools without prompting
 #   --force                  replace a real file sitting at a target path
@@ -26,6 +27,7 @@ FORCE=0
 ASSUME_YES=0
 MODIFIED=0
 CHANGED=0
+REPOINTED=""
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -63,12 +65,13 @@ tool_present() {
   return 1
 }
 
-# Already has at least one role file installed.
+# Already has at least one role symlink installed. A real file at a target path
+# is the user's own, so it does not count as ours and still needs the picker.
 tool_installed() {
   d=$(tool_dir "$1")
   [ -d "$d" ] || return 1
   for f in "$SRC_DIR"/agents/*.md; do
-    [ -e "$d/$(basename "$f")" ] && return 0
+    [ -L "$d/$(basename "$f")" ] && return 0
   done
   return 1
 }
@@ -77,11 +80,23 @@ have_tty() { [ -c /dev/tty ] && stty -g < /dev/tty >/dev/null 2>&1; }
 
 # ---------------------------------------------------------------- picker ----
 
-# Read one keystroke from the terminal. The X sentinel survives $( ) stripping
-# whitespace, so space and newline come through intact.
+# Keys as raw byte values: $( ) strips trailing newlines, so a control key
+# carried through as text is indistinguishable from an empty read.
+KEY_CR=0d
+KEY_LF=0a
+KEY_SPACE=20
+KEY_Q=71
+KEY_K=6b
+KEY_J=6a
+KEY_ESC=1b
+KEY_BRACKET=5b                        # arrows arrive as ESC [ A / ESC [ B
+KEY_UP=41
+KEY_DOWN=42
+KEY_NONE=                             # end of input: the terminal went away
+
+# Read one keystroke from the terminal, as two hex digits, or nothing at EOF.
 read_key() {
-  k=$(dd if=/dev/tty bs=1 count=1 2>/dev/null; printf X)
-  printf '%s' "${k%X}"
+  dd if=/dev/tty bs=1 count=1 2>/dev/null | od -An -tx1 | tr -d '[:space:]'
 }
 
 # Interactive multi-select. Writes the chosen tools to stdout.
@@ -120,21 +135,19 @@ pick_tools() {
 
     key=$(read_key)
     case "$key" in
-      "$(printf '\033')")
-        k2=$(read_key)
-        if [ "$k2" = "[" ]; then
-          k3=$(read_key)
-          case "$k3" in
-            A) [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
-            B) [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
+      "$KEY_ESC")
+        if [ "$(read_key)" = "$KEY_BRACKET" ]; then
+          case "$(read_key)" in
+            "$KEY_UP")   [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
+            "$KEY_DOWN") [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
           esac
         fi
         ;;
-      k) [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
-      j) [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
-      " ") eval "s=\$sel_$cursor"; [ "$s" -eq 1 ] && eval "sel_$cursor=0" || eval "sel_$cursor=1" ;;
-      q) stty "$saved" < /dev/tty; printf '\033[?25h\r\n' > /dev/tty; trap - INT TERM; return 1 ;;
-      "")  break ;;   # enter arrives as CR, which $( ) strips to empty
+      "$KEY_K") [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
+      "$KEY_J") [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
+      "$KEY_SPACE") eval "s=\$sel_$cursor"; [ "$s" -eq 1 ] && eval "sel_$cursor=0" || eval "sel_$cursor=1" ;;
+      "$KEY_CR"|"$KEY_LF") break ;;
+      "$KEY_Q"|"$KEY_NONE") stty "$saved" < /dev/tty; printf '\033[?25h\r\n' > /dev/tty; trap - INT TERM; return 1 ;;
     esac
   done
 
@@ -157,14 +170,14 @@ pick_tools() {
 while [ $# -gt 0 ]; do
   case "$1" in
     --uninstall) MODE="uninstall" ;;
-    --update) MODE="update" ;;
     --list) MODE="list" ;;
     --force) FORCE=1 ;;
     --yes|-y) ASSUME_YES=1 ;;
     --tool) [ $# -ge 2 ] || die "--tool needs a value"
             TOOLS=$(echo "$2" | tr ',' ' '); shift ;;
     --tool=*) TOOLS=$(echo "${1#--tool=}" | tr ',' ' ') ;;
-    --help|-h) sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    # Lines 2-16 are the header block above; keep the range in sync with it.
+    --help|-h) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) die "unknown option: $1" ;;
   esac
   shift
@@ -200,22 +213,27 @@ if [ -z "$SRC_DIR" ]; then
     git clone -q "$REPO_URL" "$INSTALL_DIR" || die "clone failed"
   fi
   SRC_DIR="$INSTALL_DIR"
-elif [ "$MODE" = "update" ] && [ -d "$SRC_DIR/.git" ]; then
-  echo "Updating $SRC_DIR"
-  git -C "$SRC_DIR" pull --ff-only -q || die "could not fast-forward $SRC_DIR"
 fi
 
 [ -d "$SRC_DIR/agents" ] || die "no agents/ directory in $SRC_DIR"
 
 # ----------------------------------------------------------------- tools ----
 
+# Re-running the install command is the update path, so anything already
+# installed is refreshed without a prompt. --yes still means "every detected
+# tool", which is how you add one to an existing install.
+INSTALLED=""
+if [ "$MODE" = "install" ]; then
+  for t in $SUPPORTED; do tool_installed "$t" && INSTALLED="$INSTALLED $t"; done
+fi
+
 if [ -n "$TOOLS" ]; then
   :                                   # explicit --tool wins
 elif [ "$MODE" = "uninstall" ]; then
   TOOLS="$SUPPORTED"                  # sweep everything so nothing is orphaned
-elif [ "$MODE" = "update" ]; then
-  for t in $SUPPORTED; do tool_installed "$t" && TOOLS="$TOOLS $t"; done
-  [ -n "$TOOLS" ] || die "nothing installed yet; run without --update first"
+elif [ -n "$INSTALLED" ] && [ "$ASSUME_YES" -eq 0 ]; then
+  TOOLS="$INSTALLED"                  # the update path
+  echo "Refreshing:$TOOLS"
 elif [ "$MODE" = "install" ] && [ "$ASSUME_YES" -eq 0 ] && have_tty; then
   TOOLS=$(pick_tools) || die "cancelled"
   [ -n "$TOOLS" ] || die "no tool selected"
@@ -232,6 +250,25 @@ if [ "$MODE" = "list" ]; then
 fi
 
 # --------------------------------------------------------------- install ----
+
+# <clone>/agents/pm.md and <clone>/skills/foo both give <clone>.
+link_source_root() {
+  case "$1" in
+    */agents/*.md|*/skills/*) dirname "$(dirname "$1")" ;;
+  esac
+}
+
+# Repointing changes which files the tools read, so name each clone left, once.
+announce_repoint() {
+  old=$(link_source_root "$1")
+  [ -n "$old" ] || return 0
+  [ "$old" != "$SRC_DIR" ] || return 0
+  case " $REPOINTED " in
+    *" $old "*) return 0 ;;           # already reported this clone
+  esac
+  REPOINTED="$REPOINTED $old"
+  echo "  repointed from $old"
+}
 
 # Only symlinks are ours to manage. A real file at a target path belongs to the
 # user and is left alone unless --force says otherwise.
@@ -254,8 +291,10 @@ install_one() {
     return
   fi
 
-  if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
-    return                            # already current, say nothing
+  if [ -L "$dest" ]; then
+    current=$(readlink "$dest")
+    [ "$current" = "$src" ] && return # already current, say nothing
+    announce_repoint "$current"
   fi
 
   ln -sfn "$src" "$dest"
@@ -285,7 +324,7 @@ for t in $TOOLS; do
 done
 
 case "$MODE" in
-  install|update)
+  install)
     echo
     [ "$CHANGED" -eq 0 ] && echo "Already up to date."
     [ "$MODIFIED" -gt 0 ] && echo "$MODIFIED path(s) left alone because a real file sits there."
