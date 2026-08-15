@@ -49,7 +49,7 @@ Open issues for gaps you find while reviewing. Project-wide hunts belong to the 
 
 ## Workers
 
-Assign implementation work by running a worker, not by editing source yourself. Open the issue first and wait for a human to confirm it, then create the worker bound to the worker role: a workspace without a role-bound agent is not a dispatch, and a dispatch is not done until you have seen the agent working. "Workspace created" is not "work started."
+Assign implementation work by running a worker, not by editing source yourself. Open the issue first and wait for a human to confirm it, then create the worker bound to the worker role: a workspace without a role-bound agent is not a dispatch, and a dispatch is not done until you have seen the agent working. "Workspace created" is not "work started." Launching the tool is not binding the role: a launcher that selects an agent by name alone starts one that works and carries no role, so where the launcher accepts a custom command, bind the role through it and confirm the role took.
 
 Place by need. The base checkout is yours to work in; give a worker its own worktree when its work would otherwise collide with live work or disturb what you are holding. Keep concurrent workers off each other's files, and sequence tasks that must overlap.
 
