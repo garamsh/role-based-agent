@@ -7,18 +7,26 @@ Three roles divide the work: a **PM** on `main` that reviews, merges, and superv
 ## Install
 
 ```bash
-git clone git@github.com:garamsh/role-based-agent.git ~/Workspace/role-based-agent
-cd ~/Workspace/role-based-agent && ./install.sh
+curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 ```
 
-The installer symlinks each role file into both tools:
+This clones the repo to `~/.local/share/role-based-agent` and symlinks each role file into both tools:
 
 - `~/.claude/agents/` — Claude Code
 - `~/.config/opencode/agents/` — opencode
 
-Because these are symlinks, `git pull` is the update: no copies exist, so no copy can drift. Re-run `./install.sh` after adding a role. `./install.sh --uninstall` removes the links it created.
+Because these are symlinks, no copies exist, so no copy can drift. **Re-running the same command is the update** — it fast-forwards the clone and refreshes the links.
 
-Existing regular files at a target path are never overwritten; the installer skips them and says so.
+To keep the clone somewhere else, or to edit the roles yourself, install from a clone instead. The installer then uses that clone in place:
+
+```bash
+git clone git@github.com:garamsh/role-based-agent.git ~/Workspace/role-based-agent
+~/Workspace/role-based-agent/install.sh
+```
+
+`ROLE_AGENT_DIR` overrides the clone location for the piped form. `./install.sh --uninstall`, run from a clone, removes the links it created. Existing regular files at a target path are never overwritten; the installer skips them and says so.
+
+Requires `git`. The script is POSIX `sh`, so `| sh` and `| bash` both work.
 
 ## Use
 
