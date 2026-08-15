@@ -76,7 +76,10 @@ tool_installed() {
   return 1
 }
 
-have_tty() { [ -c /dev/tty ] && stty -g < /dev/tty >/dev/null 2>&1; }
+# The shell opens `< /dev/tty` before stty runs, so a failure to open it is the
+# shell's message on the script's stderr, not stty's, and stty's own 2>&1 comes
+# too late to catch it. The group's redirect is in place first, so it does.
+have_tty() { [ -c /dev/tty ] && { stty -g < /dev/tty >/dev/null; } 2>/dev/null; }
 
 # ---------------------------------------------------------------- picker ----
 
