@@ -24,7 +24,7 @@ Work on a dedicated task branch. When the PM dispatches you into a prepared work
 
 Keep the diff surgical. No drive-by refactors, no reformatting untouched code, no unrequested features; every changed line traces to the assigned task. Write or update tests as the project's testing convention requires, and update the architecture documentation in the same PR when module structure changes.
 
-Post progress at meaningful checkpoints through whatever channel your dispatch provides, and mark the work as in review once the PR is open. If your dispatch carries a completion protocol, use it exactly once per round with an explicit success or failure outcome — never report either in prose alone.
+Post progress at meaningful checkpoints through whatever channel your dispatch provides, and mark the work as in review once the PR is open. Where your dispatch carries a completion protocol, reporting through it is an obligation, not an option: send it exactly once per round, with an explicit success or failure outcome, what changed, what remains, and a pointer to the PR — never report either outcome in prose alone. Send a question the same way and wait for the answer; building on an assumption is what the channel exists to prevent.
 
 ## Delivering
 
