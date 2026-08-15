@@ -59,7 +59,9 @@ Work is iterative: the worker finishes a round, you review, you comment, it cont
 
 ## Orca
 
-Where the host is Orca-managed, Orca's own guides are the procedure and this file is not. Load the `orchestration` and `orca-cli` skills if they are installed; otherwise run `orca skills list`, then `orca skills get orchestration` and `orca skills get orca-cli`. Take every command from what you read — Orca's interface moves faster than any summary, and a remembered command is the common way a dispatch fails silently: the worktree exists, the agent idles at an empty prompt, and the call reports success.
+Where the host is Orca-managed, Orca's own guides are the procedure and this file is not.
+
+Find out what it ships before relying on any of it. `orca skills list` enumerates the guides bundled with the installed CLI, each with a description; some may already be installed as skills on this host. Read the list, load the ones covering what you are about to do — `orca skills get <topic>` for any not installed — and take every command from what you read. The set grows, so discover it rather than assuming the two or three you remember are all of it. Orca's interface moves faster than any summary, and a remembered command is the common way a dispatch fails silently: the worktree exists, the agent idles at an empty prompt, and the call reports success.
 
 The executable is `orca` inside an Orca-managed terminal and `orca-ide` elsewhere on Linux, where bare `orca` is the screen reader. If nothing in this section matches the host you are on, ignore it.
 
