@@ -10,7 +10,7 @@ These live on your machine rather than in a project repo because they describe h
 
 They do assume a project that keeps its conventions in writing — an index of rules, a template saying what a pull request must state, documentation describing the system's shape. On a repository with none of that, the roles still work but have little to enforce.
 
-One platform appears by name, in one place. The PM has an `Orca` section saying that on an Orca-managed host it loads Orca's own orchestration guides before dispatching; everything outside that section is platform-neutral, and the section carries no commands of its own, so the procedure stays with whoever ships it. On a host without Orca, delete the section.
+One platform appears by name, in one place. The PM has an `Orca` section saying that on an Orca-managed host it loads Orca's own orchestration guides before dispatching; everything outside that section is platform-neutral, and the section carries no procedure of its own — only what is needed to discover and load those guides — so the procedure stays with whoever ships it. On a host without Orca, delete the section.
 
 ## Install
 
