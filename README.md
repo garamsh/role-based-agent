@@ -27,7 +27,7 @@ Clones to `~/.local/share/role-based-agent`, then asks which tools to install in
 
 Roles are symlinked, so there is no second copy to fall behind. A real file you put at a target path is left alone unless you pass `--force`.
 
-Re-run the same command and it becomes the entry point for the whole lifecycle. With an existing install and a terminal attached, a menu offers three actions: **refresh** the install in place, **change tools** (the same picker, with the installed set pre-selected — deselecting a tool removes its symlinks), or **uninstall** everything. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates. The flags below skip the menu entirely, so scripted callers see no change.
+Re-run the same command and the picker lists every supported tool with your installed set pre-selected: confirm to refresh in place, uncheck a tool to remove its symlinks, uncheck all to remove everything. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates. The flags below skip the picker entirely, so scripted callers see no change.
 
 ```bash
 ./install.sh --tool claude   # target one tool, skipping the picker
@@ -35,6 +35,14 @@ Re-run the same command and it becomes the entry point for the whole lifecycle. 
 ./install.sh --list          # show targets and exit
 ./install.sh --uninstall     # remove the symlinks
 ```
+
+To remove everything without a clone at hand:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/uninstall.sh | sh
+```
+
+It removes only symlinks pointing into a role-based-agent checkout; real files are never touched.
 
 To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. `ROLE_AGENT_DIR` overrides the clone location for the piped form. Requires `git`.
 

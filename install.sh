@@ -3,10 +3,10 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
-# One command covers the lifecycle. With nothing installed, a picker asks which
-# tools to use. With an existing install, a menu offers refresh, changing the
-# tool set, or uninstall; run without a terminal (CI, cron), it just refreshes.
-# Roles are symlinked, so one run refreshes every tool at once.
+# One command covers the lifecycle. The picker lists every supported tool with
+# the installed set pre-selected (the detected set on first run); confirming
+# links the kept tools and removes ours from the unchecked ones. Check none to
+# remove everything, or run uninstall.sh. Without a terminal it just refreshes.
 # A real file you put at a target path is never replaced without --force.
 #
 #   --tool claude,opencode   install only to these, skipping the picker
@@ -103,8 +103,9 @@ read_key() {
   dd if=/dev/tty bs=1 count=1 2>/dev/null | od -An -tx1 | tr -d '[:space:]'
 }
 
-# Interactive multi-select. The arguments name the pre-selected tools (none
-# pre-selected when called with none). Writes the chosen tools to stdout.
+# Interactive multi-select. PICKER_TITLE is the heading; the arguments name
+# the pre-selected tools (none pre-selected when called with none). Writes the
+# chosen tools to stdout.
 pick_tools() {
   count=0
   for t in $SUPPORTED; do
@@ -123,7 +124,7 @@ pick_tools() {
   stty raw -echo < /dev/tty
   printf '\033[?25l' > /dev/tty
 
-  printf '\r\n  Install role definitions into:\r\n\r\n' > /dev/tty
+  printf '\r\n  %s\r\n\r\n' "$PICKER_TITLE" > /dev/tty
   first=1
   while :; do
     [ "$first" -eq 1 ] || printf '\033[%dA' "$((count + 2))" > /dev/tty
@@ -171,65 +172,6 @@ pick_tools() {
     [ "$s" -eq 1 ] && chosen="$chosen $t"
   done
   printf '%s' "$chosen"
-}
-
-# Single-select menu shown when a re-run finds an existing install. $1 lists
-# the installed tools. Writes refresh, tools, or uninstall to stdout.
-pick_action() {
-  count=3
-  cursor=1
-
-  saved=$(stty -g < /dev/tty)
-  # shellcheck disable=SC2064
-  trap "stty '$saved' < /dev/tty 2>/dev/null; printf '\033[?25h' > /dev/tty; exit 130" INT TERM
-  stty raw -echo < /dev/tty
-  printf '\033[?25l' > /dev/tty
-
-  printf '\r\n  Already installed for:%s\r\n\r\n' "$1" > /dev/tty
-  first=1
-  while :; do
-    [ "$first" -eq 1 ] || printf '\033[%dA' "$((count + 2))" > /dev/tty
-    first=0
-
-    i=0
-    for item in \
-      "Refresh        re-link everything, keeping the current tools" \
-      "Change tools   pick a different set; deselecting removes" \
-      "Uninstall      remove the role symlinks from every tool"
-    do
-      i=$((i + 1))
-      [ "$i" -eq "$cursor" ] && pointer="\033[36m>\033[0m" || pointer=" "
-      printf '\033[2K  %b %s\r\n' "$pointer" "$item" > /dev/tty
-    done
-    printf '\033[2K\r\n\033[2K  \033[2m%s\033[0m move  \033[2menter\033[0m confirm  \033[2mq\033[0m cancel\r\n' \
-      "up/down" > /dev/tty
-
-    key=$(read_key)
-    case "$key" in
-      "$KEY_ESC")
-        if [ "$(read_key)" = "$KEY_BRACKET" ]; then
-          case "$(read_key)" in
-            "$KEY_UP")   [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
-            "$KEY_DOWN") [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
-          esac
-        fi
-        ;;
-      "$KEY_K") [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
-      "$KEY_J") [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
-      "$KEY_CR"|"$KEY_LF") break ;;
-      "$KEY_Q"|"$KEY_NONE") stty "$saved" < /dev/tty; printf '\033[?25h\r\n' > /dev/tty; trap - INT TERM; return 1 ;;
-    esac
-  done
-
-  stty "$saved" < /dev/tty
-  printf '\033[?25h\r\n' > /dev/tty
-  trap - INT TERM
-
-  case "$cursor" in
-    1) printf 'refresh' ;;
-    2) printf 'tools' ;;
-    3) printf 'uninstall' ;;
-  esac
 }
 
 # ------------------------------------------------------------------ args ----
@@ -287,10 +229,11 @@ fi
 # ----------------------------------------------------------------- tools ----
 
 # Re-running the install command is the update path. With a terminal attached,
-# an existing install offers refresh, changing the tool set, or uninstall;
-# without one (CI, cron) it refreshes in place and never blocks on a prompt.
-# --yes still means "every detected tool", which is how you add one to an
-# existing install without a terminal.
+# the picker lists every supported tool pre-selected with what is installed;
+# unchecking a tool removes our symlinks from it, unchecking all removes
+# everything. Without a terminal (CI, cron) the run refreshes in place and
+# never blocks on a prompt. --yes still means "every detected tool", which is
+# how you add one to an existing install without a terminal.
 INSTALLED=""
 if [ "$MODE" = "install" ]; then
   for t in $SUPPORTED; do tool_installed "$t" && INSTALLED="$INSTALLED $t"; done
@@ -301,30 +244,22 @@ if [ -n "$TOOLS" ]; then
 elif [ "$MODE" = "uninstall" ]; then
   TOOLS="$SUPPORTED"                  # sweep everything so nothing is orphaned
 elif [ -n "$INSTALLED" ] && [ "$ASSUME_YES" -eq 0 ]; then
-  if [ "$MODE" = "install" ] && have_tty; then
-    action=$(pick_action "$INSTALLED") || die "cancelled"
-    case "$action" in
-      refresh)
-        TOOLS="$INSTALLED"
-        echo "Refreshing:$TOOLS"
-        ;;
-      tools)
-        # shellcheck disable=SC2086 # word splitting turns the list into args
-        TOOLS=$(pick_tools $INSTALLED) || die "cancelled"
-        [ -n "$TOOLS" ] || die "no tool selected"
-        # A tool dropped from the set keeps nothing of ours behind.
-        for t in $INSTALLED; do
-          case " $TOOLS " in
-            *" $t "*) ;;
-            *) DROPPED="$DROPPED $t" ;;
-          esac
-        done
-        ;;
-      uninstall)
-        MODE="uninstall"
-        TOOLS="$SUPPORTED"            # sweep everything so nothing is orphaned
-        ;;
-    esac
+  if have_tty; then
+    PICKER_TITLE="Installed tools (uncheck one to remove it):"
+    # shellcheck disable=SC2086 # word splitting turns the list into args
+    TOOLS=$(pick_tools $INSTALLED) || die "cancelled"
+    if [ -z "$TOOLS" ]; then
+      MODE="uninstall"                # unchecked everything: remove all
+      TOOLS="$SUPPORTED"              # sweep everything so nothing is orphaned
+    else
+      # A tool dropped from the set keeps nothing of ours behind.
+      for t in $INSTALLED; do
+        case " $TOOLS " in
+          *" $t "*) ;;
+          *) DROPPED="$DROPPED $t" ;;
+        esac
+      done
+    fi
   else
     TOOLS="$INSTALLED"                # the update path
     echo "Refreshing:$TOOLS"
@@ -332,6 +267,7 @@ elif [ -n "$INSTALLED" ] && [ "$ASSUME_YES" -eq 0 ]; then
 elif [ "$MODE" = "install" ] && [ "$ASSUME_YES" -eq 0 ] && have_tty; then
   PRESENT=""
   for t in $SUPPORTED; do tool_present "$t" && PRESENT="$PRESENT $t"; done
+  PICKER_TITLE="Install role definitions into:"
   # shellcheck disable=SC2086 # word splitting turns the list into args
   TOOLS=$(pick_tools $PRESENT) || die "cancelled"
   [ -n "$TOOLS" ] || die "no tool selected"
