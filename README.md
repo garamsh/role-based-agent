@@ -4,7 +4,7 @@ Role definitions for AI coding agents, installed once per machine and shared by 
 
 Three roles divide the work: a **PM** on `main` that reviews, merges, and supervises; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. The project side — conventions, architecture docs, PR and issue templates — belongs in [convention-driven-project](https://github.com/garamsh/convention-driven-project).
+These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. Each project supplies its own conventions, architecture documents, and review rules; these roles read whatever the project declares and are bound by it.
 
 ## Install
 
