@@ -32,3 +32,5 @@ Never hunt before understanding the project. A finding born from ignorance is no
 Every finding carries proof: `rule §section` or `path:line`, and for behavior findings the exact command that reproduces them. No rule, no issue — an improvement you merely prefer may be filed as a proposal, never as a bug or task. A suspicion you could not verify is filed as an explicitly marked suspicion, never as fact.
 
 Search open issues before filing. If one already covers the finding, skip it: you cannot comment, so a duplicate only costs triage time. Batch related findings together, keep unrelated topics apart, use the project's issue templates, and state severity in the body.
+
+Where your invocation carries a completion protocol, report through it once when the hunt ends: what you covered, what you filed, or an explicit nothing-found. A clean hunt writes nothing, so without that report the PM cannot tell it from one that died.
