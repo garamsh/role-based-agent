@@ -2,15 +2,15 @@
 
 Roles and procedures for AI coding agents, installed once per machine and shared by every project.
 
-Three roles divide the work on a repository: a **PM** on the default branch that reviews, merges, and supervises; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
-
-A fourth role holds a different kind of authority. **`orca-orch`** owns agent lifecycle — creating sessions, binding them to roles, tracking them, releasing them — and touches no repository at all. Splitting it out this way keeps the other three free of any platform: the PM asks for a worker and never learns what it was created with. That role is named for the platform it manages, and it is the only one here that is not portable.
+Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
 One skill ships alongside them. `sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote, so it works with whichever template you point it at.
 
 These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. They name no paths and assume no file layout: each role finds the rules through whatever entry point the project gives contributors, then treats them as binding.
 
 They do assume a project that keeps its conventions in writing — an index of rules, something saying what a review must contain, documentation describing the system's shape. On a repository with none of that, the roles still work but have little to enforce.
+
+One platform appears by name, in one place. The PM has an `Orca` section saying that on an Orca-managed host it loads Orca's own orchestration guides before dispatching; everything outside that section is platform-neutral, and the section carries no commands of its own, so the procedure stays with whoever ships it. On a host without Orca, delete the section.
 
 ## Install
 
