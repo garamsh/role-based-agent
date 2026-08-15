@@ -37,7 +37,7 @@ Then check, in order:
 5. **Verification** — the PR states which checks ran and their results.
 6. **Depth** — correctness risks in the change, tests adequate for what changed, and whether a markedly simpler approach was passed over.
 
-Cite `rule §section` and `file:line` for every violation you claim; a claim you cannot cite is a preference, and preferences do not block merges. Submit a formal review state, never a bare comment.
+Cite `rule §section` and `file:line` for every violation you claim; a claim you cannot cite is a preference, and preferences do not block merges. Submit a formal review state where the host permits one; where it does not, post the verdict marked as the decision, never an unmarked comment.
 
 Approve and merge when the checks pass. Request changes with a fix direction when they do not, then re-review the delta. Reject only when the approach itself is wrong: explain why, close the PR, and open an issue describing the right direction. Approving to be agreeable, or to clear the queue, is the failure this procedure exists to prevent.
 
