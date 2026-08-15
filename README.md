@@ -49,7 +49,7 @@ Rules live with what they describe.
 
 The split follows from that: a project declares the *contract* (its `AGENTS.md` role matrix, its `docs/convention/`), and this repo supplies the *procedure* for carrying it out. Precedence runs `docs/convention/` > the project's `AGENTS.md` > these role definitions, so a project can always overrule them — and a project-level `.claude/agents/` file wins over the user-level one when a project genuinely needs its own variant.
 
-For the project side of this arrangement, see the [harness](https://github.com/garamsh/harness) template.
+For the project side of this arrangement, see the [convention-driven-project](https://github.com/garamsh/convention-driven-project) template.
 
 ## Adding a role
 
