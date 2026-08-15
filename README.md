@@ -2,7 +2,9 @@
 
 Roles and procedures for AI coding agents, installed once per machine and shared by every project.
 
-Three roles divide the work: a **PM** on `main` that reviews, merges, and supervises; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
+Three roles divide the work on a repository: a **PM** on the default branch that reviews, merges, and supervises; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
+
+A fourth role holds a different kind of authority. **`orca-orch`** owns agent lifecycle — creating sessions, binding them to roles, tracking them, releasing them — and touches no repository at all. Splitting it out this way keeps the other three free of any platform: the PM asks for a worker and never learns what it was created with. That role is named for the platform it manages, and it is the only one here that is not portable.
 
 One skill ships alongside them. `sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote, so it works with whichever template you point it at.
 
