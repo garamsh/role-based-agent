@@ -67,7 +67,7 @@ Pre-flight for every mode: `git status` is clean, and you are on a task branch, 
 6. **Initialize architecture documents.** Write one responsibility document per major domain, following the skeleton in the architecture README, record any initial decisions as ADRs, and fill in the index.
 7. **Write the project `README.md`** — what it is, who it is for, how to run it. Structure and modules belong in the architecture documents, not here.
 8. **Refresh the convention index** so its file list matches reality.
-9. **Open one PR** titled `chore: bootstrap project conventions` and merge it.
+9. **Open one PR** titled `chore: bootstrap project conventions`. Merging it is the PM's call, not the operator's.
 
 Do not invent conventions beyond the chosen stack's needs; the template defaults are the baseline.
 
