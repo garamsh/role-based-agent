@@ -38,6 +38,13 @@ tool_dir() {
   esac
 }
 
+tool_skills_dir() {
+  case "$1" in
+    claude)   echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
+    opencode) echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills" ;;
+  esac
+}
+
 tool_label() {
   case "$1" in
     claude)   echo "Claude Code" ;;
@@ -257,11 +264,22 @@ install_one() {
 }
 
 for t in $TOOLS; do
+  echo "$(tool_label "$t")"
+
   target=$(tool_dir "$t")
   [ "$MODE" = "uninstall" ] || mkdir -p "$target"
+  if [ -d "$target" ]; then
+    for src in "$SRC_DIR"/agents/*.md; do
+      install_one "$src" "$target/$(basename "$src")"
+    done
+  fi
+
+  [ -d "$SRC_DIR/skills" ] || continue
+  target=$(tool_skills_dir "$t")
+  [ "$MODE" = "uninstall" ] || mkdir -p "$target"
   [ -d "$target" ] || continue
-  echo "$(tool_label "$t")  $target"
-  for src in "$SRC_DIR"/agents/*.md; do
+  for src in "$SRC_DIR"/skills/*/; do
+    src=${src%/}
     install_one "$src" "$target/$(basename "$src")"
   done
 done

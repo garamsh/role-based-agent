@@ -1,10 +1,12 @@
 # role-based-agent
 
-Role definitions for AI coding agents, installed once per machine and shared by every project.
+Roles and procedures for AI coding agents, installed once per machine and shared by every project.
 
 Three roles divide the work: a **PM** on `main` that reviews, merges, and supervises; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. Each project supplies its own conventions, architecture documents, and review rules; these roles read whatever the project declares and are bound by it.
+One skill ships alongside them. `sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote, so it works with whichever template you point it at.
+
+These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. Each project supplies its own conventions, architecture documents, and review rules; the roles read whatever the project declares and are bound by it.
 
 ## Install
 
@@ -14,10 +16,10 @@ curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/insta
 
 Clones to `~/.local/share/role-based-agent`, then asks which tools to install into — arrows move, space toggles, enter confirms. Tools found on the host are pre-selected:
 
-| Tool | Target | Detected by |
+| Tool | Targets | Detected by |
 |---|---|---|
-| Claude Code | `~/.claude/agents/` | `claude` on `PATH`, or `~/.claude/` exists |
-| opencode | `~/.config/opencode/agents/` | `opencode` on `PATH`, or `~/.config/opencode/` exists |
+| Claude Code | `~/.claude/{agents,skills}/` | `claude` on `PATH`, or `~/.claude/` exists |
+| opencode | `~/.config/opencode/{agents,skills}/` | `opencode` on `PATH`, or `~/.config/opencode/` exists |
 
 Roles are symlinked, so there is no second copy to fall behind. A real file you put at a target path is left alone unless you pass `--force`.
 
