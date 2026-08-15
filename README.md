@@ -6,7 +6,9 @@ Three roles divide the work: a **PM** on `main` that reviews, merges, and superv
 
 One skill ships alongside them. `sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote, so it works with whichever template you point it at.
 
-These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. Each project supplies its own conventions, architecture documents, and review rules; the roles read whatever the project declares and are bound by it.
+These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. They name no paths and assume no file layout: each role finds the rules through whatever entry point the project gives contributors, then treats them as binding.
+
+They do assume a project that keeps its conventions in writing — an index of rules, something saying what a review must contain, documentation describing the system's shape. On a repository with none of that, the roles still work but have little to enforce.
 
 ## Install
 
