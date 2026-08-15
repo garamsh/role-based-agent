@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
-# Install role definitions for Claude Code and opencode.
+# Install, update, or remove role definitions for Claude Code and opencode.
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
-# The same command installs and updates: a re-run refreshes whatever is already
-# installed, with no prompt. The picker appears only when nothing is installed
-# yet and a terminal is attached; arrows move, space toggles, enter installs.
+# One command covers the lifecycle. With nothing installed, a picker asks which
+# tools to use. With an existing install, a menu offers refresh, changing the
+# tool set, or uninstall; run without a terminal (CI, cron), it just refreshes.
 # Roles are symlinked, so one run refreshes every tool at once.
 # A real file you put at a target path is never replaced without --force.
 #
@@ -23,6 +23,7 @@ SUPPORTED="claude opencode"
 
 MODE="install"
 TOOLS=""
+DROPPED=""
 FORCE=0
 ASSUME_YES=0
 MODIFIED=0
@@ -102,13 +103,17 @@ read_key() {
   dd if=/dev/tty bs=1 count=1 2>/dev/null | od -An -tx1 | tr -d '[:space:]'
 }
 
-# Interactive multi-select. Writes the chosen tools to stdout.
+# Interactive multi-select. The arguments name the pre-selected tools (none
+# pre-selected when called with none). Writes the chosen tools to stdout.
 pick_tools() {
   count=0
   for t in $SUPPORTED; do
     count=$((count + 1))
     eval "item_$count=\$t"
-    if tool_present "$t"; then eval "sel_$count=1"; else eval "sel_$count=0"; fi
+    case " $* " in
+      *" $t "*) eval "sel_$count=1" ;;
+      *)          eval "sel_$count=0" ;;
+    esac
   done
   cursor=1
 
@@ -168,6 +173,65 @@ pick_tools() {
   printf '%s' "$chosen"
 }
 
+# Single-select menu shown when a re-run finds an existing install. $1 lists
+# the installed tools. Writes refresh, tools, or uninstall to stdout.
+pick_action() {
+  count=3
+  cursor=1
+
+  saved=$(stty -g < /dev/tty)
+  # shellcheck disable=SC2064
+  trap "stty '$saved' < /dev/tty 2>/dev/null; printf '\033[?25h' > /dev/tty; exit 130" INT TERM
+  stty raw -echo < /dev/tty
+  printf '\033[?25l' > /dev/tty
+
+  printf '\r\n  Already installed for:%s\r\n\r\n' "$1" > /dev/tty
+  first=1
+  while :; do
+    [ "$first" -eq 1 ] || printf '\033[%dA' "$((count + 2))" > /dev/tty
+    first=0
+
+    i=0
+    for item in \
+      "Refresh        re-link everything, keeping the current tools" \
+      "Change tools   pick a different set; deselecting removes" \
+      "Uninstall      remove the role symlinks from every tool"
+    do
+      i=$((i + 1))
+      [ "$i" -eq "$cursor" ] && pointer="\033[36m>\033[0m" || pointer=" "
+      printf '\033[2K  %b %s\r\n' "$pointer" "$item" > /dev/tty
+    done
+    printf '\033[2K\r\n\033[2K  \033[2m%s\033[0m move  \033[2menter\033[0m confirm  \033[2mq\033[0m cancel\r\n' \
+      "up/down" > /dev/tty
+
+    key=$(read_key)
+    case "$key" in
+      "$KEY_ESC")
+        if [ "$(read_key)" = "$KEY_BRACKET" ]; then
+          case "$(read_key)" in
+            "$KEY_UP")   [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
+            "$KEY_DOWN") [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
+          esac
+        fi
+        ;;
+      "$KEY_K") [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
+      "$KEY_J") [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
+      "$KEY_CR"|"$KEY_LF") break ;;
+      "$KEY_Q"|"$KEY_NONE") stty "$saved" < /dev/tty; printf '\033[?25h\r\n' > /dev/tty; trap - INT TERM; return 1 ;;
+    esac
+  done
+
+  stty "$saved" < /dev/tty
+  printf '\033[?25h\r\n' > /dev/tty
+  trap - INT TERM
+
+  case "$cursor" in
+    1) printf 'refresh' ;;
+    2) printf 'tools' ;;
+    3) printf 'uninstall' ;;
+  esac
+}
+
 # ------------------------------------------------------------------ args ----
 
 while [ $# -gt 0 ]; do
@@ -222,9 +286,11 @@ fi
 
 # ----------------------------------------------------------------- tools ----
 
-# Re-running the install command is the update path, so anything already
-# installed is refreshed without a prompt. --yes still means "every detected
-# tool", which is how you add one to an existing install.
+# Re-running the install command is the update path. With a terminal attached,
+# an existing install offers refresh, changing the tool set, or uninstall;
+# without one (CI, cron) it refreshes in place and never blocks on a prompt.
+# --yes still means "every detected tool", which is how you add one to an
+# existing install without a terminal.
 INSTALLED=""
 if [ "$MODE" = "install" ]; then
   for t in $SUPPORTED; do tool_installed "$t" && INSTALLED="$INSTALLED $t"; done
@@ -235,10 +301,39 @@ if [ -n "$TOOLS" ]; then
 elif [ "$MODE" = "uninstall" ]; then
   TOOLS="$SUPPORTED"                  # sweep everything so nothing is orphaned
 elif [ -n "$INSTALLED" ] && [ "$ASSUME_YES" -eq 0 ]; then
-  TOOLS="$INSTALLED"                  # the update path
-  echo "Refreshing:$TOOLS"
+  if [ "$MODE" = "install" ] && have_tty; then
+    action=$(pick_action "$INSTALLED") || die "cancelled"
+    case "$action" in
+      refresh)
+        TOOLS="$INSTALLED"
+        echo "Refreshing:$TOOLS"
+        ;;
+      tools)
+        # shellcheck disable=SC2086 # word splitting turns the list into args
+        TOOLS=$(pick_tools $INSTALLED) || die "cancelled"
+        [ -n "$TOOLS" ] || die "no tool selected"
+        # A tool dropped from the set keeps nothing of ours behind.
+        for t in $INSTALLED; do
+          case " $TOOLS " in
+            *" $t "*) ;;
+            *) DROPPED="$DROPPED $t" ;;
+          esac
+        done
+        ;;
+      uninstall)
+        MODE="uninstall"
+        TOOLS="$SUPPORTED"            # sweep everything so nothing is orphaned
+        ;;
+    esac
+  else
+    TOOLS="$INSTALLED"                # the update path
+    echo "Refreshing:$TOOLS"
+  fi
 elif [ "$MODE" = "install" ] && [ "$ASSUME_YES" -eq 0 ] && have_tty; then
-  TOOLS=$(pick_tools) || die "cancelled"
+  PRESENT=""
+  for t in $SUPPORTED; do tool_present "$t" && PRESENT="$PRESENT $t"; done
+  # shellcheck disable=SC2086 # word splitting turns the list into args
+  TOOLS=$(pick_tools $PRESENT) || die "cancelled"
   [ -n "$TOOLS" ] || die "no tool selected"
 else
   for t in $SUPPORTED; do tool_present "$t" && TOOLS="$TOOLS $t"; done
@@ -288,7 +383,7 @@ install_one() {
   fi
 
   if [ "$MODE" = "uninstall" ]; then
-    [ -L "$dest" ] || return
+    [ -L "$dest" ] || return 0      # nothing of ours here; not an error
     rm "$dest"
     echo "  removed   $dest"
     return
@@ -305,7 +400,10 @@ install_one() {
   echo "  linked    $dest"
 }
 
-for t in $TOOLS; do
+# Link every role (and skill) into one tool's directories, or, with
+# MODE=uninstall, remove ours from it.
+sync_tool() {
+  t=$1
   echo "$(tool_label "$t")"
 
   target=$(tool_dir "$t")
@@ -316,14 +414,25 @@ for t in $TOOLS; do
     done
   fi
 
-  [ -d "$SRC_DIR/skills" ] || continue
+  [ -d "$SRC_DIR/skills" ] || return 0
   target=$(tool_skills_dir "$t")
   [ "$MODE" = "uninstall" ] || mkdir -p "$target"
-  [ -d "$target" ] || continue
+  [ -d "$target" ] || return 0
   for src in "$SRC_DIR"/skills/*/; do
     src=${src%/}
     install_one "$src" "$target/$(basename "$src")"
   done
+}
+
+if [ -n "$DROPPED" ]; then
+  saved_mode=$MODE
+  MODE="uninstall"
+  for t in $DROPPED; do sync_tool "$t"; done
+  MODE=$saved_mode
+fi
+
+for t in $TOOLS; do
+  sync_tool "$t"
 done
 
 case "$MODE" in
