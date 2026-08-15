@@ -27,7 +27,7 @@ Clones to `~/.local/share/role-based-agent`, then asks which tools to install in
 
 Roles are symlinked, so there is no second copy to fall behind. A real file you put at a target path is left alone unless you pass `--force`.
 
-Re-run the same command to update. A run that finds something already installed refreshes it without asking, so the picker appears only on a first install; the flags below remain the way to add a tool to an existing one.
+Re-run the same command and it becomes the entry point for the whole lifecycle. With an existing install and a terminal attached, a menu offers three actions: **refresh** the install in place, **change tools** (the same picker, with the installed set pre-selected — deselecting a tool removes its symlinks), or **uninstall** everything. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates. The flags below skip the menu entirely, so scripted callers see no change.
 
 ```bash
 ./install.sh --tool claude   # target one tool, skipping the picker
