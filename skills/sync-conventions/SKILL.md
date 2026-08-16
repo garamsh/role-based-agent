@@ -7,6 +7,8 @@ description: Bring a conventions template repository into this project and keep 
 
 One procedure covering three moments in a project's life: adopting a conventions template for the first time, bootstrapping the project on top of it, and pulling later template updates. Which one runs is decided by what the repository already has.
 
+The PM operates it: the conventions it rewrites are the PM's to maintain, and a user invoking the skill is the explicit instruction the PM needs to write the `Makefile`, hooks, and CI workflow Bootstrap 5 calls for.
+
 Everything lands via pull request. Never push to `main`.
 
 ## Principles
@@ -45,7 +47,7 @@ Read a file without touching the worktree with `git show template/main:<path>`, 
 | Convention documents present, several unrelated stack files, template README still in place | **Bootstrap** only |
 | Conventions present and already tailored to this project | **Update** |
 
-Confirm the mode with the user in one sentence before making changes.
+Confirm the mode with the user in one sentence before making changes. That one confirmation is deliberate — the rules this skill writes or adapts are agreed at the PR, not one at a time as it works.
 
 Pre-flight for every mode: `git status` is clean, and you are on a task branch, not `main`.
 
@@ -67,7 +69,7 @@ Pre-flight for every mode: `git status` is clean, and you are on a task branch, 
 6. **Initialize architecture documents.** Write one responsibility document per major domain, following the skeleton in the architecture README, record any initial decisions as ADRs, and fill in the index.
 7. **Write the project `README.md`** — what it is, who it is for, how to run it. Structure and modules belong in the architecture documents, not here.
 8. **Refresh the convention index** so its file list matches reality.
-9. **Open one PR** titled `chore: bootstrap project conventions`. Merging it is the PM's call, not the operator's.
+9. **Open one PR** titled `chore: bootstrap project conventions`. Merging it is the user's call: it settles the project's whole convention set at once.
 
 Do not invent conventions beyond the chosen stack's needs; the template defaults are the baseline.
 
