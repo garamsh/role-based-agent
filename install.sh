@@ -1,25 +1,17 @@
 #!/usr/bin/env sh
-# Install, update, or remove role definitions for Claude Code and opencode.
+# Install or update role definitions for Claude Code and opencode.
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
-# One command covers the lifecycle. With a terminal attached it lists every
-# supported tool, marking the installed set (the detected set on a first run);
-# enter takes that set and numbers narrow it. Without a terminal it just
-# refreshes. A real file or directory you put at a target path is never
-# replaced -- move it yourself and re-run.
+# Installing is all this does, and it takes no arguments. With a terminal
+# attached it lists every supported tool, marking the installed set (the
+# detected set on a first run); enter takes that set and numbers narrow it.
+# Without a terminal it just refreshes. A real file or directory you put at a
+# target path is never replaced -- move it yourself and re-run.
 #
-# Removing takes only symlinks of ours: a link is ours when its target names
-# <checkout>/agents/<name>.md or <checkout>/skills/<name> and the link carries
-# that same <name>. The target need not still exist, so a link left dangling by
-# deleting the checkout is still removed; while the checkout is on disk it has
-# to still hold agents/{pm,qa,worker}.md, so a link into an unrelated tree of
-# the same shape is left alone. uninstall.sh removes by that same definition.
+# Removing is uninstall.sh, the only script here that deletes anything:
 #
-#   --tool claude,opencode   install only to these, skipping the prompt
-#   --yes                    accept the detected tools without prompting
-#   --list                   show what would be targeted, then exit
-#   --uninstall              remove our symlinks from every known target
+#   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/uninstall.sh | sh
 set -eu
 
 REPO_URL="https://github.com/garamsh/role-based-agent.git"
@@ -27,13 +19,16 @@ INSTALL_DIR="${ROLE_AGENT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/role-based-a
 
 SUPPORTED="claude opencode"
 
-MODE="install"
-TOOLS=""
-ASSUME_YES=0
 MODIFIED=0
 CHANGED=0
 
 die() { echo "error: $*" >&2; exit 1; }
+
+# No flags at all: this script installs, uninstall.sh removes. An argument is a
+# caller reaching for an option that no longer exists, and ignoring it would be
+# worse than refusing -- a stale `--uninstall` would install where it was meant
+# to remove.
+[ $# -eq 0 ] || die "install.sh takes no arguments (got: $1); to remove, run uninstall.sh"
 
 # Where each tool keeps user-level agent definitions.
 tool_dir() {
@@ -119,27 +114,8 @@ choose_tools() {
     [ -n "$_picked" ] && { printf '%s' "$_picked"; return 0; }
     echo "  not a choice on the list: $_reply" > /dev/tty
   done
-  die "no valid choice after 3 tries; name the tools with --tool instead"
+  die "no valid choice after 3 tries"
 }
-
-# ------------------------------------------------------------------ args ----
-
-while [ $# -gt 0 ]; do
-  case "$1" in
-    --uninstall) MODE="uninstall" ;;
-    --list) MODE="list" ;;
-    --yes|-y) ASSUME_YES=1 ;;
-    --tool) [ $# -ge 2 ] || die "--tool needs a value"
-            TOOLS=$(echo "$2" | tr ',' ' '); shift ;;
-    --tool=*) TOOLS=$(echo "${1#--tool=}" | tr ',' ' ') ;;
-    # Lines 2-22 are the header block above; keep the range in sync with it.
-    --help|-h) sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
-    *) die "unknown option: $1" ;;
-  esac
-  shift
-done
-
-[ -n "$TOOLS" ] && for t in $TOOLS; do tool_dir "$t" >/dev/null; done
 
 # ---------------------------------------------------------------- source ----
 
@@ -156,28 +132,17 @@ case "$0" in
 esac
 
 if [ -z "$SRC_DIR" ]; then
-  if [ "$MODE" = "uninstall" ]; then
-    # Uninstalling needs a checkout only for the names to sweep, so an existing
-    # one at INSTALL_DIR will do -- cloning the repo in order to delete symlinks
-    # would be absurd, and updating it would be pointless. This is the only
-    # place the piped form can honour ROLE_AGENT_DIR for --uninstall: the
-    # clone-or-update block below never runs in this mode.
-    [ -d "$INSTALL_DIR/agents" ] ||
-      die "run --uninstall from a clone, point ROLE_AGENT_DIR at one, or use uninstall.sh"
-    SRC_DIR="$INSTALL_DIR"
-  else
-    command -v git >/dev/null 2>&1 || die "git is required to install from a URL"
+  command -v git >/dev/null 2>&1 || die "git is required to install from a URL"
 
-    if [ -d "$INSTALL_DIR/.git" ]; then
-      echo "Updating $INSTALL_DIR"
-      git -C "$INSTALL_DIR" pull --ff-only -q || die "could not fast-forward $INSTALL_DIR"
-    else
-      echo "Cloning into $INSTALL_DIR"
-      mkdir -p "$(dirname "$INSTALL_DIR")"
-      git clone -q "$REPO_URL" "$INSTALL_DIR" || die "clone failed"
-    fi
-    SRC_DIR="$INSTALL_DIR"
+  if [ -d "$INSTALL_DIR/.git" ]; then
+    echo "Updating $INSTALL_DIR"
+    git -C "$INSTALL_DIR" pull --ff-only -q || die "could not fast-forward $INSTALL_DIR"
+  else
+    echo "Cloning into $INSTALL_DIR"
+    mkdir -p "$(dirname "$INSTALL_DIR")"
+    git clone -q "$REPO_URL" "$INSTALL_DIR" || die "clone failed"
   fi
+  SRC_DIR="$INSTALL_DIR"
 fi
 
 [ -d "$SRC_DIR/agents" ] || die "no agents/ directory in $SRC_DIR"
@@ -186,22 +151,16 @@ fi
 
 # Re-running the install command is the update path. With a terminal attached
 # the prompt lists every supported tool with the installed set marked, and
-# enter refreshes exactly that set; narrowing only limits what is refreshed,
-# since removing is what --uninstall is for. Without a terminal (CI, cron) the
-# run refreshes in place and never blocks on a prompt. --yes still means "every
-# detected tool", which is how you add one to an existing install unattended.
+# enter refreshes exactly that set; narrowing only limits what is refreshed and
+# never removes, since uninstall.sh is the only thing that deletes. Without a
+# terminal (CI, cron) the run refreshes in place and never blocks on a prompt,
+# which is what keeps the one-liner safe for unattended updates.
 INSTALLED=""
-if [ "$MODE" = "install" ]; then
-  for t in $SUPPORTED; do tool_installed "$t" && INSTALLED="$INSTALLED $t"; done
-fi
+for t in $SUPPORTED; do tool_installed "$t" && INSTALLED="$INSTALLED $t"; done
 DETECTED=""
 for t in $SUPPORTED; do tool_present "$t" && DETECTED="$DETECTED $t"; done
 
-if [ -n "$TOOLS" ]; then
-  :                                   # explicit --tool wins
-elif [ "$MODE" = "uninstall" ]; then
-  TOOLS="$SUPPORTED"                  # sweep everything so nothing is orphaned
-elif [ -n "$INSTALLED" ] && [ "$ASSUME_YES" -eq 0 ]; then
+if [ -n "$INSTALLED" ]; then
   if have_tty; then
     PROMPT_TITLE="Update role definitions in:"
     PROMPT_TAG="installed"
@@ -210,7 +169,7 @@ elif [ -n "$INSTALLED" ] && [ "$ASSUME_YES" -eq 0 ]; then
     TOOLS="$INSTALLED"                # the update path
     echo "Refreshing:$TOOLS"
   fi
-elif [ "$MODE" = "install" ] && [ "$ASSUME_YES" -eq 0 ] && have_tty; then
+elif have_tty; then
   PROMPT_TITLE="Install role definitions into:"
   PROMPT_TAG="detected"
   TOOLS=$(choose_tools "$DETECTED")
@@ -219,55 +178,20 @@ else
   [ -n "$TOOLS" ] && echo "Detected:$TOOLS"
 fi
 
-[ -n "$TOOLS" ] || die "no supported tool found (looked for: $SUPPORTED). Use --tool to force one."
-
-if [ "$MODE" = "list" ]; then
-  for t in $TOOLS; do echo "$t  ->  $(tool_dir "$t")"; done
-  exit 0
-fi
+[ -n "$TOOLS" ] || die "no supported tool found (looked for: $SUPPORTED)"
 
 # --------------------------------------------------------------- install ----
 
-# A symlink is ours when its target names <root>/agents/<name>.md or
-# <root>/skills/<name> and the link carries that same <name> -- which is how
-# install.sh writes them, and nothing else does. The check is on the link text,
-# not on what it resolves to, because deleting the checkout before uninstalling
-# is the normal order and leaves every link of ours dangling but still named.
-# While <root> is on disk it still has to look like a checkout, so a link into
-# an unrelated tree that happens to share the shape is not claimed.
-#
-# uninstall.sh is curl-piped standalone and cannot source install.sh, so the
-# two scripts carry byte-identical copies of ours(). Change one, change the
-# other; each script's header states this definition.
-ours() {
-  [ -L "$1" ] || return 1
-  _target=$(readlink "$1")
-  case "$_target" in */agents/*.md|*/skills/*) ;; *) return 1 ;; esac
-  [ "$(basename "$_target")" = "$(basename "$1")" ] || return 1
-  _root=$(dirname "$(dirname "$_target")")
-  [ -d "$_root" ] || return 0         # checkout gone: the link text is all there is
-  [ -f "$_root/agents/pm.md" ] && [ -f "$_root/agents/qa.md" ] &&
-    [ -f "$_root/agents/worker.md" ]
-}
-
-# Only symlinks of ours are ours to manage. A real file or directory at a target
-# path belongs to the user and is left alone.
+# Only symlinks are ours to replace. A real file or directory at a target path
+# belongs to the user and is left alone.
 #
 # Every branch ends by checking the disk rather than trusting the command it
 # just ran: the reported outcome is what is at $dest now, not which branch got
 # there. That is what kept `linked` from being printed over an untouched
-# directory, and what keeps a removal from claiming a link it left behind.
+# directory.
 install_one() {
   src="$1"
   dest="$2"
-
-  if [ "$MODE" = "uninstall" ]; then
-    ours "$dest" || return 0          # nothing of ours here; not an error
-    rm "$dest"
-    if ours "$dest"; then die "could not remove $dest"; fi
-    echo "  removed   $dest"
-    return
-  fi
 
   # `ln -sfn` cannot replace a real directory: -n only stops it following a
   # *symlink* to one, so against a real directory it drops the link inside it
@@ -291,24 +215,20 @@ install_one() {
   echo "  linked    $dest"
 }
 
-# Link every role (and skill) into one tool's directories, or, with
-# MODE=uninstall, remove ours from it.
+# Link every role (and skill) into one tool's directories.
 sync_tool() {
   t=$1
   tool_label "$t"
 
   target=$(tool_dir "$t")
-  [ "$MODE" = "uninstall" ] || mkdir -p "$target"
-  if [ -d "$target" ]; then
-    for src in "$SRC_DIR"/agents/*.md; do
-      install_one "$src" "$target/$(basename "$src")"
-    done
-  fi
+  mkdir -p "$target"
+  for src in "$SRC_DIR"/agents/*.md; do
+    install_one "$src" "$target/$(basename "$src")"
+  done
 
   [ -d "$SRC_DIR/skills" ] || return 0
   target=$(tool_skills_dir "$t")
-  [ "$MODE" = "uninstall" ] || mkdir -p "$target"
-  [ -d "$target" ] || return 0
+  mkdir -p "$target"
   for src in "$SRC_DIR"/skills/*/; do
     src=${src%/}
     install_one "$src" "$target/$(basename "$src")"
@@ -319,12 +239,8 @@ for t in $TOOLS; do
   sync_tool "$t"
 done
 
-case "$MODE" in
-  install)
-    echo
-    [ "$CHANGED" -eq 0 ] && echo "Already up to date."
-    [ "$MODIFIED" -gt 0 ] && echo "$MODIFIED path(s) left alone because something of yours sits there."
-    echo "Source: $SRC_DIR"
-    echo "Start a session in a role with:  claude --agent pm  |  opencode --agent pm"
-    ;;
-esac
+echo
+[ "$CHANGED" -eq 0 ] && echo "Already up to date."
+[ "$MODIFIED" -gt 0 ] && echo "$MODIFIED path(s) left alone because something of yours sits there."
+echo "Source: $SRC_DIR"
+echo "Start a session in a role with:  claude --agent pm  |  opencode --agent pm"
