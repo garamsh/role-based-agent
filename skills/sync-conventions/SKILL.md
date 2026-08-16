@@ -25,7 +25,7 @@ git remote -v | grep '^template'
 ```
 
 - **Remote exists** — that is the template. Use it.
-- **No remote** — ask the user for the template repository URL, then record it once:
+- **No remote** — ask the user for the template repository URL. Then record it once:
   ```bash
   git remote add template <template-repo-url>
   ```
@@ -37,7 +37,8 @@ Then fetch, which touches `refs/remotes/template/*` only:
 git fetch template
 ```
 
-Read a file without touching the worktree with `git show template/main:<path>`, and copy one verbatim with `git checkout template/main -- <path>`.
+Read a file without touching the worktree with `git show template/main:<path>`.
+Copy one verbatim with `git checkout template/main -- <path>`.
 
 ## Step 1 — Decide which mode applies
 
@@ -53,29 +54,65 @@ Pre-flight for every mode: `git status` is clean, and you are on a task branch, 
 
 ## Adopt — bring the template in
 
-1. **Choose the set.** The agent contract file (`AGENTS.md` and, for Claude Code, a `CLAUDE.md` that imports it), the convention documents the project will actually enforce plus only the matching `stack-*.md`, the architecture document skeleton, and the shared GitHub templates. Skip the template's own `README.md` — the project keeps its own.
-2. **Copy verbatim.** If a target directory already exists, copy only the missing subpaths; never overwrite an existing project file.
-3. **Adapt the touch points.** Append missing `.gitignore` lines while keeping existing ones. Replace the CODEOWNERS placeholder with the real owner. Everything else stays verbatim.
-4. **Verify.** `git status` shows only the intended paths, and no project file changed unexpectedly.
+1. **Choose the set.**
+
+   - the agent contract file (`AGENTS.md` and, for Claude Code, a `CLAUDE.md` that imports it).
+   - the convention documents the project will actually enforce, plus only the matching `stack-*.md`.
+   - the architecture document skeleton.
+   - the shared GitHub templates.
+
+   Skip the template's own `README.md` — the project keeps its own.
+
+2. **Copy verbatim.**
+   If a target directory already exists, copy only the missing subpaths; never overwrite an existing project file.
+
+3. **Adapt the touch points.**
+   Append missing `.gitignore` lines while keeping existing ones.
+   Replace the CODEOWNERS placeholder with the real owner.
+   Everything else stays verbatim.
+
+4. **Verify.**
+   `git status` shows only the intended paths, and no project file changed unexpectedly.
+
 5. Continue into **Bootstrap**.
 
 ## Bootstrap — make the template this project's
 
-1. **Identify the project.** Ask the user, or infer from existing code: purpose, primary stack, and tooling (package manager, linter, formatter, test runner).
-2. **Select stack conventions.** Keep only the `stack-*.md` files matching the stack and delete the rest. If none matches, write one in the same style as the existing stack files — concise rules, no fluff.
-3. **Adapt the neutral conventions.** Review every convention file that is not stack-specific and adjust whatever conflicts with the chosen stack. Do not pad them with restated content.
-4. **Extend `.gitignore`** with the stack's template from the `github/gitignore` collection. Fetch the current content; do not write it from memory.
-5. **Set up CI plumbing.** Create the `Makefile` and git hook configuration the CI convention describes, using the project's real commands. Add a CI workflow if the project will run automated checks.
-6. **Initialize architecture documents.** Write one responsibility document per major domain, following the skeleton in the architecture README, record any initial decisions as ADRs, and fill in the index.
-7. **Write the project `README.md`** — what it is, who it is for, how to run it. Structure and modules belong in the architecture documents, not here.
+1. **Identify the project.**
+   Ask the user, or infer from existing code: purpose, primary stack, and tooling (package manager, linter, formatter, test runner).
+
+2. **Select stack conventions.**
+   Keep only the `stack-*.md` files matching the stack and delete the rest.
+   If none matches, write one in the same style as the existing stack files — concise rules, no fluff.
+
+3. **Adapt the neutral conventions.**
+   Review every convention file that is not stack-specific and adjust whatever conflicts with the chosen stack.
+   Do not pad them with restated content.
+
+4. **Extend `.gitignore`** with the stack's template from the `github/gitignore` collection.
+   Fetch the current content; do not write it from memory.
+
+5. **Set up CI plumbing.**
+   Create the `Makefile` and git hook configuration the CI convention describes, using the project's real commands.
+   Add a CI workflow if the project will run automated checks.
+
+6. **Initialize architecture documents.**
+   Write one responsibility document per major domain, following the skeleton in the architecture README, record any initial decisions as ADRs, and fill in the index.
+
+7. **Write the project `README.md`** — what it is, who it is for, how to run it.
+   Structure and modules belong in the architecture documents, not here.
+
 8. **Refresh the convention index** so its file list matches reality.
-9. **Open one PR** titled `chore: bootstrap project conventions`. Merging it is the user's call: it settles the project's whole convention set at once.
+
+9. **Open one PR** titled `chore: bootstrap project conventions`.
+   Merging it is the user's call: it settles the project's whole convention set at once.
 
 Do not invent conventions beyond the chosen stack's needs; the template defaults are the baseline.
 
 ## Update — pull a newer template version
 
 1. `git fetch template`, then compare per file with `git diff main template/main -- <path>`.
+
 2. Classify before adopting:
 
 | Category | Paths | Action |
@@ -84,7 +121,8 @@ Do not invent conventions beyond the chosen stack's needs; the template defaults
 | Compare hunks | stack-neutral convention files, `AGENTS.md` | adopt improvements, keep deliberate local changes |
 | Never touch | architecture documents, `README.md`, `stack-*.md`, source | project-owned |
 
-3. Open one PR titled `chore: sync template updates`. The body lists what was adopted, adapted, and deliberately skipped — skipped items are not re-proposed on later syncs.
+3. Open one PR titled `chore: sync template updates`.
+   The body lists what was adopted, adapted, and deliberately skipped — skipped items are not re-proposed on later syncs.
 
 ## Rules
 
