@@ -7,13 +7,21 @@
 # the installed set pre-selected (the detected set on first run); confirming
 # links the kept tools and removes ours from the unchecked ones. Check none to
 # remove everything, or run uninstall.sh. Without a terminal it just refreshes.
-# A real file you put at a target path is never replaced without --force.
+# A real file or directory you put at a target path is never replaced without
+# --force.
+#
+# Removing takes only symlinks of ours: a link is ours when its target names
+# <checkout>/agents/<name>.md or <checkout>/skills/<name> and the link carries
+# that same <name>. The target need not still exist, so a link left dangling by
+# deleting the checkout is still removed; while the checkout is on disk it has
+# to still hold agents/{pm,qa,worker}.md, so a link into an unrelated tree of
+# the same shape is left alone. uninstall.sh removes by that same definition.
 #
 #   --tool claude,opencode   install only to these, skipping the picker
 #   --yes                    accept the detected tools without prompting
-#   --force                  replace a real file sitting at a target path
+#   --force                  replace a real file or directory at a target path
 #   --list                   show what would be targeted, then exit
-#   --uninstall              remove the symlinks from every known target
+#   --uninstall              remove our symlinks from every known target
 set -eu
 
 REPO_URL="https://github.com/garamsh/role-based-agent.git"
@@ -185,8 +193,8 @@ while [ $# -gt 0 ]; do
     --tool) [ $# -ge 2 ] || die "--tool needs a value"
             TOOLS=$(echo "$2" | tr ',' ' '); shift ;;
     --tool=*) TOOLS=$(echo "${1#--tool=}" | tr ',' ' ') ;;
-    # Lines 2-16 are the header block above; keep the range in sync with it.
-    --help|-h) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    # Lines 2-24 are the header block above; keep the range in sync with it.
+    --help|-h) sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) die "unknown option: $1" ;;
   esac
   shift
@@ -208,20 +216,28 @@ case "$0" in
 esac
 
 if [ -z "$SRC_DIR" ]; then
-  case "$MODE" in
-    uninstall) die "run --uninstall from a clone, or set ROLE_AGENT_DIR" ;;
-  esac
-  command -v git >/dev/null 2>&1 || die "git is required to install from a URL"
-
-  if [ -d "$INSTALL_DIR/.git" ]; then
-    echo "Updating $INSTALL_DIR"
-    git -C "$INSTALL_DIR" pull --ff-only -q || die "could not fast-forward $INSTALL_DIR"
+  if [ "$MODE" = "uninstall" ]; then
+    # Uninstalling needs a checkout only for the names to sweep, so an existing
+    # one at INSTALL_DIR will do -- cloning the repo in order to delete symlinks
+    # would be absurd, and updating it would be pointless. This is the only
+    # place the piped form can honour ROLE_AGENT_DIR for --uninstall: the
+    # clone-or-update block below never runs in this mode.
+    [ -d "$INSTALL_DIR/agents" ] ||
+      die "run --uninstall from a clone, point ROLE_AGENT_DIR at one, or use uninstall.sh"
+    SRC_DIR="$INSTALL_DIR"
   else
-    echo "Cloning into $INSTALL_DIR"
-    mkdir -p "$(dirname "$INSTALL_DIR")"
-    git clone -q "$REPO_URL" "$INSTALL_DIR" || die "clone failed"
+    command -v git >/dev/null 2>&1 || die "git is required to install from a URL"
+
+    if [ -d "$INSTALL_DIR/.git" ]; then
+      echo "Updating $INSTALL_DIR"
+      git -C "$INSTALL_DIR" pull --ff-only -q || die "could not fast-forward $INSTALL_DIR"
+    else
+      echo "Cloning into $INSTALL_DIR"
+      mkdir -p "$(dirname "$INSTALL_DIR")"
+      git clone -q "$REPO_URL" "$INSTALL_DIR" || die "clone failed"
+    fi
+    SRC_DIR="$INSTALL_DIR"
   fi
-  SRC_DIR="$INSTALL_DIR"
 fi
 
 [ -d "$SRC_DIR/agents" ] || die "no agents/ directory in $SRC_DIR"
@@ -304,25 +320,84 @@ announce_repoint() {
   echo "  repointed from $old"
 }
 
-# Only symlinks are ours to manage. A real file at a target path belongs to the
-# user and is left alone unless --force says otherwise.
+# A symlink is ours when its target names <root>/agents/<name>.md or
+# <root>/skills/<name> and the link carries that same <name> -- which is how
+# install.sh writes them, and nothing else does. The check is on the link text,
+# not on what it resolves to, because deleting the checkout before uninstalling
+# is the normal order and leaves every link of ours dangling but still named.
+# While <root> is on disk it still has to look like a checkout, so a link into
+# an unrelated tree that happens to share the shape is not claimed.
+#
+# uninstall.sh is curl-piped standalone (README:42) and cannot source install.sh,
+# so the two scripts carry byte-identical copies of ours() and ours_link().
+# Change one, change the other; each script's header states this definition.
+ours() {
+  _target=$(readlink "$1") || return 1
+  case "$_target" in
+    */agents/*.md|*/skills/*) ;;
+    *) return 1 ;;
+  esac
+  [ "$(basename "$_target")" = "$(basename "$1")" ] || return 1
+  _root=$(dirname "$(dirname "$_target")")
+  [ -d "$_root" ] || return 0         # checkout gone: the link text is all there is
+  [ -f "$_root/agents/pm.md" ] && [ -f "$_root/agents/qa.md" ] &&
+    [ -f "$_root/agents/worker.md" ]
+}
+
+# Prints the one link of ours sitting at $1, or fails and prints nothing.
+ours_link() {
+  if [ -L "$1" ]; then
+    ours "$1" || return 1
+    echo "$1"
+    return 0
+  fi
+  # A real directory at a target path swallows a link aimed at it rather than
+  # being replaced by it, so a run from before install.sh learned to clear the
+  # path under --force can have left one nested inside, under the directory's
+  # own name. Nothing else looks there.
+  _nested="$1/$(basename "$1")"
+  if [ ! -d "$1" ] || [ ! -L "$_nested" ]; then
+    return 1
+  fi
+  ours "$_nested" || return 1
+  echo "$_nested"
+}
+
+# Only symlinks of ours are ours to manage. A real file or directory at a target
+# path belongs to the user and is left alone unless --force says otherwise.
+#
+# Every branch ends by checking the disk rather than trusting the command it
+# just ran: the reported outcome is what is at $dest now, not which branch got
+# there. That is what kept `linked` from being printed over an untouched
+# directory, and what keeps a removal from claiming a link it left behind.
 install_one() {
   src="$1"
   dest="$2"
 
+  if [ "$MODE" = "uninstall" ]; then
+    _link=$(ours_link "$dest") || return 0   # nothing of ours here; not an error
+    rm "$_link"
+    if ours_link "$dest" >/dev/null; then
+      die "could not remove $_link"
+    fi
+    echo "  removed   $_link"
+    return
+  fi
+
   if [ -e "$dest" ] && [ ! -L "$dest" ]; then
-    if [ "$MODE" = "uninstall" ] || [ "$FORCE" -eq 0 ]; then
-      echo "  kept      $dest (your own file; --force to replace)" >&2
+    if [ "$FORCE" -eq 0 ]; then
+      if [ -d "$dest" ]; then _what="directory"; else _what="file"; fi
+      echo "  kept      $dest (your own $_what; --force to replace)" >&2
       MODIFIED=$((MODIFIED + 1))
       return
     fi
-  fi
-
-  if [ "$MODE" = "uninstall" ]; then
-    [ -L "$dest" ] || return 0      # nothing of ours here; not an error
-    rm "$dest"
-    echo "  removed   $dest"
-    return
+    # `ln -sfn` cannot replace a real directory: -n only stops it following a
+    # *symlink* to one, so against a real directory it drops the link inside
+    # instead. --force has to clear the path itself first.
+    if [ -d "$dest" ]; then
+      echo "  replaced  $dest (was a directory)"
+    fi
+    rm -rf "$dest" || die "could not replace $dest"
   fi
 
   if [ -L "$dest" ]; then
@@ -332,6 +407,9 @@ install_one() {
   fi
 
   ln -sfn "$src" "$dest"
+  if [ ! -L "$dest" ] || [ "$(readlink "$dest")" != "$src" ]; then
+    die "could not link $dest -> $src"
+  fi
   CHANGED=$((CHANGED + 1))
   echo "  linked    $dest"
 }
@@ -375,7 +453,7 @@ case "$MODE" in
   install)
     echo
     [ "$CHANGED" -eq 0 ] && echo "Already up to date."
-    [ "$MODIFIED" -gt 0 ] && echo "$MODIFIED path(s) left alone because a real file sits there."
+    [ "$MODIFIED" -gt 0 ] && echo "$MODIFIED path(s) left alone because something of yours sits there."
     echo "Source: $SRC_DIR"
     echo "Start a session in a role with:  claude --agent pm  |  opencode --agent pm"
     ;;
