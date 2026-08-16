@@ -25,15 +25,16 @@ Clones to `~/.local/share/role-based-agent`, then asks which tools to install in
 | Claude Code | `~/.claude/{agents,skills}/` | `claude` on `PATH`, or `~/.claude/` exists |
 | opencode | `~/.config/opencode/{agents,skills}/` | `opencode` on `PATH`, or `~/.config/opencode/` exists |
 
-Roles are symlinked, so there is no second copy to fall behind. A real file you put at a target path is left alone unless you pass `--force`.
+Roles and skills are symlinked, so there is no second copy to fall behind. A real file or directory you put at a target path is left alone unless you pass `--force`.
 
-Re-run the same command and the picker lists every supported tool with your installed set pre-selected: confirm to refresh in place, uncheck a tool to remove its symlinks, uncheck all to remove everything. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates. The flags below skip the picker entirely, so scripted callers see no change.
+Re-run the same command and the picker lists every supported tool with your installed set pre-selected: confirm to refresh in place, uncheck a tool to remove its symlinks, uncheck all to remove everything. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates. `--force` aside, the flags below skip the picker entirely, so scripted callers see no change.
 
 ```bash
 ./install.sh --tool claude   # target one tool, skipping the picker
 ./install.sh --yes           # accept detected tools without prompting
 ./install.sh --list          # show targets and exit
 ./install.sh --uninstall     # remove the symlinks
+./install.sh --force         # replace a real file or directory at a target path
 ```
 
 To remove everything without a clone at hand:
@@ -42,7 +43,7 @@ To remove everything without a clone at hand:
 curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/uninstall.sh | sh
 ```
 
-It removes only symlinks pointing into a role-based-agent checkout; real files are never touched.
+It removes only symlinks that name a role-based-agent checkout — by the link's text, not by what it still resolves to, so deleting the checkout first leaves nothing behind — and never touches real files or directories.
 
 To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. `ROLE_AGENT_DIR` overrides the clone location for the piped form. Requires `git`.
 
