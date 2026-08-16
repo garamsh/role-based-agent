@@ -8,6 +8,10 @@ One skill ships alongside them. `sync-conventions` brings a conventions template
 
 These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. The roles name no paths and assume no file layout: each finds the rules through whatever entry point the project gives contributors, then treats them as binding.
 
+Changing this repository has its own rules, in `CONVENTIONS.md`: what the two
+shell scripts may and may not do, how a change to either is verified, and what
+a role document is allowed to become.
+
 They do assume a project that keeps its conventions in writing — an index of rules, a template saying what a pull request must state, documentation describing the system's shape. On a repository with none of that, the roles still work but have little to enforce.
 
 Nothing here names a platform. The PM's dispatch rule says only that a host may ship procedure guides of its own, and that you load the ones covering your next action rather than working from memory. It does not say which host, or which commands — a host that ships guides advertises them itself, and its own copy is the one that cannot drift from the binary you are about to run. A summary kept here could only go stale, so there is none.
