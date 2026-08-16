@@ -18,23 +18,22 @@ Among the roles, one platform appears by name, in one place. The PM has an `Orca
 curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 ```
 
-Clones to `~/.local/share/role-based-agent`, then asks which tools to install into — arrows move, space toggles, enter confirms. Tools found on the host are pre-selected:
+Clones to `~/.local/share/role-based-agent`, then lists the supported tools and asks which to install into. Tools found on the host are marked; enter takes them, numbers narrow the set:
 
 | Tool | Targets | Detected by |
 |---|---|---|
 | Claude Code | `~/.claude/{agents,skills}/` | `claude` on `PATH`, or `~/.claude/` exists |
 | opencode | `~/.config/opencode/{agents,skills}/` | `opencode` on `PATH`, or `~/.config/opencode/` exists |
 
-Roles and skills are symlinked, so there is no second copy to fall behind. A real file or directory you put at a target path is left alone unless you pass `--force`.
+Roles and skills are symlinked, so there is no second copy to fall behind. A real file or directory you put at a target path is left alone and reported as kept — move it yourself and re-run to link there.
 
-Re-run the same command and the picker lists every supported tool with your installed set pre-selected: confirm to refresh in place, uncheck a tool to remove its symlinks, uncheck all to remove everything. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates. `--force` aside, the flags below skip the picker entirely, so scripted callers see no change.
+Re-run the same command to update: the prompt lists every supported tool with your installed set marked, and enter refreshes exactly that set. Narrowing only limits what is refreshed; removing a tool's symlinks is `--tool <name> --uninstall`. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates. The flags below skip the prompt entirely, so scripted callers see no change.
 
 ```bash
-./install.sh --tool claude   # target one tool, skipping the picker
+./install.sh --tool claude   # target one tool, skipping the prompt
 ./install.sh --yes           # accept detected tools without prompting
 ./install.sh --list          # show targets and exit
 ./install.sh --uninstall     # remove the symlinks
-./install.sh --force         # replace a real file or directory at a target path
 ```
 
 To remove everything without a clone at hand:
