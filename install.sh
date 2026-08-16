@@ -3,12 +3,11 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
-# One command covers the lifecycle. The picker lists every supported tool with
-# the installed set pre-selected (the detected set on first run); confirming
-# links the kept tools and removes ours from the unchecked ones. Check none to
-# remove everything, or run uninstall.sh. Without a terminal it just refreshes.
-# A real file or directory you put at a target path is never replaced without
-# --force.
+# One command covers the lifecycle. With a terminal attached it lists every
+# supported tool, marking the installed set (the detected set on a first run);
+# enter takes that set and numbers narrow it. Without a terminal it just
+# refreshes. A real file or directory you put at a target path is never
+# replaced -- move it yourself and re-run.
 #
 # Removing takes only symlinks of ours: a link is ours when its target names
 # <checkout>/agents/<name>.md or <checkout>/skills/<name> and the link carries
@@ -17,9 +16,8 @@
 # to still hold agents/{pm,qa,worker}.md, so a link into an unrelated tree of
 # the same shape is left alone. uninstall.sh removes by that same definition.
 #
-#   --tool claude,opencode   install only to these, skipping the picker
+#   --tool claude,opencode   install only to these, skipping the prompt
 #   --yes                    accept the detected tools without prompting
-#   --force                  replace a real file or directory at a target path
 #   --list                   show what would be targeted, then exit
 #   --uninstall              remove our symlinks from every known target
 set -eu
@@ -31,12 +29,9 @@ SUPPORTED="claude opencode"
 
 MODE="install"
 TOOLS=""
-DROPPED=""
-FORCE=0
 ASSUME_YES=0
 MODIFIED=0
 CHANGED=0
-REPOINTED=""
 
 die() { echo "error: $*" >&2; exit 1; }
 
@@ -75,7 +70,7 @@ tool_present() {
 }
 
 # Already has at least one role symlink installed. A real file at a target path
-# is the user's own, so it does not count as ours and still needs the picker.
+# is the user's own, so it does not count as ours and still needs the prompt.
 tool_installed() {
   d=$(tool_dir "$1")
   [ -d "$d" ] || return 1
@@ -90,100 +85,41 @@ tool_installed() {
 # too late to catch it. The group's redirect is in place first, so it does.
 have_tty() { [ -c /dev/tty ] && { stty -g < /dev/tty >/dev/null; } 2>/dev/null; }
 
-# ---------------------------------------------------------------- picker ----
+# ---------------------------------------------------------------- prompt ----
 
-# Keys as raw byte values: $( ) strips trailing newlines, so a control key
-# carried through as text is indistinguishable from an empty read.
-KEY_CR=0d
-KEY_LF=0a
-KEY_SPACE=20
-KEY_Q=71
-KEY_K=6b
-KEY_J=6a
-KEY_ESC=1b
-KEY_BRACKET=5b                        # arrows arrive as ESC [ A / ESC [ B
-KEY_UP=41
-KEY_DOWN=42
-KEY_NONE=                             # end of input: the terminal went away
-
-# Read one keystroke from the terminal, as two hex digits, or nothing at EOF.
-read_key() {
-  dd if=/dev/tty bs=1 count=1 2>/dev/null | od -An -tx1 | tr -d '[:space:]'
-}
-
-# Interactive multi-select. PICKER_TITLE is the heading; the arguments name
-# the pre-selected tools (none pre-selected when called with none). Writes the
-# chosen tools to stdout.
-pick_tools() {
-  count=0
-  for t in $SUPPORTED; do
-    count=$((count + 1))
-    eval "item_$count=\$t"
-    case " $* " in
-      *" $t "*) eval "sel_$count=1" ;;
-      *)          eval "sel_$count=0" ;;
-    esac
+# Ask which tools to target. $1 is the default set, marked in the list with
+# PROMPT_TAG and returned on empty input; the chosen tools go to stdout, so
+# every line of the prompt itself goes to the terminal. Reading /dev/tty rather
+# than stdin is what leaves `curl ... | sh` able to ask at all.
+choose_tools() {
+  _default=$1
+  { echo; echo "  $PROMPT_TITLE"; echo; } > /dev/tty
+  _i=0
+  for _t in $SUPPORTED; do
+    _i=$((_i + 1))
+    case " $_default " in *" $_t "*) _tag="  [$PROMPT_TAG]" ;; *) _tag="" ;; esac
+    printf '    %d) %-12s %s/{agents,skills}/%s\n' \
+      "$_i" "$(tool_label "$_t")" "$(dirname "$(tool_dir "$_t")")" "$_tag" > /dev/tty
   done
-  cursor=1
 
-  saved=$(stty -g < /dev/tty)
-  # shellcheck disable=SC2064
-  trap "stty '$saved' < /dev/tty 2>/dev/null; printf '\033[?25h' > /dev/tty; exit 130" INT TERM
-  stty raw -echo < /dev/tty
-  printf '\033[?25l' > /dev/tty
-
-  printf '\r\n  %s\r\n\r\n' "$PICKER_TITLE" > /dev/tty
-  first=1
-  while :; do
-    [ "$first" -eq 1 ] || printf '\033[%dA' "$((count + 2))" > /dev/tty
-    first=0
-
-    i=0
-    for t in $SUPPORTED; do
-      i=$((i + 1))
-      eval "s=\$sel_$i"
-      # shellcheck disable=SC2154 # the eval above is what assigns s
-      [ "$s" -eq 1 ] && mark="x" || mark=" "
-      [ "$i" -eq "$cursor" ] && pointer="\033[36m>\033[0m" || pointer=" "
-      printf '\033[2K  %b [%s] %-12s %s\r\n' \
-        "$pointer" "$mark" "$(tool_label "$t")" "$(tool_dir "$t")" > /dev/tty
+  _try=0
+  while [ "$_try" -lt 3 ]; do
+    _try=$((_try + 1))
+    printf '\n  Enter to accept the marked set, or numbers to narrow (e.g. 1): ' > /dev/tty
+    read -r _reply < /dev/tty || _reply=""
+    [ -n "$_reply" ] || { printf '%s' "$_default"; return 0; }
+    _picked=""
+    for _n in $(echo "$_reply" | tr ',' ' '); do
+      _j=0
+      _t=""
+      for _s in $SUPPORTED; do _j=$((_j + 1)); [ "$_n" = "$_j" ] && _t=$_s; done
+      [ -n "$_t" ] || { _picked=""; break; }
+      case " $_picked " in *" $_t "*) ;; *) _picked="$_picked $_t" ;; esac
     done
-    printf '\033[2K\r\n\033[2K  \033[2mspace\033[0m toggle  \033[2m%s\033[0m move  \033[2menter\033[0m confirm  \033[2mq\033[0m cancel\r\n' \
-      "up/down" > /dev/tty
-
-    key=$(read_key)
-    case "$key" in
-      "$KEY_ESC")
-        if [ "$(read_key)" = "$KEY_BRACKET" ]; then
-          case "$(read_key)" in
-            "$KEY_UP")   [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
-            "$KEY_DOWN") [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
-          esac
-        fi
-        ;;
-      "$KEY_K") [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
-      "$KEY_J") [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
-      "$KEY_SPACE")
-        eval "s=\$sel_$cursor"
-        # shellcheck disable=SC2015 # the middle command is an assignment, so it never fails
-        [ "$s" -eq 1 ] && eval "sel_$cursor=0" || eval "sel_$cursor=1" ;;
-      "$KEY_CR"|"$KEY_LF") break ;;
-      "$KEY_Q"|"$KEY_NONE") stty "$saved" < /dev/tty; printf '\033[?25h\r\n' > /dev/tty; trap - INT TERM; return 1 ;;
-    esac
+    [ -n "$_picked" ] && { printf '%s' "$_picked"; return 0; }
+    echo "  not a choice on the list: $_reply" > /dev/tty
   done
-
-  stty "$saved" < /dev/tty
-  printf '\033[?25h\r\n' > /dev/tty
-  trap - INT TERM
-
-  chosen=""
-  i=0
-  for t in $SUPPORTED; do
-    i=$((i + 1))
-    eval "s=\$sel_$i"
-    [ "$s" -eq 1 ] && chosen="$chosen $t"
-  done
-  printf '%s' "$chosen"
+  die "no valid choice after 3 tries; name the tools with --tool instead"
 }
 
 # ------------------------------------------------------------------ args ----
@@ -192,13 +128,12 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --uninstall) MODE="uninstall" ;;
     --list) MODE="list" ;;
-    --force) FORCE=1 ;;
     --yes|-y) ASSUME_YES=1 ;;
     --tool) [ $# -ge 2 ] || die "--tool needs a value"
             TOOLS=$(echo "$2" | tr ',' ' '); shift ;;
     --tool=*) TOOLS=$(echo "${1#--tool=}" | tr ',' ' ') ;;
-    # Lines 2-24 are the header block above; keep the range in sync with it.
-    --help|-h) sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    # Lines 2-22 are the header block above; keep the range in sync with it.
+    --help|-h) sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) die "unknown option: $1" ;;
   esac
   shift
@@ -249,16 +184,18 @@ fi
 
 # ----------------------------------------------------------------- tools ----
 
-# Re-running the install command is the update path. With a terminal attached,
-# the picker lists every supported tool pre-selected with what is installed;
-# unchecking a tool removes our symlinks from it, unchecking all removes
-# everything. Without a terminal (CI, cron) the run refreshes in place and
-# never blocks on a prompt. --yes still means "every detected tool", which is
-# how you add one to an existing install without a terminal.
+# Re-running the install command is the update path. With a terminal attached
+# the prompt lists every supported tool with the installed set marked, and
+# enter refreshes exactly that set; narrowing only limits what is refreshed,
+# since removing is what --uninstall is for. Without a terminal (CI, cron) the
+# run refreshes in place and never blocks on a prompt. --yes still means "every
+# detected tool", which is how you add one to an existing install unattended.
 INSTALLED=""
 if [ "$MODE" = "install" ]; then
   for t in $SUPPORTED; do tool_installed "$t" && INSTALLED="$INSTALLED $t"; done
 fi
+DETECTED=""
+for t in $SUPPORTED; do tool_present "$t" && DETECTED="$DETECTED $t"; done
 
 if [ -n "$TOOLS" ]; then
   :                                   # explicit --tool wins
@@ -266,34 +203,19 @@ elif [ "$MODE" = "uninstall" ]; then
   TOOLS="$SUPPORTED"                  # sweep everything so nothing is orphaned
 elif [ -n "$INSTALLED" ] && [ "$ASSUME_YES" -eq 0 ]; then
   if have_tty; then
-    PICKER_TITLE="Installed tools (uncheck one to remove it):"
-    # shellcheck disable=SC2086 # word splitting turns the list into args
-    TOOLS=$(pick_tools $INSTALLED) || die "cancelled"
-    if [ -z "$TOOLS" ]; then
-      MODE="uninstall"                # unchecked everything: remove all
-      TOOLS="$SUPPORTED"              # sweep everything so nothing is orphaned
-    else
-      # A tool dropped from the set keeps nothing of ours behind.
-      for t in $INSTALLED; do
-        case " $TOOLS " in
-          *" $t "*) ;;
-          *) DROPPED="$DROPPED $t" ;;
-        esac
-      done
-    fi
+    PROMPT_TITLE="Update role definitions in:"
+    PROMPT_TAG="installed"
+    TOOLS=$(choose_tools "$INSTALLED")
   else
     TOOLS="$INSTALLED"                # the update path
     echo "Refreshing:$TOOLS"
   fi
 elif [ "$MODE" = "install" ] && [ "$ASSUME_YES" -eq 0 ] && have_tty; then
-  PRESENT=""
-  for t in $SUPPORTED; do tool_present "$t" && PRESENT="$PRESENT $t"; done
-  PICKER_TITLE="Install role definitions into:"
-  # shellcheck disable=SC2086 # word splitting turns the list into args
-  TOOLS=$(pick_tools $PRESENT) || die "cancelled"
-  [ -n "$TOOLS" ] || die "no tool selected"
+  PROMPT_TITLE="Install role definitions into:"
+  PROMPT_TAG="detected"
+  TOOLS=$(choose_tools "$DETECTED")
 else
-  for t in $SUPPORTED; do tool_present "$t" && TOOLS="$TOOLS $t"; done
+  TOOLS="$DETECTED"
   [ -n "$TOOLS" ] && echo "Detected:$TOOLS"
 fi
 
@@ -306,25 +228,6 @@ fi
 
 # --------------------------------------------------------------- install ----
 
-# <clone>/agents/pm.md and <clone>/skills/foo both give <clone>.
-link_source_root() {
-  case "$1" in
-    */agents/*.md|*/skills/*) dirname "$(dirname "$1")" ;;
-  esac
-}
-
-# Repointing changes which files the tools read, so name each clone left, once.
-announce_repoint() {
-  old=$(link_source_root "$1")
-  [ -n "$old" ] || return 0
-  [ "$old" != "$SRC_DIR" ] || return 0
-  case " $REPOINTED " in
-    *" $old "*) return 0 ;;           # already reported this clone
-  esac
-  REPOINTED="$REPOINTED $old"
-  echo "  repointed from $old"
-}
-
 # A symlink is ours when its target names <root>/agents/<name>.md or
 # <root>/skills/<name> and the link carries that same <name> -- which is how
 # install.sh writes them, and nothing else does. The check is on the link text,
@@ -333,15 +236,13 @@ announce_repoint() {
 # While <root> is on disk it still has to look like a checkout, so a link into
 # an unrelated tree that happens to share the shape is not claimed.
 #
-# uninstall.sh is curl-piped standalone and cannot source install.sh,
-# so the two scripts carry byte-identical copies of ours() and ours_link().
-# Change one, change the other; each script's header states this definition.
+# uninstall.sh is curl-piped standalone and cannot source install.sh, so the
+# two scripts carry byte-identical copies of ours(). Change one, change the
+# other; each script's header states this definition.
 ours() {
-  _target=$(readlink "$1") || return 1
-  case "$_target" in
-    */agents/*.md|*/skills/*) ;;
-    *) return 1 ;;
-  esac
+  [ -L "$1" ] || return 1
+  _target=$(readlink "$1")
+  case "$_target" in */agents/*.md|*/skills/*) ;; *) return 1 ;; esac
   [ "$(basename "$_target")" = "$(basename "$1")" ] || return 1
   _root=$(dirname "$(dirname "$_target")")
   [ -d "$_root" ] || return 0         # checkout gone: the link text is all there is
@@ -349,27 +250,8 @@ ours() {
     [ -f "$_root/agents/worker.md" ]
 }
 
-# Prints the one link of ours sitting at $1, or fails and prints nothing.
-ours_link() {
-  if [ -L "$1" ]; then
-    ours "$1" || return 1
-    echo "$1"
-    return 0
-  fi
-  # A real directory at a target path swallows a link aimed at it rather than
-  # being replaced by it, so a run from before install.sh learned to clear the
-  # path under --force can have left one nested inside, under the directory's
-  # own name. Nothing else looks there.
-  _nested="$1/$(basename "$1")"
-  if [ ! -d "$1" ] || [ ! -L "$_nested" ]; then
-    return 1
-  fi
-  ours "$_nested" || return 1
-  echo "$_nested"
-}
-
 # Only symlinks of ours are ours to manage. A real file or directory at a target
-# path belongs to the user and is left alone unless --force says otherwise.
+# path belongs to the user and is left alone.
 #
 # Every branch ends by checking the disk rather than trusting the command it
 # just ran: the reported outcome is what is at $dest now, not which branch got
@@ -380,35 +262,25 @@ install_one() {
   dest="$2"
 
   if [ "$MODE" = "uninstall" ]; then
-    _link=$(ours_link "$dest") || return 0   # nothing of ours here; not an error
-    rm "$_link"
-    if ours_link "$dest" >/dev/null; then
-      die "could not remove $_link"
-    fi
-    echo "  removed   $_link"
+    ours "$dest" || return 0          # nothing of ours here; not an error
+    rm "$dest"
+    if ours "$dest"; then die "could not remove $dest"; fi
+    echo "  removed   $dest"
     return
   fi
 
+  # `ln -sfn` cannot replace a real directory: -n only stops it following a
+  # *symlink* to one, so against a real directory it drops the link inside it
+  # instead. Nothing here clears the path, so nothing here may link at it.
   if [ -e "$dest" ] && [ ! -L "$dest" ]; then
-    if [ "$FORCE" -eq 0 ]; then
-      if [ -d "$dest" ]; then _what="directory"; else _what="file"; fi
-      echo "  kept      $dest (your own $_what; --force to replace)" >&2
-      MODIFIED=$((MODIFIED + 1))
-      return
-    fi
-    # `ln -sfn` cannot replace a real directory: -n only stops it following a
-    # *symlink* to one, so against a real directory it drops the link inside
-    # instead. --force has to clear the path itself first.
-    if [ -d "$dest" ]; then
-      echo "  replaced  $dest (was a directory)"
-    fi
-    rm -rf "$dest" || die "could not replace $dest"
+    if [ -d "$dest" ]; then _what="directory"; else _what="file"; fi
+    echo "  kept      $dest (your own $_what; move it and re-run)" >&2
+    MODIFIED=$((MODIFIED + 1))
+    return
   fi
 
-  if [ -L "$dest" ]; then
-    current=$(readlink "$dest")
-    [ "$current" = "$src" ] && return # already current, say nothing
-    announce_repoint "$current"
+  if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
+    return                            # already current, say nothing
   fi
 
   ln -sfn "$src" "$dest"
@@ -442,13 +314,6 @@ sync_tool() {
     install_one "$src" "$target/$(basename "$src")"
   done
 }
-
-if [ -n "$DROPPED" ]; then
-  saved_mode=$MODE
-  MODE="uninstall"
-  for t in $DROPPED; do sync_tool "$t"; done
-  MODE=$saved_mode
-fi
 
 for t in $TOOLS; do
   sync_tool "$t"
