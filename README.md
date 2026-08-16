@@ -29,7 +29,17 @@ Roles and skills are symlinked, so there is no second copy to fall behind. A rea
 
 Re-run the same command to update: the list starts with your installed set checked, and enter refreshes exactly that set. Unchecking only limits what is refreshed; it never removes. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates.
 
-`install.sh` takes no arguments; it installs, and that is all it does. Removal is the other script, and it is all-or-nothing: there is no way to remove one tool's symlinks while keeping the other's, and no way to target a single tool non-interactively. If you need either, delete the symlinks yourself — they are only symlinks.
+`install.sh` takes no arguments; it installs, and that is all it does. Anything you would reach for a flag to say is said by environment variable instead, which is also what survives a pipe — `curl … | sh` cannot take a flag without `sh -s --` in front of it:
+
+| Variable | Effect |
+|---|---|
+| `ROLE_AGENT_TOOLS` | Install into exactly these tools — space- or comma-separated, e.g. `claude` or `claude,opencode`. No prompt. An unknown name stops the run before anything is written. A name the host does not appear to have is still installed, and said to be undetected, so a typo shows itself. |
+| `ROLE_AGENT_NONINTERACTIVE` | Any non-empty value: do not prompt, install the set the prompt would have started with. |
+| `ROLE_AGENT_DIR` | Where the piped form keeps its clone. |
+
+`ROLE_AGENT_TOOLS` wins where both of the first two are set, and either beats the prompt. They exist for the caller a missing terminal does not already cover — a provisioning script, a dotfiles bootstrap, a CI runner that allocates a pty and would otherwise block on the question.
+
+Removal is the other script, and it is all-or-nothing: there is no way to remove one tool's symlinks while keeping the other's. If you need that, delete the symlinks yourself — they are only symlinks.
 
 To remove:
 
@@ -39,7 +49,7 @@ curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/unins
 
 It removes only symlinks that name a role-based-agent checkout — by the link's text, not by what it still resolves to, so deleting the checkout first leaves nothing behind — and never touches real files or directories.
 
-To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. `ROLE_AGENT_DIR` overrides the clone location for the piped form. Requires `git`.
+To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. Requires `git`.
 
 ## Use
 

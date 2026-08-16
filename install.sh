@@ -6,8 +6,10 @@
 # Installing is all this does, and it takes no arguments. With a terminal
 # attached it lists the tools it finds on this machine as a checkbox list:
 # numbers toggle a row, enter installs whatever is checked. Without a terminal
-# it just refreshes. A real file or directory you put at a target path is
-# never replaced -- move it yourself and re-run.
+# it just refreshes. ROLE_AGENT_TOOLS or ROLE_AGENT_NONINTERACTIVE skips the
+# prompt for a caller that has a terminal but wants no question. A real file or
+# directory you put at a target path is never replaced -- move it yourself and
+# re-run.
 #
 # Removing is uninstall.sh, the only script here that deletes anything:
 #
@@ -29,6 +31,32 @@ die() { echo "error: $*" >&2; exit 1; }
 # worse than refusing -- a stale `--uninstall` would install where it was meant
 # to remove.
 [ $# -eq 0 ] || die "install.sh takes no arguments (got: $1); to remove, run uninstall.sh"
+
+# Two ways past the prompt, both by environment rather than by flag: the line
+# above refuses arguments, and a flag passed through `curl ... | sh` would need
+# `sh -s --` plumbing most callers do not know. ROLE_AGENT_DIR set the
+# precedent for saying this by environment instead.
+#
+# ROLE_AGENT_TOOLS names the set outright and wins where both are set;
+# ROLE_AGENT_NONINTERACTIVE, any non-empty value, takes the set this run would
+# otherwise have offered. An unknown name is caught here rather than in the
+# install loop, so it stops the run before the clone and leaves nothing behind.
+NONINTERACTIVE="${ROLE_AGENT_NONINTERACTIVE:-}"
+REQUESTED=""
+set -f                              # a bare * names no tool, and must not glob
+for t in $(echo "${ROLE_AGENT_TOOLS:-}" | tr ',' ' '); do
+  case " $SUPPORTED " in
+    *" $t "*) ;;
+    *) die "ROLE_AGENT_TOOLS: unknown tool: $t (supported: $SUPPORTED)" ;;
+  esac
+  case " $REQUESTED " in *" $t "*) continue ;; esac   # named twice, linked once
+  REQUESTED="$REQUESTED $t"
+done
+set +f
+# Set to nothing but separators, which asks for an empty install: a provisioning
+# script means something by setting this, so guessing at the prompt is worse.
+[ -z "${ROLE_AGENT_TOOLS:-}" ] || [ -n "$REQUESTED" ] ||
+  die "ROLE_AGENT_TOOLS names no tool (supported: $SUPPORTED)"
 
 # Where each tool keeps user-level agent definitions.
 tool_dir() {
@@ -193,25 +221,40 @@ for t in $SUPPORTED; do tool_installed "$t" && INSTALLED="$INSTALLED $t"; done
 DETECTED=""
 for t in $SUPPORTED; do tool_present "$t" && DETECTED="$DETECTED $t"; done
 
-# Nothing found to install into leaves nothing to ask about, so this is settled
-# before the prompt rather than after it.
-[ -n "$DETECTED" ] || die "no supported tool found (looked for: $SUPPORTED)"
-
-if [ -n "$INSTALLED" ]; then
-  PROMPT_TITLE="Update role definitions in:"
-  DEFAULT="$INSTALLED"
-  NOTICE="Refreshing:"
+if [ -n "$REQUESTED" ]; then
+  # A named set outranks detection, since the caller may be provisioning a
+  # machine where the tool arrives later. Saying which names were not found is
+  # what keeps a typo visible instead of quietly linking into an empty corner.
+  TOOLS="$REQUESTED"
+  ABSENT=""
+  for t in $TOOLS; do tool_present "$t" || ABSENT="$ABSENT $t"; done
+  echo "ROLE_AGENT_TOOLS:$TOOLS"
+  if [ -n "$ABSENT" ]; then
+    echo "  not detected on this machine, installing anyway:$ABSENT"
+  fi
 else
-  PROMPT_TITLE="Install role definitions into:"
-  DEFAULT="$DETECTED"
-  NOTICE="Detected:"
-fi
+  # Nothing found to install into leaves nothing to ask about, so this is
+  # settled before the prompt rather than after it.
+  [ -n "$DETECTED" ] || die "no supported tool found (looked for: $SUPPORTED)"
 
-if have_tty; then
-  TOOLS=$(choose_tools "$DEFAULT")
-else
-  TOOLS="$DEFAULT"
-  echo "$NOTICE$TOOLS"
+  if [ -n "$INSTALLED" ]; then
+    PROMPT_TITLE="Update role definitions in:"
+    DEFAULT="$INSTALLED"
+    NOTICE="Refreshing:"
+  else
+    PROMPT_TITLE="Install role definitions into:"
+    DEFAULT="$DETECTED"
+    NOTICE="Detected:"
+  fi
+
+  # Being told not to ask lands on the same answer no terminal already gives
+  # itself, so the two share the branch rather than each getting one.
+  if [ -z "$NONINTERACTIVE" ] && have_tty; then
+    TOOLS=$(choose_tools "$DEFAULT")
+  else
+    TOOLS="$DEFAULT"
+    echo "$NOTICE$TOOLS"
+  fi
 fi
 
 # --------------------------------------------------------------- install ----
