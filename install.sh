@@ -4,10 +4,10 @@
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
 # Installing is all this does, and it takes no arguments. With a terminal
-# attached it lists every supported tool, marking the installed set (the
-# detected set on a first run); enter takes that set and numbers narrow it.
-# Without a terminal it just refreshes. A real file or directory you put at a
-# target path is never replaced -- move it yourself and re-run.
+# attached it lists the tools it finds on this machine as a checkbox list:
+# numbers toggle a row, enter installs whatever is checked. Without a terminal
+# it just refreshes. A real file or directory you put at a target path is
+# never replaced -- move it yourself and re-run.
 #
 # Removing is uninstall.sh, the only script here that deletes anything:
 #
@@ -82,39 +82,71 @@ have_tty() { [ -c /dev/tty ] && { stty -g < /dev/tty >/dev/null; } 2>/dev/null; 
 
 # ---------------------------------------------------------------- prompt ----
 
-# Ask which tools to target. $1 is the default set, marked in the list with
-# PROMPT_TAG and returned on empty input; the chosen tools go to stdout, so
-# every line of the prompt itself goes to the terminal. Reading /dev/tty rather
-# than stdin is what leaves `curl ... | sh` able to ask at all.
+# Ask which of $DETECTED to install into. $1 is the set that starts checked;
+# the chosen tools go to stdout, so every line of the prompt itself goes to the
+# terminal. Reading /dev/tty rather than stdin is what leaves `curl ... | sh`
+# able to ask at all.
+#
+# The list is reprinted after every entry instead of redrawn in place. Seeing
+# what is checked is the whole point of a checkbox, and reprinting buys that
+# for the price of a few lines of output -- no raw mode, no cursor control, no
+# escape sequence anywhere in this script.
 choose_tools() {
-  _default=$1
-  { echo; echo "  $PROMPT_TITLE"; echo; } > /dev/tty
-  _i=0
-  for _t in $SUPPORTED; do
-    _i=$((_i + 1))
-    case " $_default " in *" $_t "*) _tag="  [$PROMPT_TAG]" ;; *) _tag="" ;; esac
-    printf '    %d) %-12s %s/{agents,skills}/%s\n' \
-      "$_i" "$(tool_label "$_t")" "$(dirname "$(tool_dir "$_t")")" "$_tag" > /dev/tty
-  done
-
-  _try=0
-  while [ "$_try" -lt 3 ]; do
-    _try=$((_try + 1))
-    printf '\n  Enter to accept the marked set, or numbers to narrow (e.g. 1): ' > /dev/tty
-    read -r _reply < /dev/tty || _reply=""
-    [ -n "$_reply" ] || { printf '%s' "$_default"; return 0; }
-    _picked=""
-    for _n in $(echo "$_reply" | tr ',' ' '); do
-      _j=0
-      _t=""
-      for _s in $SUPPORTED; do _j=$((_j + 1)); [ "$_n" = "$_j" ] && _t=$_s; done
-      [ -n "$_t" ] || { _picked=""; break; }
-      case " $_picked " in *" $_t "*) ;; *) _picked="$_picked $_t" ;; esac
+  _checked=$1
+  _wrong=0
+  while :; do
+    { echo; echo "  $PROMPT_TITLE"; echo; } > /dev/tty
+    _i=0
+    for _t in $DETECTED; do
+      _i=$((_i + 1))
+      case " $_checked " in *" $_t "*) _box=x ;; *) _box=" " ;; esac
+      printf '    %d) [%s] %-12s %s/{agents,skills}/\n' \
+        "$_i" "$_box" "$(tool_label "$_t")" "$(dirname "$(tool_dir "$_t")")" > /dev/tty
     done
-    [ -n "$_picked" ] && { printf '%s' "$_picked"; return 0; }
-    echo "  not a choice on the list: $_reply" > /dev/tty
+    printf '\n  Toggle by number, Enter to install: ' > /dev/tty
+
+    _eof=0; _reply=""
+    read -r _reply < /dev/tty || _eof=1
+    if [ -z "$_reply" ]; then
+      [ -n "$_checked" ] && { printf '%s' "$_checked"; return 0; }
+      # Re-asking a terminal that has gone away only spins, so EOF stops here.
+      [ "$_eof" -eq 0 ] || die "nothing selected"
+      echo "  nothing selected -- toggle a number to pick one" > /dev/tty
+      continue
+    fi
+
+    # An entry is taken whole or not at all, so the typo in "1 3" does not
+    # leave 1 toggled behind it. set -f keeps a bare * from expanding into
+    # filenames, one of which could be named for a row.
+    _next=$_checked
+    _bad=$_reply                      # cleared by the first number that parses
+    set -f
+    for _n in $(echo "$_reply" | tr ',' ' '); do
+      _j=0; _t=""
+      for _s in $DETECTED; do _j=$((_j + 1)); [ "$_n" = "$_j" ] && _t=$_s; done
+      [ -n "$_t" ] || { _bad=$_n; break; }
+      _bad=""
+      # Rebuilt in row order with this one row flipped, so the set that gets
+      # installed always reads in the order the list on screen just showed.
+      _rebuilt=""
+      for _s in $DETECTED; do
+        case " $_next " in *" $_s "*) _on=1 ;; *) _on=0 ;; esac
+        [ "$_s" = "$_t" ] && _on=$((1 - _on))
+        case "$_on" in 1) _rebuilt="$_rebuilt $_s" ;; esac
+      done
+      _next=$_rebuilt
+    done
+    set +f
+
+    if [ -n "$_bad" ]; then
+      _wrong=$((_wrong + 1))
+      [ "$_wrong" -lt 3 ] || die "no valid choice after 3 tries"
+      echo "  not a number on the list: $_reply" > /dev/tty
+      continue
+    fi
+    _checked=$_next
+    _wrong=0                          # consecutive, so a good entry forgives
   done
-  die "no valid choice after 3 tries"
 }
 
 # ---------------------------------------------------------------- source ----
@@ -149,36 +181,38 @@ fi
 
 # ----------------------------------------------------------------- tools ----
 
-# Re-running the install command is the update path. With a terminal attached
-# the prompt lists every supported tool with the installed set marked, and
-# enter refreshes exactly that set; narrowing only limits what is refreshed and
+# Only the tools found on this machine are listed: a checkbox for something
+# that is not installed is a row you can only get wrong. Re-running the install
+# command is the update path, so the checked set starts as the installed one
+# and enter refreshes exactly that; unchecking limits what is refreshed and
 # never removes, since uninstall.sh is the only thing that deletes. Without a
-# terminal (CI, cron) the run refreshes in place and never blocks on a prompt,
-# which is what keeps the one-liner safe for unattended updates.
+# terminal (CI, cron) the run takes that same set without asking, which is what
+# keeps the one-liner safe for unattended updates.
 INSTALLED=""
 for t in $SUPPORTED; do tool_installed "$t" && INSTALLED="$INSTALLED $t"; done
 DETECTED=""
 for t in $SUPPORTED; do tool_present "$t" && DETECTED="$DETECTED $t"; done
 
+# Nothing found to install into leaves nothing to ask about, so this is settled
+# before the prompt rather than after it.
+[ -n "$DETECTED" ] || die "no supported tool found (looked for: $SUPPORTED)"
+
 if [ -n "$INSTALLED" ]; then
-  if have_tty; then
-    PROMPT_TITLE="Update role definitions in:"
-    PROMPT_TAG="installed"
-    TOOLS=$(choose_tools "$INSTALLED")
-  else
-    TOOLS="$INSTALLED"                # the update path
-    echo "Refreshing:$TOOLS"
-  fi
-elif have_tty; then
-  PROMPT_TITLE="Install role definitions into:"
-  PROMPT_TAG="detected"
-  TOOLS=$(choose_tools "$DETECTED")
+  PROMPT_TITLE="Update role definitions in:"
+  DEFAULT="$INSTALLED"
+  NOTICE="Refreshing:"
 else
-  TOOLS="$DETECTED"
-  [ -n "$TOOLS" ] && echo "Detected:$TOOLS"
+  PROMPT_TITLE="Install role definitions into:"
+  DEFAULT="$DETECTED"
+  NOTICE="Detected:"
 fi
 
-[ -n "$TOOLS" ] || die "no supported tool found (looked for: $SUPPORTED)"
+if have_tty; then
+  TOOLS=$(choose_tools "$DEFAULT")
+else
+  TOOLS="$DEFAULT"
+  echo "$NOTICE$TOOLS"
+fi
 
 # --------------------------------------------------------------- install ----
 

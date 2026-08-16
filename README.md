@@ -18,7 +18,7 @@ Among the roles, one platform appears by name, in one place. The PM has an `Orca
 curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 ```
 
-Clones to `~/.local/share/role-based-agent`, then lists the supported tools and asks which to install into. Tools found on the host are marked; enter takes them, numbers narrow the set:
+Clones to `~/.local/share/role-based-agent`, then asks which tools to install into with a checkbox list. Only tools it finds on the host are listed, and they start checked; a number toggles that row and reprints the list, enter installs whatever is checked:
 
 | Tool | Targets | Detected by |
 |---|---|---|
@@ -27,7 +27,7 @@ Clones to `~/.local/share/role-based-agent`, then lists the supported tools and 
 
 Roles and skills are symlinked, so there is no second copy to fall behind. A real file or directory you put at a target path is left alone and reported as kept — move it yourself and re-run to link there.
 
-Re-run the same command to update: the prompt lists every supported tool with your installed set marked, and enter refreshes exactly that set. Narrowing only limits what is refreshed. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates.
+Re-run the same command to update: the list starts with your installed set checked, and enter refreshes exactly that set. Unchecking only limits what is refreshed; it never removes. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates.
 
 `install.sh` takes no arguments; it installs, and that is all it does. Removal is the other script, and it is all-or-nothing: there is no way to remove one tool's symlinks while keeping the other's, and no way to target a single tool non-interactively. If you need either, delete the symlinks yourself — they are only symlinks.
 
