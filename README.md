@@ -47,8 +47,6 @@ It removes only symlinks that name a role-based-agent checkout — by the link's
 
 To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. `ROLE_AGENT_DIR` overrides the clone location for the piped form. Requires `git`.
 
-Changed either script? Run `./check.sh` — it lints them and exercises install and uninstall against a throwaway `HOME`.
-
 ## Use
 
 A session is bound to one role at launch and cannot switch mid-session:
