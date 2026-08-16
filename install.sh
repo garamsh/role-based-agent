@@ -142,6 +142,7 @@ pick_tools() {
     for t in $SUPPORTED; do
       i=$((i + 1))
       eval "s=\$sel_$i"
+      # shellcheck disable=SC2154 # the eval above is what assigns s
       [ "$s" -eq 1 ] && mark="x" || mark=" "
       [ "$i" -eq "$cursor" ] && pointer="\033[36m>\033[0m" || pointer=" "
       printf '\033[2K  %b [%s] %-12s %s\r\n' \
@@ -162,7 +163,10 @@ pick_tools() {
         ;;
       "$KEY_K") [ "$cursor" -gt 1 ] && cursor=$((cursor - 1)) ;;
       "$KEY_J") [ "$cursor" -lt "$count" ] && cursor=$((cursor + 1)) ;;
-      "$KEY_SPACE") eval "s=\$sel_$cursor"; [ "$s" -eq 1 ] && eval "sel_$cursor=0" || eval "sel_$cursor=1" ;;
+      "$KEY_SPACE")
+        eval "s=\$sel_$cursor"
+        # shellcheck disable=SC2015 # the middle command is an assignment, so it never fails
+        [ "$s" -eq 1 ] && eval "sel_$cursor=0" || eval "sel_$cursor=1" ;;
       "$KEY_CR"|"$KEY_LF") break ;;
       "$KEY_Q"|"$KEY_NONE") stty "$saved" < /dev/tty; printf '\033[?25h\r\n' > /dev/tty; trap - INT TERM; return 1 ;;
     esac
@@ -209,6 +213,7 @@ SRC_DIR=""
 case "$0" in
   */install.sh|install.sh)
     if [ -f "$0" ]; then
+      # shellcheck disable=SC1007 # CDPATH= prefixes cd, it is not an assignment of its own
       _dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
       [ -d "$_dir/agents" ] && SRC_DIR="$_dir"
     fi
@@ -418,7 +423,7 @@ install_one() {
 # MODE=uninstall, remove ours from it.
 sync_tool() {
   t=$1
-  echo "$(tool_label "$t")"
+  tool_label "$t"
 
   target=$(tool_dir "$t")
   [ "$MODE" = "uninstall" ] || mkdir -p "$target"
