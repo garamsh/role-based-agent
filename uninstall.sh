@@ -31,7 +31,7 @@ tool_dirs() {
 # While <root> is on disk it still has to look like a checkout, so a link into
 # an unrelated tree that happens to share the shape is not claimed.
 #
-# uninstall.sh is curl-piped standalone (README:42) and cannot source install.sh,
+# uninstall.sh is curl-piped standalone and cannot source install.sh,
 # so the two scripts carry byte-identical copies of ours() and ours_link().
 # Change one, change the other; each script's header states this definition.
 ours() {
