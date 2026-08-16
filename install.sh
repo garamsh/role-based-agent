@@ -317,7 +317,15 @@ for t in $TOOLS; do
 done
 
 echo
-[ "$CHANGED" -eq 0 ] && echo "Already up to date."
-[ "$MODIFIED" -gt 0 ] && echo "$MODIFIED path(s) left alone because something of yours sits there."
+# Written as `if` rather than `test && echo` because a failed test hands its
+# status to whatever ran last, and these sit at the end: drop or reorder the
+# two echoes below and a clean install would start reporting failure to the
+# `curl ... | sh` that called it. `if` keeps each message's status to itself.
+if [ "$CHANGED" -eq 0 ]; then
+  echo "Already up to date."
+fi
+if [ "$MODIFIED" -gt 0 ]; then
+  echo "$MODIFIED path(s) left alone because something of yours sits there."
+fi
 echo "Source: $SRC_DIR"
 echo "Start a session in a role with:  claude --agent pm  |  opencode --agent pm"
