@@ -9,7 +9,7 @@
 # deleting the checkout is still removed; while the checkout is on disk it has
 # to still hold agents/{pm,qa,worker}.md, so a link into an unrelated tree of
 # the same shape is left alone. Real files and directories are never touched.
-# install.sh --uninstall removes by that same definition, from a clone.
+# This is the only script that removes anything; install.sh only installs.
 set -eu
 
 SUPPORTED="claude opencode"
@@ -31,9 +31,8 @@ tool_dirs() {
 # While <root> is on disk it still has to look like a checkout, so a link into
 # an unrelated tree that happens to share the shape is not claimed.
 #
-# uninstall.sh is curl-piped standalone and cannot source install.sh, so the
-# two scripts carry byte-identical copies of ours(). Change one, change the
-# other; each script's header states this definition.
+# This is the only copy: removing is this script's whole job, so nothing else
+# needs the definition and no second copy can drift from it.
 ours() {
   [ -L "$1" ] || return 1
   _target=$(readlink "$1")

@@ -27,16 +27,11 @@ Clones to `~/.local/share/role-based-agent`, then lists the supported tools and 
 
 Roles and skills are symlinked, so there is no second copy to fall behind. A real file or directory you put at a target path is left alone and reported as kept — move it yourself and re-run to link there.
 
-Re-run the same command to update: the prompt lists every supported tool with your installed set marked, and enter refreshes exactly that set. Narrowing only limits what is refreshed; removing a tool's symlinks is `--tool <name> --uninstall`. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates. The flags below skip the prompt entirely, so scripted callers see no change.
+Re-run the same command to update: the prompt lists every supported tool with your installed set marked, and enter refreshes exactly that set. Narrowing only limits what is refreshed. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates.
 
-```bash
-./install.sh --tool claude   # target one tool, skipping the prompt
-./install.sh --yes           # accept detected tools without prompting
-./install.sh --list          # show targets and exit
-./install.sh --uninstall     # remove the symlinks
-```
+`install.sh` takes no arguments; it installs, and that is all it does. Removal is the other script, and it is all-or-nothing: there is no way to remove one tool's symlinks while keeping the other's, and no way to target a single tool non-interactively. If you need either, delete the symlinks yourself — they are only symlinks.
 
-To remove everything without a clone at hand:
+To remove:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/uninstall.sh | sh
