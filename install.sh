@@ -303,6 +303,14 @@ if [ -z "$SRC_DIR" ]; then
     # once it has; this only says it is coming, so it names no path and no route.
     [ -z "$(git -C "$INSTALL_DIR" status --porcelain)" ] ||
       echo "  files of yours here -- an update stops once a commit lands on one" >&2
+    # A second condition rather than a wider first one: --porcelain reports the
+    # working tree, so a commit made here never appears in it, and the way out
+    # differs too -- stash moves an edit and moves no commit. The fallback keeps
+    # a clone with no upstream to count against from turning an update that
+    # worked into a failure.
+    _ahead=$(git -C "$INSTALL_DIR" rev-list --count '@{u}..HEAD' 2>/dev/null) || _ahead=0
+    [ "$_ahead" -eq 0 ] ||
+      echo "  commits of yours here -- an update stops once anything lands upstream" >&2
   else
     echo "Cloning into $INSTALL_DIR"
     mkdir -p "$(dirname "$INSTALL_DIR")"
