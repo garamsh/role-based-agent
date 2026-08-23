@@ -2,11 +2,12 @@
 
 Rules for changing this repository. They bind every pull request here.
 
-This project is seven files: two POSIX shell scripts that symlink role
-definitions into agent config directories, three role documents, one skill,
-and this. It has no build step, no toolchain, and no test harness — a check
-runner was tried and removed as disproportionate. Verification is manual and
-the burden is on the author to show it ran.
+This project is nine files: two POSIX shell scripts that symlink role
+definitions into agent config directories, three role documents, one skill, a
+README, the pull request template that binds every change here, and this. It
+has no build step, no toolchain, and no test harness — a check runner was
+tried and removed as disproportionate. Verification is manual and the burden
+is on the author to show it ran.
 
 ## Shell — `install.sh`, `uninstall.sh`
 
@@ -70,7 +71,7 @@ instruction set, so every word is paid for on every run.
 
 ## Documentation
 
-Five of the seven files are documentation, so a wrong claim is a defect here,
-not a typo. Every statement in `README.md` about what the scripts do must be
-true of the current code. If a change makes a sentence false, the same pull
-request fixes the sentence.
+Seven of the nine files are documentation — everything but the two shell
+scripts — so a wrong claim is a defect here, not a typo. Every statement in
+`README.md` about what the scripts do must be true of the current code. If a
+change makes a sentence false, the same pull request fixes the sentence.
