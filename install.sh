@@ -191,12 +191,109 @@ case "$0" in
     ;;
 esac
 
+# `pull --ff-only` refuses in order to protect an edit made here, which is
+# right; what it leaves the reader is a dead end. This says which of the two
+# refusals it was -- commits of its own here, so there is nothing to
+# fast-forward onto, or an incoming commit landing on a file edited here --
+# and names a way past it. git's own message above lists the paths in the way;
+# what it cannot say is that the *rest* of what you edited is not in the way,
+# which is the difference between "three files are stuck" and "one is".
+#
+# Nothing here writes to the clone. Moving a local edit is the user's call: an
+# installer that stashed or reset on their behalf is the bug this refusal
+# exists to prevent, and losing that edit silently would be the worse failure.
+update_blocked() {
+  _d=$1
+  _up=$(git -C "$_d" rev-parse --abbrev-ref '@{u}' 2>/dev/null) || _up=""
+  _ahead=0
+  _incoming=""
+  if [ -n "$_up" ]; then
+    # The fetch half of the pull already ran, so the upstream ref names what
+    # this run was trying to land -- the merge is what refused.
+    _ahead=$(git -C "$_d" rev-list --count "$_up..HEAD") || _ahead=0
+    _incoming=$(git -C "$_d" diff --name-only HEAD "$_up") || _incoming=""
+  fi
+
+  # Tracked files that differ from HEAD, then untracked ones -- which block
+  # too, when the update would create a file at that same path. Tagged by kind
+  # because only an untracked one needs `stash -u`, and `checkout --` cannot
+  # bring one back, so a suggestion that fits one does not fit the other.
+  _edited=$(
+    git -C "$_d" diff --name-only HEAD | sed 's/^/t /'
+    git -C "$_d" ls-files --others --exclude-standard | sed 's/^/u /'
+  ) || _edited=""
+
+  _stuck=""; _spare=""; _paths=""; _stash_u=""; _restorable=1
+  while IFS= read -r _line; do
+    [ -n "$_line" ] || continue
+    _p=${_line#? }
+    if printf '%s\n' "$_incoming" | grep -qxF -e "$_p"; then
+      _note=""
+      case "$_line" in "u "*) _note=" (untracked)"; _stash_u=" -u"; _restorable=0 ;; esac
+      _stuck="$_stuck    $_p$_note
+"
+      _paths="$_paths $_p"
+    else
+      # Only tracked edits are worth listing as not-in-the-way. Every other
+      # untracked file in the clone is noise the reader did not ask about.
+      case "$_line" in "t "*) _spare="$_spare    $_p
+" ;; esac
+    fi
+  done <<EOF
+$_edited
+EOF
+
+  {
+    echo
+    if [ "$_ahead" -gt 0 ]; then
+      echo "$_d has $_ahead commit(s) of its own, so it cannot be fast-forwarded."
+      echo
+      echo "  keep them and stop updating this clone: sh $_d/install.sh"
+      echo "    installs from where it sits and never pulls"
+      echo "  or put them somewhere they survive (a branch, a push), reset this clone"
+      echo "    onto $_up yourself, and re-run"
+    elif [ -n "$_stuck" ]; then
+      echo "An incoming change lands on a file of yours in $_d."
+      echo
+      echo "  in the way (yours here, and changed by the update):"
+      printf '%s' "$_stuck"
+      if [ -n "$_spare" ]; then
+        echo
+        echo "  edited here, but not in the way:"
+        printf '%s' "$_spare"
+      fi
+      echo
+      echo "  set the blocking ones aside, update, put them back:"
+      echo "    git -C $_d stash push$_stash_u --$_paths"
+      echo "    (re-run this installer)"
+      echo "    git -C $_d stash pop"
+      echo "  or keep them and stop updating this clone: sh $_d/install.sh"
+      echo "    installs from where it sits and never pulls"
+      if [ "$_restorable" -eq 1 ]; then
+        echo "  or drop them and take the update:"
+        echo "    git -C $_d checkout --$_paths, then re-run"
+      fi
+    else
+      echo "$_d could not be fast-forwarded; git's message above says why."
+      echo
+      echo "  keep this clone and stop updating it: sh $_d/install.sh"
+      echo "    installs from where it sits and never pulls"
+      echo "  or remove the installed links with uninstall.sh, delete $_d yourself,"
+      echo "    and re-run to clone it again"
+    fi
+    echo
+  } >&2
+
+  _at=$(git -C "$_d" rev-parse --short HEAD 2>/dev/null) || _at="its current commit"
+  die "left $_d unchanged at $_at, and removed nothing"
+}
+
 if [ -z "$SRC_DIR" ]; then
   command -v git >/dev/null 2>&1 || die "git is required to install from a URL"
 
   if [ -d "$INSTALL_DIR/.git" ]; then
     echo "Updating $INSTALL_DIR"
-    git -C "$INSTALL_DIR" pull --ff-only -q || die "could not fast-forward $INSTALL_DIR"
+    git -C "$INSTALL_DIR" pull --ff-only -q || update_blocked "$INSTALL_DIR"
   else
     echo "Cloning into $INSTALL_DIR"
     mkdir -p "$(dirname "$INSTALL_DIR")"
