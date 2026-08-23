@@ -31,7 +31,9 @@ Clones to `~/.local/share/role-based-agent`, then asks which tools to install in
 
 Roles and skills are symlinked, so there is no second copy to fall behind. A real file or directory you put at a target path is left alone and reported as kept — move it yourself and re-run to link there.
 
-Re-run the same command to update: the list starts with your installed set checked, and enter refreshes exactly that set. Unchecking only limits what is refreshed; it never removes. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates.
+Re-run the same command to update: the list starts with your installed set checked, and enter refreshes exactly that set. Unchecking only limits what is refreshed; it never removes. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates of a clone you have not edited yourself.
+
+Updating that clone is a fast-forward and nothing else, so an edit of your own can block it: a file you modified there stops the update once an incoming commit lands on that same file, and a commit of your own there stops it outright. A blocked run installs nothing and leaves the clone and your edits exactly as they were. It names the files in the way, separates them from the ones you edited that are not, offers a `git stash` sequence to get past it, and exits non-zero. Nothing is stashed, reset or discarded for you — which of your edits to move is yours to decide.
 
 `install.sh` takes no arguments; it installs, and that is all it does. Anything you would reach for a flag to say is said by environment variable instead, which is also what survives a pipe — `curl … | sh` cannot take a flag without `sh -s --` in front of it:
 
@@ -54,6 +56,8 @@ curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/unins
 It removes only symlinks that name a role-based-agent checkout — by the link's text, not by what it still resolves to, so deleting the checkout first leaves nothing behind — and never touches real files or directories.
 
 To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. Requires `git`.
+
+Which clone you edit decides what it costs you. A clone you run `install.sh` from is only linked out of, never pulled, so your edits there survive every run. The clone the piped one-liner keeps at `~/.local/share/role-based-agent` is the one it fast-forwards, so an edit there is what the blocked update above is about — recoverable, but it stops updating until you move it. Edit your own clone, and leave the managed one to the installer.
 
 ## Use
 
