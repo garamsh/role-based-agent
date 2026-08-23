@@ -45,20 +45,50 @@ Copy one verbatim with `git checkout template/main -- <path>`.
 | Repository state | Mode |
 |---|---|
 | No convention documents yet | **Adopt**, then **Bootstrap** |
-| Convention documents present, several unrelated stack files, template README still in place | **Bootstrap** only |
+| Convention documents present, some for what the project does not use, template README still in place | **Bootstrap** only |
 | Conventions present and already tailored to this project | **Update** |
 
 Confirm the mode with the user in one sentence before making changes. That one confirmation is deliberate — the rules this skill writes or adapts are agreed at the PR, not one at a time as it works.
 
 Pre-flight for every mode: `git status` is clean, and you are on a task branch, not `main`.
 
+## Selection — which convention files the project keeps
+
+Adopt, Bootstrap, and Update all answer this the same way, and none of them
+answers it from a filename. Read the template's convention index — the
+`README.md` sitting beside its convention files — and do what that index says.
+
+1. **Take each section that lists convention files.** The prose around its
+   table states whether the project keeps all of them, the one that fits, or
+   the ones that apply. That sentence is the rule. Apply it section by
+   section, sections this skill has never heard of included: a tier added
+   upstream arrives carrying its own rule, so it costs no change here. Reading
+   the index is the whole point — a glob over filenames sees only the tiers
+   that existed when it was written.
+
+2. **Keep what a kept file depends on.** Where a table has a column naming a
+   base for a file, keeping that file keeps its base too. Never delete a file
+   while something the project keeps still names it.
+
+3. **Keeping none of a section is an answer.** Where the rule is that the ones
+   that apply are kept and none applies, the project keeps none and runs on
+   the sections every project keeps. Do not write a new convention file to
+   fill an empty section — that manufactures a rule nobody agreed to.
+
+Selection is not settled at bootstrap. A change that alters what the index
+selects on — the project's stack, the shape it is partitioned into — carries
+the selection with it, in the same pull request. It is the PM's to make: a
+worker whose change triggers a selection does not make it.
+
 ## Adopt — bring the template in
 
 1. **Choose the set.**
 
    - the agent contract file (`AGENTS.md` and, for Claude Code, a `CLAUDE.md` that imports it).
-   - the convention documents the project will actually enforce, plus only the matching `stack-*.md`.
-   - the architecture document skeleton.
+   - the convention index, and the convention files **Selection** keeps.
+   - the skeleton for the project's *own* architecture documents: the
+     directory the template reserves for responsibility documents and ADRs,
+     with its README and ADR template and no content of its own.
    - the shared GitHub templates.
 
    Skip the template's own `README.md` — the project keeps its own.
@@ -81,12 +111,11 @@ Pre-flight for every mode: `git status` is clean, and you are on a task branch, 
 1. **Identify the project.**
    Ask the user, or infer from existing code: purpose, primary stack, and tooling (package manager, linter, formatter, test runner).
 
-2. **Select stack conventions.**
-   Keep only the `stack-*.md` files matching the stack and delete the rest.
-   If none matches, write one in the same style as the existing stack files — concise rules, no fluff.
+2. **Select the convention files.**
+   Apply **Selection** above, and delete the files it does not keep.
 
-3. **Adapt the neutral conventions.**
-   Review every convention file that is not stack-specific and adjust whatever conflicts with the chosen stack.
+3. **Adapt the kept conventions.**
+   Review every convention file the project kept and adjust whatever conflicts with its stack or its tooling.
    Do not pad them with restated content.
 
 4. **Extend `.gitignore`** with the stack's template from the `github/gitignore` collection.
@@ -96,13 +125,15 @@ Pre-flight for every mode: `git status` is clean, and you are on a task branch, 
    Create the `Makefile` and git hook configuration the CI convention describes, using the project's real commands.
    Add a CI workflow if the project will run automated checks.
 
-6. **Initialize architecture documents.**
-   Write one responsibility document per major domain, following the skeleton in the architecture README, record any initial decisions as ADRs, and fill in the index.
+6. **Write the project's own architecture documents.**
+   These are the project's: responsibility documents and ADRs, in the directory the template reserves for them.
+   The architecture *convention* — the template's file naming the structure a project is partitioned into — is a convention file, selected in step 2 and not written here.
+   Write one responsibility document per major domain, following the skeleton in that directory's README, record any initial decisions as ADRs, and fill in the index.
 
 7. **Write the project `README.md`** — what it is, who it is for, how to run it.
-   Structure and modules belong in the architecture documents, not here.
+   Structure and modules belong in the project's architecture documents, not here.
 
-8. **Refresh the convention index** so its file list matches reality.
+8. **Refresh the convention index** so its tables name only the files the project kept.
 
 9. **Open one PR** titled `chore: bootstrap project conventions`.
    Merging it is the user's call: it settles the project's whole convention set at once.
@@ -113,20 +144,33 @@ Do not invent conventions beyond the chosen stack's needs; the template defaults
 
 1. `git fetch template`, then compare per file with `git diff main template/main -- <path>`.
 
-2. Classify before adopting:
+2. **Re-select against the fetched index.**
+   Apply **Selection** again: the template may have added a section, a file, or a base since adoption.
+   Take what the project now qualifies for — a file added upstream after adoption included — and drop what it no longer qualifies for.
+
+3. Classify before adopting:
 
 | Category | Paths | Action |
 |---|---|---|
 | Take verbatim | shared GitHub templates | `git checkout template/main -- <path>` |
-| Compare hunks | stack-neutral convention files, `AGENTS.md` | adopt improvements, keep deliberate local changes |
-| Never touch | architecture documents, `README.md`, `stack-*.md`, source | project-owned |
+| Compare hunks | the agent contract file, the index's rules, every convention file the project keeps — the selected ones included | adopt improvements, keep deliberate local changes; read a change to a base against the files extending it |
+| Never touch | the project's own architecture documents, its `README.md`, its source | the template supplies none of these |
 
-3. Open one PR titled `chore: sync template updates`.
+The selected files sit under *compare*, not *never touch*, because the tier
+that changes most upstream is the one an adopted project could otherwise never
+follow. What that row protected is protected by the row it moved into: a
+deliberate local change is kept, not overwritten.
+
+The index's tables are the exception inside their own row — they name what
+this project keeps, so a row missing there is a selection, not a missed
+improvement.
+
+4. Open one PR titled `chore: sync template updates`.
    The body lists what was adopted, adapted, and deliberately skipped — skipped items are not re-proposed on later syncs.
 
 ## Rules
 
 - Never adopt or update during active feature work; wait for a quiet `main`.
-- A file the project deleted stays deleted. The template does not resurrect it.
+- A file the project deleted stays deleted. The template does not resurrect it; only a fresh **Selection** takes it back.
 - If the project has drifted far from the template, re-run the relevant Bootstrap steps instead of merging hunk by hunk.
 - Report what you changed and what you deliberately skipped. Silence about a skipped file reads as coverage it did not get.
