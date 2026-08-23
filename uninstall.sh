@@ -44,19 +44,47 @@ ours() {
     [ -f "$_root/agents/worker.md" ]
 }
 
+# What was covered is tracked alongside what was acted on, because a count of
+# removals cannot tell "there was nothing there" from "the directories were
+# never opened" -- and the second is what a CLAUDE_CONFIG_DIR or XDG_CONFIG_HOME
+# set at install time and absent at uninstall time produces. Both printed
+# "Nothing to remove." and exited 0, so a user could delete the checkout on the
+# strength of it and strand every link this script exists to collect.
 REMOVED=0
+LOOKED=""
 for t in $SUPPORTED; do
   for d in $(tool_dirs "$t"); do
-    [ -d "$d" ] || continue
-    for f in "$d"/*; do
-      ours "$f" || continue
-      rm "$f"
-      REMOVED=$((REMOVED + 1))
-      echo "  removed   $f"
-    done
+    if [ -d "$d" ]; then
+      _seen=0
+      for f in "$d"/*; do
+        # An empty directory leaves the glob unexpanded, and that literal names
+        # no entry. -e alone would also drop a dangling link of ours, which is
+        # the normal state after deleting the checkout and the one thing here
+        # that must always be counted.
+        [ -e "$f" ] || [ -L "$f" ] || continue
+        _seen=$((_seen + 1))
+        ours "$f" || continue
+        rm "$f"
+        REMOVED=$((REMOVED + 1))
+        echo "  removed   $f"
+      done
+      # "none ours" is safe to assert because this string is only ever printed
+      # when the whole run removed nothing, so every entry counted here is one
+      # ours() rejected -- someone else's link, or ours() itself being wrong.
+      if [ "$_seen" -eq 0 ]; then _how="empty"; else _how="$_seen entries, none ours"; fi
+    else
+      _how="not there"
+    fi
+    LOOKED="$LOOKED    $d -- $_how
+"
   done
 done
 
+# `if` rather than `test && echo`, because this sits at the end of the script
+# and a failed test would hand its status to the caller: removing nothing from
+# a clean machine is success and stays 0. Same reason install.sh's summary was
+# rewritten in #50.
 if [ "$REMOVED" -eq 0 ]; then
-  echo "Nothing to remove."
+  echo "Nothing to remove. Looked in:"
+  printf '%s' "$LOOKED"
 fi
