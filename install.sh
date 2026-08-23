@@ -267,6 +267,9 @@ EOF
       echo "    git -C $_d stash push$_stash_u --$_paths"
       echo "    (re-run this installer)"
       echo "    git -C $_d stash pop"
+      echo "      can stop on a conflict, since the update touched these paths"
+      echo "      too: nothing is lost -- the update is in, your edit is still"
+      echo "      in the stash"
       echo "  or keep them and stop updating this clone: sh $_d/install.sh"
       echo "    installs from where it sits and never pulls"
       if [ "$_restorable" -eq 1 ]; then
@@ -294,6 +297,12 @@ if [ -z "$SRC_DIR" ]; then
   if [ -d "$INSTALL_DIR/.git" ]; then
     echo "Updating $INSTALL_DIR"
     git -C "$INSTALL_DIR" pull --ff-only -q || update_blocked "$INSTALL_DIR"
+    # Said on the run that works, because the run that refuses is too late: an
+    # edit here costs nothing until an incoming commit lands on that same file,
+    # and every update after that one refuses. update_blocked() says what to do
+    # once it has; this only says it is coming, so it names no path and no route.
+    [ -z "$(git -C "$INSTALL_DIR" status --porcelain)" ] ||
+      echo "  files of yours here -- an update stops once a commit lands on one" >&2
   else
     echo "Cloning into $INSTALL_DIR"
     mkdir -p "$(dirname "$INSTALL_DIR")"
