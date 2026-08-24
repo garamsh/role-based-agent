@@ -88,7 +88,7 @@ worker whose change triggers a selection does not make it.
    - the convention index, and the convention files **Selection** keeps.
    - the skeleton for the project's *own* architecture documents: the
      directory the template reserves for responsibility documents and ADRs,
-     with its README and ADR template and no content of its own.
+     with everything the template puts there and no content of its own.
    - the shared GitHub templates.
 
    Skip the template's own `README.md` — the project keeps its own.
@@ -142,7 +142,17 @@ Do not invent conventions beyond the chosen stack's needs; the template defaults
 
 ## Update — pull a newer template version
 
-1. `git fetch template`, then compare per file with `git diff main template/main -- <path>`.
+1. `git fetch template`. For every shared path that differs, read the upstream
+   commits, not the file's diff: inside a region the project has adapted, an
+   upstream change is indistinguishable from the adaptation, so one half of a
+   coupled change is taken and the other kept as local. Walk
+   `git rev-list template/main -- <path>` for the newest commit whose
+   `git show <commit>:<path>` matches the project's copy — that is where the
+   project last took the file — then read
+   `git log -p <commit>..template/main -- <path>`. Where nothing matches, the
+   project has adapted the file and only its own diff is left: read every hunk
+   asking whether upstream moved, not only whether the project did. Derive this
+   each sync; a recorded baseline is what puts a project on a wrong one.
 
 2. **Re-select against the fetched index.**
    Apply **Selection** again: the template may have added a section, a file, or a base since adoption.
@@ -153,17 +163,19 @@ Do not invent conventions beyond the chosen stack's needs; the template defaults
 | Category | Paths | Action |
 |---|---|---|
 | Take verbatim | shared GitHub templates | `git checkout template/main -- <path>` |
-| Compare hunks | the agent contract file, the index's rules, every convention file the project keeps — the selected ones included | adopt improvements, keep deliberate local changes; read a change to a base against the files extending it |
-| Never touch | the project's own architecture documents, its `README.md`, its source | the template supplies none of these |
+| Compare hunks | the agent contract file, the index's rules, the architecture skeleton the template supplies, every convention file the project keeps — the selected ones included | adopt improvements, keep deliberate local changes; read a change to a base against the files extending it |
+| Never touch | the responsibility documents and ADRs the project wrote, its `README.md`, its source | the template supplies none of these |
 
 The selected files sit under *compare*, not *never touch*, because the tier
 that changes most upstream is the one an adopted project could otherwise never
 follow. What that row protected is protected by the row it moved into: a
 deliberate local change is kept, not overwritten.
 
-The index's tables are the exception inside their own row — they name what
-this project keeps, so a row missing there is a selection, not a missed
-improvement.
+Both indexes are split down the middle, and the row reaches only half of each.
+The convention index's tables and the architecture README's index name what
+this project keeps and what it has written, so an entry missing from either is
+a selection, not a missed improvement. The rules around them are the
+template's and compare with the rest of the row.
 
 4. Open one PR titled `chore: sync template updates`.
    The body lists what was adopted, adapted, and deliberately skipped — skipped items are not re-proposed on later syncs.
