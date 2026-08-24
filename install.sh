@@ -192,16 +192,13 @@ case "$0" in
 esac
 
 # `pull --ff-only` refuses in order to protect an edit made here, which is
-# right; what it leaves the reader is a dead end. This says which of the two
-# refusals it was -- commits of its own here, so there is nothing to
-# fast-forward onto, or an incoming commit landing on a file edited here --
-# and names a way past it. git's own message above lists the paths in the way;
-# what it cannot say is that the *rest* of what you edited is not in the way,
-# which is the difference between "three files are stuck" and "one is".
+# right; the dead end it leaves the reader is not. This names what blocked and
+# a way past it, and says which of the files you edited are *not* in the way --
+# the one thing git's own message above cannot tell you.
 #
-# Nothing here writes to the clone. Moving a local edit is the user's call: an
-# installer that stashed or reset on their behalf is the bug this refusal
-# exists to prevent, and losing that edit silently would be the worse failure.
+# Nothing here writes to the clone: an installer that stashed or reset on the
+# user's behalf is the bug this refusal exists to prevent, and losing an edit
+# silently would be the worse failure.
 update_blocked() {
   _d=$1
   _up=$(git -C "$_d" rev-parse --abbrev-ref '@{u}' 2>/dev/null) || _up=""
@@ -248,9 +245,7 @@ EOF
     if [ "$_ahead" -gt 0 ]; then
       echo "$_d has $_ahead commit(s) of its own, so it cannot be fast-forwarded."
       echo
-      echo "  keep them and stop updating this clone: sh $_d/install.sh"
-      echo "    installs from where it sits and never pulls"
-      echo "  or put them somewhere they survive (a branch, a push), reset this clone"
+      echo "  put them somewhere they survive (a branch, a push), reset this clone"
       echo "    onto $_up yourself, and re-run"
     elif [ -n "$_stuck" ]; then
       echo "An incoming change lands on a file of yours in $_d."
@@ -270,8 +265,6 @@ EOF
       echo "      can stop on a conflict, since the update touched these paths"
       echo "      too: nothing is lost -- the update is in, your edit is still"
       echo "      in the stash"
-      echo "  or keep them and stop updating this clone: sh $_d/install.sh"
-      echo "    installs from where it sits and never pulls"
       if [ "$_restorable" -eq 1 ]; then
         echo "  or drop them and take the update:"
         echo "    git -C $_d checkout --$_paths, then re-run"
@@ -279,11 +272,14 @@ EOF
     else
       echo "$_d could not be fast-forwarded; git's message above says why."
       echo
-      echo "  keep this clone and stop updating it: sh $_d/install.sh"
-      echo "    installs from where it sits and never pulls"
-      echo "  or remove the installed links with uninstall.sh, delete $_d yourself,"
+      echo "  remove the installed links with uninstall.sh, delete $_d yourself,"
       echo "    and re-run to clone it again"
     fi
+    # Written once below the branches rather than inside each: it is the same
+    # route out of all three, and three copies of it had drifted into three
+    # lead-ins. Every branch prints a route first, so "or" always fits.
+    echo "  or keep what you have here and stop updating this clone: sh $_d/install.sh"
+    echo "    installs from where it sits and never pulls"
     echo
   } >&2
 
