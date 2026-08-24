@@ -52,6 +52,7 @@ ours() {
 # strength of it and strand every link this script exists to collect.
 REMOVED=0
 LOOKED=""
+MISSING=0
 for t in $SUPPORTED; do
   for d in $(tool_dirs "$t"); do
     if [ -d "$d" ]; then
@@ -73,7 +74,7 @@ for t in $SUPPORTED; do
       # ours() rejected -- someone else's link, or ours() itself being wrong.
       if [ "$_seen" -eq 0 ]; then _how="empty"; else _how="$_seen entries, none ours"; fi
     else
-      _how="not there"
+      _how="not there"; MISSING=$((MISSING + 1))
     fi
     LOOKED="$LOOKED    $d -- $_how
 "
@@ -87,4 +88,9 @@ done
 if [ "$REMOVED" -eq 0 ]; then
   echo "Nothing to remove. Looked in:"
   printf '%s' "$LOOKED"
+# Not the block above widened to this run: its "none ours" holds only where the
+# run removed nothing, and would be false of a directory this run just emptied.
+elif [ "$MISSING" -gt 0 ]; then
+  echo "$MISSING of the directories looked in were not there, so links may remain --"
+  echo "  set CLAUDE_CONFIG_DIR or XDG_CONFIG_HOME as at install time and re-run."
 fi
