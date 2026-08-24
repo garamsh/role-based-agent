@@ -129,6 +129,8 @@ worker whose change triggers a selection does not make it.
    These are the project's: responsibility documents and ADRs, in the directory the template reserves for them.
    The architecture *convention* — the template's file naming the structure a project is partitioned into — is a convention file, selected in step 2 and not written here.
    Write one responsibility document per major domain, following the skeleton in that directory's README, record any initial decisions as ADRs, and fill in the index.
+   Not everything the template puts there is a skeleton to write against: where it supplies a set of alternatives a project can only run one of, choosing among them is this step's work — make and record the choice as that README directs.
+   Then delete the set: it is what the choice was made from, and shipping it whole ships every alternative as a convention, none of them chosen.
 
 7. **Write the project `README.md`** — what it is, who it is for, how to run it.
    Structure and modules belong in the project's architecture documents, not here.
@@ -158,24 +160,21 @@ Do not invent conventions beyond the chosen stack's needs; the template defaults
    Apply **Selection** again: the template may have added a section, a file, or a base since adoption.
    Take what the project now qualifies for — a file added upstream after adoption included — and drop what it no longer qualifies for.
 
-3. Classify before adopting:
+3. Classify before adopting. Whose content the file holds decides the row, and
+   step 1's walk has answered it: a copy still matching an upstream commit was
+   never adapted, one matching none carries an adaptation. Whichever row a base
+   falls under, read its change against every file extending it.
 
-| Category | Paths | Action |
+| Category | The file holds | Action |
 |---|---|---|
-| Take verbatim | shared GitHub templates | `git checkout template/main -- <path>` |
-| Compare hunks | the agent contract file, the index's rules, the architecture skeleton the template supplies, every convention file the project keeps — the selected ones included | adopt improvements, keep deliberate local changes; read a change to a base against the files extending it |
-| Never touch | the responsibility documents and ADRs the project wrote, its `README.md`, its source | the template supplies none of these |
+| Take verbatim | the template's content, unadapted here | `git checkout template/main -- <path>` |
+| Compare hunks | the template's content, adapted here | adopt improvements, keep deliberate local changes |
+| Never touch | this project's own content, whether or not the template ships a file at that path | the template supplies none of it |
 
-The selected files sit under *compare*, not *never touch*, because the tier
-that changes most upstream is the one an adopted project could otherwise never
-follow. What that row protected is protected by the row it moved into: a
-deliberate local change is kept, not overwritten.
-
-Both indexes are split down the middle, and the row reaches only half of each.
-The convention index's tables and the architecture README's index name what
-this project keeps and what it has written, so an entry missing from either is
-a selection, not a missed improvement. The rules around them are the
-template's and compare with the rest of the row.
+A file can hold both. The convention index's tables and the architecture
+README's index name what this project selected and what it wrote, so an entry
+missing from either is a selection, not a missed improvement; the rules around
+them are the template's and compare with the rest.
 
 4. Open one PR titled `chore: sync template updates`.
    The body lists what was adopted, adapted, and deliberately skipped — skipped items are not re-proposed on later syncs.
