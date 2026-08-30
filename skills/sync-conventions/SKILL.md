@@ -82,16 +82,12 @@ worker whose change triggers a selection does not make it.
 
 ## Adopt — bring the template in
 
-1. **Choose the set.**
-
-   - the agent contract file (`AGENTS.md` and, for Claude Code, a `CLAUDE.md` that imports it).
-   - the convention index, and the convention files **Selection** keeps.
-   - the skeleton for the project's *own* architecture documents: the
-     directory the template reserves for responsibility documents and ADRs,
-     with everything the template puts there and no content of its own.
-   - the shared GitHub templates.
-
-   Skip the template's own `README.md` — the project keeps its own.
+1. **Choose the set.** Everything the template ships, less two subtractions:
+   **Selection** narrows the convention files the index lists, and the file
+   describing the template rather than a project stays behind — the project
+   keeps its own README. Nothing else is dropped and nothing else is added: a
+   path the template adds later needs no line here, and content the project
+   writes for itself is Bootstrap's work, not this step's.
 
 2. **Copy verbatim.**
    If a target directory already exists, copy only the missing subpaths; never overwrite an existing project file.
@@ -159,6 +155,9 @@ Do not invent conventions beyond the chosen stack's needs; the template defaults
 2. **Re-select against the fetched index.**
    Apply **Selection** again: the template may have added a section, a file, or a base since adoption.
    Take what the project now qualifies for — a file added upstream after adoption included — and drop what it no longer qualifies for.
+   A set of alternatives sits in no index, so Selection never reaches one, and
+   the project holds none of it, so step 3 never does. **Bootstrap** 6 decides
+   it, of the set and not of bootstrap — so on whichever sync one first lands.
 
 3. Classify before adopting. Whose content the file holds decides the row, and
    step 1's walk has answered it: a copy still matching an upstream commit was
