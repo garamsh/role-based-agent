@@ -37,9 +37,44 @@ Each of these was a filed bug. Changing one is a decision, not a detail.
 
 Every test runs in a `mktemp -d` sandbox with `HOME`, `CLAUDE_CONFIG_DIR`,
 `XDG_CONFIG_HOME` and `XDG_DATA_HOME` all overridden. Never touch the real
-`~/.claude` or `~/.config/opencode`; checksum both before and after and show
-they are unchanged. Run the scripts as a subprocess — never `source` them,
-which executes a real install against your own machine.
+`~/.claude` or `~/.config/opencode`. Run the scripts as a subprocess — never
+`source` them, which executes a real install against your own machine.
+
+Show both real trees untouched by listing every entry in each with its type
+and symlink target, bracketing the run with it and diffing the two:
+
+    L() { find ~/.claude ~/.config/opencode -maxdepth 2 -exec sh -c '
+            for p do
+              if [ -L "$p" ]; then echo "l $p -> $(readlink "$p")"
+              elif [ -d "$p" ]; then echo "d $p"
+              else echo "f $p"; fi
+            done' sh {} + | sort; }
+    L > before          # then the sandboxed run
+    L > after; diff before after
+
+Type, path and target are what these scripts move and all they move: each
+creates a directory, or creates, retargets or removes a symlink, and every one
+of those moves a line — a link written over a real file turns its `f` into an
+`l`. The line carries those three and nothing else: a path listing alone misses
+the retarget `ln -sfn` does on every re-run, `ls -l` adds size and mtime that
+move for one appended prompt, and `find -printf` is GNU-only.
+
+Two levels is derived, not picked: it reaches `agents/<role>.md` and
+`skills/<name>` under both roots — every path either script writes — and stops
+above the transcript the verifying session writes under `~/.claude` as the
+check runs. List everything at that depth, never only the paths the scripts
+write: a hash of just those came back identical across a stray write to
+`settings.local.json` this listing caught at once, so it is not the check.
+
+Bracket the run tightly: `~/.claude` rotates backups and session files of its
+own at that depth — two lines about every five minutes, none across the second
+a run takes, each named by its own timestamp. A non-empty diff is never
+narrowed: name what wrote every line, and anything under `agents/` or
+`skills/` is the failure this check is for.
+
+It is a listing and not a content hash, so it cannot see a file rewritten in
+place. That is safe only because neither script writes file contents anywhere.
+Give either of them that, and this check must be replaced in the same change.
 
 Paste the real output into the pull request. A check you did not run is
 reported as not run, never as passed.
