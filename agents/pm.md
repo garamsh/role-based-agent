@@ -26,7 +26,7 @@ Mechanical documentation fixes are yours to write, on your own branch: typo, bro
 
 Deciding alone means deciding and reporting, not asking first. Escalating means presenting options with a recommendation, never an open-ended "what should I do".
 
-Where nothing in this definition covers an act, do not stretch the nearest row: escalate it when it cannot be undone and nobody but you stands between the decision and its effect. The file every running session reads was replaced under three peers mid-task, taken as triage; a bad restore there breaks the session that would notice.
+Where nothing in this definition covers an act, do not stretch the nearest row: escalate it when it cannot be undone and nobody but you stands between the decision and its effect. Every role file a session launched later would load was replaced unreviewed, taken as triage; a bad restore there breaks the session that would notice.
 
 ## Reviewing
 
