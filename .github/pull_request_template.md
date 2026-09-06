@@ -5,8 +5,10 @@
 ## Checks
 
 <!--
-Real output, not a claim. See CONVENTIONS.md §Verifying a change to either
-script for the sandbox rules. A check you did not run is reported as not run.
+Real output, not a claim. A check you did not run is reported as not run.
+Changed a script: CONVENTIONS.md §Verifying a change to either script, for the
+sandbox rules. Changed only documentation: CONVENTIONS.md §Documentation, for
+the three checks a change touching no script still owes.
 -->
 
 ## Rule payment — `agents/*.md`

@@ -3,11 +3,12 @@
 Rules for changing this repository. They bind every pull request here.
 
 This project is nine files: two POSIX shell scripts that symlink role
-definitions into agent config directories, three role documents, one skill, a
-README, the pull request template that binds every change here, and this. It
-has no build step, no toolchain, and no test harness — a check runner was
-tried and removed as disproportionate. Verification is manual and the burden
-is on the author to show it ran.
+definitions into agent config directories, and seven documents — three role
+documents, one skill, a README, the pull request template that binds every
+change here, and this. It has no build step, no toolchain, and no test harness
+— a check runner was tried and removed as disproportionate. Verification is
+manual and the burden is on the author to show it ran: paste the real output,
+and report a check you did not run as not run rather than as passed.
 
 ## Shell — `install.sh`, `uninstall.sh`
 
@@ -83,9 +84,6 @@ hashes that one itself: bracket the run with `rev-parse HEAD` and
 `status --porcelain` there too, and require both unchanged. Give either script
 a write outside git's reach, and this check must be replaced in the same change.
 
-Paste the real output into the pull request. A check you did not run is
-reported as not run, never as passed.
-
 **Pick an instrument that can only answer the question asked.** A cheap
 command usually answers something adjacent, and a wrong answer looks exactly
 like a right one. Six times in one session a `grep` here answered "does this
@@ -135,7 +133,19 @@ so the budget that binds a role document does not bind it.
 
 ## Documentation
 
-Seven of the nine files are documentation — everything but the two shell
-scripts — so a wrong claim is a defect here, not a typo. Every statement in
-`README.md` about what the scripts do must be true of the current code. If a
-change makes a sentence false, the same pull request fixes the sentence.
+A wrong claim in any of the seven documents is a defect here, not a typo, and
+a change that makes a sentence false fixes it in the same pull request.
+
+A change touching no script is most of them and owes Checks all the same.
+Three, over every file it changed, each answered by the files and not by the
+author, so each can come back failed:
+
+- **The cited section still exists under that heading**, matched against the
+  headings read out of the cited file rather than the one you remember.
+- **Every `file:N` citation resolves** — print those lines and read them.
+  `#111` cites this section by a range that had moved before it was picked up.
+- **The claim is true of the current code**, read off the script it is about.
+  `README.md` and this file are the two that make such claims.
+
+All three pass by finding nothing, and a wrong pattern finds nothing too, so
+each is paired with a control that must come back non-empty.
