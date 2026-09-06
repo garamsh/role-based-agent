@@ -196,6 +196,15 @@ esac
 # a way past it, and says which of the files you edited are *not* in the way --
 # the one thing git's own message above cannot tell you.
 #
+# It also names what the refusal holds back, which is a different list and in
+# #84 shared no entry with the first: a clone ten commits behind went on
+# serving a skill nobody here had edited, and the session that loaded it got a
+# well-formed document with no way to date it. Naming only the blockers
+# answers the question the operator asked and not the one that costs. A
+# refused run is the last moment anything in this project can say so, so it is
+# said here rather than left to surface twelve days later in another
+# repository.
+#
 # Nothing here writes to the clone: an installer that stashed or reset on the
 # user's behalf is the bug this refusal exists to prevent, and losing an edit
 # silently would be the worse failure.
@@ -203,12 +212,20 @@ update_blocked() {
   _d=$1
   _up=$(git -C "$_d" rev-parse --abbrev-ref '@{u}' 2>/dev/null) || _up=""
   _ahead=0
+  _behind=0
   _incoming=""
   if [ -n "$_up" ]; then
     # The fetch half of the pull already ran, so the upstream ref names what
     # this run was trying to land -- the merge is what refused.
     _ahead=$(git -C "$_d" rev-list --count "$_up..HEAD") || _ahead=0
-    _incoming=$(git -C "$_d" diff --name-only HEAD "$_up") || _incoming=""
+    _behind=$(git -C "$_d" rev-list --count "HEAD..$_up") || _behind=0
+    # Diffed from the fork point rather than from HEAD, so the answer is what
+    # upstream adds. Against HEAD a clone carrying commits of its own also
+    # lists the files those commits changed, which the update never touches --
+    # naming them as held back would be the same wrong answer this message
+    # exists to stop giving.
+    _base=$(git -C "$_d" merge-base HEAD "$_up") || _base=HEAD
+    _incoming=$(git -C "$_d" diff --name-only "$_base" "$_up") || _incoming=""
   fi
 
   # Tracked files that differ from HEAD, then untracked ones -- which block
@@ -239,6 +256,32 @@ update_blocked() {
   done <<EOF
 $_edited
 EOF
+
+  # Every path the update carries, and not only the ones something of yours
+  # blocks: in #84 the two sets were disjoint for all ten commits, so a list of
+  # blockers named nothing that was going stale. Tagged where sync_tool() links
+  # the path out, because that is the copy a session reads -- the rest of the
+  # clone ageing costs nothing until you next open it yourself.
+  _held=""; _linked=0
+  while IFS= read -r _p; do
+    [ -n "$_p" ] || continue
+    # Tagged only where the path exists here as well: an incoming file the
+    # clone does not have yet is held back but is not being served, and a tag
+    # promising a session reads it would be the wrong answer again.
+    _tag=""
+    case "$_p" in
+      agents/*.md|skills/*)
+        if [ -e "$_d/$_p" ]; then _tag=" (installed)"; _linked=1; fi ;;
+    esac
+    _held="$_held    $_p$_tag
+"
+  done <<EOF
+$_incoming
+EOF
+
+  _at=$(git -C "$_d" rev-parse --short HEAD 2>/dev/null) || _at="its current commit"
+  _when=$(git -C "$_d" log -1 --format=%cd --date=short 2>/dev/null) || _when=""
+  [ -z "$_when" ] || _when=" of $_when"
 
   {
     echo
@@ -280,10 +323,24 @@ EOF
     # lead-ins. Every branch prints a route first, so "or" always fits.
     echo "  or keep what you have here and stop updating this clone: sh $_d/install.sh"
     echo "    installs from where it sits and never pulls"
+    # Last, so it is read whichever route was taken -- and the route above is
+    # the one that makes this permanent. Below the branches for the same reason
+    # as that route: what the refusal holds back does not depend on why it
+    # refused.
+    if [ -n "$_held" ]; then
+      echo
+      echo "  held back -- $_at$_when is $_behind commit(s) behind $_up, and the"
+      echo "  update changes each of these while this clone does not:"
+      printf '%s' "$_held"
+      if [ "$_linked" -eq 1 ]; then
+        echo "      an (installed) path is linked into your tool directories: what"
+        echo "      is here now is what a session loads, and nothing in that"
+        echo "      session can tell how old it is"
+      fi
+    fi
     echo
   } >&2
 
-  _at=$(git -C "$_d" rev-parse --short HEAD 2>/dev/null) || _at="its current commit"
   die "left $_d unchanged at $_at, and removed nothing"
 }
 
