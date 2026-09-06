@@ -103,6 +103,34 @@ tool_installed() {
   return 1
 }
 
+# Is a path in the clone linked out of a tool directory right now? Asked of the
+# link, never of the file in the clone: the report below is about what a
+# session loads, and #99 is that testing `-e` in the clone answered a different
+# question -- it fired where nothing had ever been installed, and on an
+# untracked file of the user's that no run had seen. A real file at the target
+# path is deliberately not a match either: that file is what the session loads,
+# and it is not the clone's.
+#
+# install_one() links a role file by its own name and a skill by its directory,
+# so the link to look for is derived the same way rather than from the path.
+linked_out() {
+  case "$2" in
+    agents/*.md) _lrel=$2 ;;
+    skills/*)    _lsub=${2#skills/}; _lrel="skills/${_lsub%%/*}" ;;
+    *) return 1 ;;
+  esac
+  _lname=${_lrel##*/}
+  for _lt in $SUPPORTED; do
+    case "$_lrel" in
+      agents/*) _ldir=$(tool_dir "$_lt") ;;
+      *)        _ldir=$(tool_skills_dir "$_lt") ;;
+    esac
+    [ -L "$_ldir/$_lname" ] || continue
+    if [ "$(readlink "$_ldir/$_lname")" = "$1/$_lrel" ]; then return 0; fi
+  done
+  return 1
+}
+
 # The shell opens `< /dev/tty` before stty runs, so a failure to open it is the
 # shell's message on the script's stderr, not stty's, and stty's own 2>&1 comes
 # too late to catch it. The group's redirect is in place first, so it does.
@@ -191,6 +219,42 @@ case "$0" in
     ;;
 esac
 
+# The clone's commit and the date on it. Both messages below have to say how
+# old the text they are about to leave installed might be, and a second copy of
+# this is a second thing to keep in step.
+clone_at() {
+  _at=$(git -C "$1" rev-parse --short HEAD 2>/dev/null) || _at="its current commit"
+  _when=$(git -C "$1" log -1 --format=%cd --date=short 2>/dev/null) || _when=""
+  [ -z "$_when" ] || _when=" of $_when"
+}
+
+# A remote this run could not reach is not a clone that refuses to move. The
+# clone on disk is untouched and still serves every link it served before, so
+# this warns and carries on. #98 is that both failures arrived as one non-zero
+# exit and got update_blocked()'s message, whose only advice was to run
+# uninstall.sh and delete the clone -- a destructive answer to a network blip,
+# for a condition nothing of the user's caused.
+#
+# Continuing rather than exiting non-zero is the decision here, and it is what
+# keeps the unattended form safe: a blip on CI leaves the links exactly as a
+# successful run with nothing incoming would have left them. What it costs is
+# that the clone may be behind and this run cannot tell, so it says how old the
+# text it is installing is and leaves the reader to judge.
+update_unreachable() {
+  _d=$1
+  clone_at "$_d"
+  {
+    echo
+    echo "Could not fetch from the remote of $_d; git's message above says why."
+    echo
+    echo "  installing from the clone as it stands, at $_at$_when -- nothing"
+    echo "    was fetched, so it may be behind, and nothing in a session that"
+    echo "    loads it can tell how old it is"
+    echo "  re-run once the remote is reachable and it updates as usual"
+    echo
+  } >&2
+}
+
 # `pull --ff-only` refuses in order to protect an edit made here, which is
 # right; the dead end it leaves the reader is not. This names what blocked and
 # a way past it, and says which of the files you edited are *not* in the way --
@@ -265,23 +329,23 @@ EOF
   _held=""; _linked=0
   while IFS= read -r _p; do
     [ -n "$_p" ] || continue
-    # Tagged only where the path exists here as well: an incoming file the
-    # clone does not have yet is held back but is not being served, and a tag
+    # Tagged only where a link actually serves it: an incoming file nothing
+    # here has linked out is held back but is not being served, and a tag
     # promising a session reads it would be the wrong answer again.
     _tag=""
-    case "$_p" in
-      agents/*.md|skills/*)
-        if [ -e "$_d/$_p" ]; then _tag=" (installed)"; _linked=1; fi ;;
-    esac
+    if linked_out "$_d" "$_p"; then _tag=" (installed)"; _linked=1; fi
+    # A held-back path can be a blocking one too -- often it is blocked by the
+    # very edit that is in the way. Left untagged, the line below claiming this
+    # clone does not change these contradicted the list above it, which #99
+    # filed: the clone does change that one, because you did.
+    case " $_paths " in *" $_p "*) _tag="$_tag (in the way, above)" ;; esac
     _held="$_held    $_p$_tag
 "
   done <<EOF
 $_incoming
 EOF
 
-  _at=$(git -C "$_d" rev-parse --short HEAD 2>/dev/null) || _at="its current commit"
-  _when=$(git -C "$_d" log -1 --format=%cd --date=short 2>/dev/null) || _when=""
-  [ -z "$_when" ] || _when=" of $_when"
+  clone_at "$_d"
 
   {
     echo
@@ -292,8 +356,28 @@ EOF
       echo "    onto $_up yourself, and re-run"
     elif [ -n "$_stuck" ]; then
       echo "An incoming change lands on a file of yours in $_d."
+    else
+      echo "$_d could not be fast-forwarded; git's message above says why."
       echo
-      echo "  in the way (yours here, and changed by the update):"
+      echo "  no commit and no file of yours is in the way, so that message names"
+      echo "    a condition this script cannot: clear it in the clone and re-run"
+    fi
+
+    # Outside the branch above, because which files are in the way does not
+    # depend on why the run refused. #102 is that the _ahead branch computed
+    # these three lists and printed none of them, leaving the reader in the
+    # worst position -- a commit of their own *and* a blocking edit -- told the
+    # least. A clone that is only ahead has nothing in the way and prints
+    # nothing here, which is why README.md says this of a run something of
+    # yours blocks rather than of every blocked run.
+    if [ -n "$_stuck" ]; then
+      echo
+      if [ "$_ahead" -gt 0 ]; then
+        echo "  in the way as well, once those commits are dealt with (yours here,"
+        echo "  and changed by the update):"
+      else
+        echo "  in the way (yours here, and changed by the update):"
+      fi
       printf '%s' "$_stuck"
       if [ -n "$_spare" ]; then
         echo
@@ -301,7 +385,16 @@ EOF
         printf '%s' "$_spare"
       fi
       echo
-      echo "  set the blocking ones aside, update, put them back:"
+      # The sequence itself is unchanged: #95 proved it works exactly as
+      # printed. Only the lead-in moves, because after a reset it is the step
+      # that follows rather than the whole way past -- and stashing before the
+      # reset is what keeps the reset from taking the edit with it.
+      if [ "$_ahead" -gt 0 ]; then
+        echo "  set those aside first, so the reset above cannot take them with"
+        echo "  it, and put them back after:"
+      else
+        echo "  set the blocking ones aside, update, put them back:"
+      fi
       echo "    git -C $_d stash push$_stash_u --$_paths"
       echo "    (re-run this installer)"
       echo "    git -C $_d stash pop"
@@ -312,11 +405,6 @@ EOF
         echo "  or drop them and take the update:"
         echo "    git -C $_d checkout --$_paths, then re-run"
       fi
-    else
-      echo "$_d could not be fast-forwarded; git's message above says why."
-      echo
-      echo "  remove the installed links with uninstall.sh, delete $_d yourself,"
-      echo "    and re-run to clone it again"
     fi
     # Written once below the branches rather than inside each: it is the same
     # route out of all three, and three copies of it had drifted into three
@@ -330,7 +418,7 @@ EOF
     if [ -n "$_held" ]; then
       echo
       echo "  held back -- $_at$_when is $_behind commit(s) behind $_up, and the"
-      echo "  update changes each of these while this clone does not:"
+      echo "  update changes each of these:"
       printf '%s' "$_held"
       if [ "$_linked" -eq 1 ]; then
         echo "      an (installed) path is linked into your tool directories: what"
@@ -349,7 +437,15 @@ if [ -z "$SRC_DIR" ]; then
 
   if [ -d "$INSTALL_DIR/.git" ]; then
     echo "Updating $INSTALL_DIR"
-    git -C "$INSTALL_DIR" pull --ff-only -q || update_blocked "$INSTALL_DIR"
+    # Split out of `pull --ff-only` so the two failures it handed back as one
+    # exit status can be told apart. They are different conditions with
+    # different remedies: a remote that could not be read says nothing about
+    # this clone, while a merge that refuses is about nothing else.
+    if git -C "$INSTALL_DIR" fetch -q; then
+      git -C "$INSTALL_DIR" merge --ff-only -q || update_blocked "$INSTALL_DIR"
+    else
+      update_unreachable "$INSTALL_DIR"
+    fi
     # Said on the run that works, because the run that refuses is too late: an
     # edit here costs nothing until an incoming commit lands on that same file,
     # and every update after that one refuses. update_blocked() says what to do
