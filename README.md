@@ -57,7 +57,7 @@ curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/unins
 
 It removes only symlinks that name a role-based-agent checkout — by the link's text, not by what it still resolves to, so deleting the checkout first leaves nothing behind — and never touches real files or directories. A relative link text is read against the link's own directory, so where you run it from cannot change what it removes.
 
-To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. Requires `git`.
+To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. Requires `git`. That clone has to hold the roles it is being asked to install: an `agents/` directory with no role definition in it stops the run before anything is written, exactly as a missing one does. Skills are not required of it — a clone carrying none links the roles as usual and says that it linked no skill.
 
 Which clone you edit decides what it costs you. A clone you run `install.sh` from is only linked out of, never pulled, so your edits there survive every run. The clone the piped one-liner keeps at `~/.local/share/role-based-agent` is the one it fast-forwards, so an edit there is what the blocked update above is about — recoverable, and it costs nothing until an incoming commit lands on that same file, which is when the update starts refusing and the clone stops moving. Edit your own clone, and leave the managed one to the installer.
 
