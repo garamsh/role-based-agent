@@ -29,9 +29,9 @@ Clones to `~/.local/share/role-based-agent`, then asks which tools to install in
 | Claude Code | `~/.claude/{agents,skills}/` | `claude` on `PATH`, or `~/.claude/` exists |
 | opencode | `~/.config/opencode/{agents,skills}/` | `opencode` on `PATH`, or `~/.config/opencode/` exists |
 
-Roles and skills are symlinked, so there is no second copy to fall behind. A real file or directory you put at a target path is left alone and reported as kept — move it yourself and re-run to link there.
+Roles and skills are symlinked, so there is no second copy to fall behind the clone: a session loads exactly what the clone holds, however old that is. A real file or directory you put at a target path is left alone and reported as kept — move it yourself and re-run to link there.
 
-Re-run the same command to update: the list starts with your installed set checked, and enter refreshes exactly that set. Unchecking only limits what is refreshed; it never removes. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates of a clone you have not edited yourself.
+Re-run the same command to update: the list starts with your installed set checked, and enter refreshes exactly that set. Unchecking only limits what is refreshed; it never removes. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt, so the same one-liner stays safe for unattended updates of a clone you have not edited yourself. Nothing re-runs it for you, and until it is run again the linked paths keep serving the clone's text: what a session loads is as old as the last run, and nothing at the point of reading dates it.
 
 Updating that clone is a fast-forward and nothing else, so an edit of your own can block it: a file you modified there stops the update once an incoming commit lands on that same file, and a commit of your own there stops it outright. A blocked run installs nothing and leaves the clone and your edits exactly as they were. It names the files in the way, separates them from the ones you edited that are not, offers a `git stash` sequence to get past it, and exits non-zero. It also lists every file the refused update would have brought, marking the ones installed out of this clone: those are what a session keeps loading, at the clone's older text, for as long as the update is refused — and they need not be the files you edited, or overlap with them at all. Nothing is stashed, reset or discarded for you — which of your edits to move is yours to decide.
 
@@ -57,7 +57,7 @@ It removes only symlinks that name a role-based-agent checkout — by the link's
 
 To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. Requires `git`.
 
-Which clone you edit decides what it costs you. A clone you run `install.sh` from is only linked out of, never pulled, so your edits there survive every run. The clone the piped one-liner keeps at `~/.local/share/role-based-agent` is the one it fast-forwards, so an edit there is what the blocked update above is about — recoverable, but it stops updating until you move it. Edit your own clone, and leave the managed one to the installer.
+Which clone you edit decides what it costs you. A clone you run `install.sh` from is only linked out of, never pulled, so your edits there survive every run. The clone the piped one-liner keeps at `~/.local/share/role-based-agent` is the one it fast-forwards, so an edit there is what the blocked update above is about — recoverable, and it costs nothing until an incoming commit lands on that same file, which is when the update starts refusing and the clone stops moving. Edit your own clone, and leave the managed one to the installer.
 
 ## Use
 
