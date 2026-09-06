@@ -7,7 +7,18 @@ description: Bring a conventions template repository into this project and keep 
 
 One procedure covering three moments in a project's life: adopting a conventions template for the first time, bootstrapping the project on top of it, and pulling later template updates. Which one runs is decided by what the repository already has.
 
-The PM operates it: the conventions it rewrites are the PM's to maintain, and a user invoking the skill is the explicit instruction the PM needs to write the `Makefile`, hooks, and CI workflow Bootstrap 5 calls for.
+The PM operates it. The conventions it rewrites are the PM's to maintain, and
+a user invoking the skill is the explicit instruction the PM needs for what
+**Bootstrap** writes on top of them: the `Makefile`, hooks and CI workflow of
+5, the architecture documents and ADRs of 6, and the project `README.md` of 7.
+One instruction reaches all three because the PM's role definition routes
+substantive documentation exactly as it routes code, and code is the PM's to
+write on the user's explicit instruction. It is the invocation and nothing
+wider — **Step 1** confirms the mode with the user before anything changes, and
+**Bootstrap** 9 leaves the merge their call — so a PM writing a project's
+`README.md` off its own judgement has no cover from here. Every other step is
+conventions, documentation, or reversible repository configuration, and every
+one of them lands in the pull request the user merges.
 
 Everything lands via pull request. Never push to `main`.
 
