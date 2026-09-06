@@ -69,7 +69,18 @@ REMOVED=0
 LOOKED=""
 MISSING=0
 for t in $SUPPORTED; do
-  for d in $(tool_dirs "$t"); do
+  # `for d in $(tool_dirs "$t")` split the list on every space, so one space in
+  # a config path became two directories that were each "not there": the run
+  # printed "Nothing to remove." over links it had never opened the directory
+  # for, and exited 0 -- the exact failure the paragraph above says the count
+  # exists to prevent. POSIX sh has no arrays; `read -r` off a here-document
+  # keeps a line whole, where a pipeline would put REMOVED, LOOKED and MISSING
+  # in a subshell and lose every count, and IFS=newline splitting would still
+  # glob a path holding a `*`.
+  while IFS= read -r d; do
+    # tool_dirs prints nothing for a tool it does not know, and the substitution
+    # below still feeds one empty line.
+    [ -n "$d" ] || continue
     if [ -d "$d" ]; then
       _seen=0
       for f in "$d"/*; do
@@ -93,7 +104,9 @@ for t in $SUPPORTED; do
     fi
     LOOKED="$LOOKED    $d -- $_how
 "
-  done
+  done <<EOF
+$(tool_dirs "$t")
+EOF
 done
 
 # `if` rather than `test && echo`, because this sits at the end of the script
