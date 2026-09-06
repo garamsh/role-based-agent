@@ -191,6 +191,42 @@ case "$0" in
     ;;
 esac
 
+# The clone's commit and the date on it. Both messages below have to say how
+# old the text they are about to leave installed might be, and a second copy of
+# this is a second thing to keep in step.
+clone_at() {
+  _at=$(git -C "$1" rev-parse --short HEAD 2>/dev/null) || _at="its current commit"
+  _when=$(git -C "$1" log -1 --format=%cd --date=short 2>/dev/null) || _when=""
+  [ -z "$_when" ] || _when=" of $_when"
+}
+
+# A remote this run could not reach is not a clone that refuses to move. The
+# clone on disk is untouched and still serves every link it served before, so
+# this warns and carries on. #98 is that both failures arrived as one non-zero
+# exit and got update_blocked()'s message, whose only advice was to run
+# uninstall.sh and delete the clone -- a destructive answer to a network blip,
+# for a condition nothing of the user's caused.
+#
+# Continuing rather than exiting non-zero is the decision here, and it is what
+# keeps the unattended form safe: a blip on CI leaves the links exactly as a
+# successful run with nothing incoming would have left them. What it costs is
+# that the clone may be behind and this run cannot tell, so it says how old the
+# text it is installing is and leaves the reader to judge.
+update_unreachable() {
+  _d=$1
+  clone_at "$_d"
+  {
+    echo
+    echo "Could not fetch from the remote of $_d; git's message above says why."
+    echo
+    echo "  installing from the clone as it stands, at $_at$_when -- nothing"
+    echo "    was fetched, so it may be behind, and nothing in a session that"
+    echo "    loads it can tell how old it is"
+    echo "  re-run once the remote is reachable and it updates as usual"
+    echo
+  } >&2
+}
+
 # `pull --ff-only` refuses in order to protect an edit made here, which is
 # right; the dead end it leaves the reader is not. This names what blocked and
 # a way past it, and says which of the files you edited are *not* in the way --
@@ -279,9 +315,7 @@ EOF
 $_incoming
 EOF
 
-  _at=$(git -C "$_d" rev-parse --short HEAD 2>/dev/null) || _at="its current commit"
-  _when=$(git -C "$_d" log -1 --format=%cd --date=short 2>/dev/null) || _when=""
-  [ -z "$_when" ] || _when=" of $_when"
+  clone_at "$_d"
 
   {
     echo
@@ -315,8 +349,8 @@ EOF
     else
       echo "$_d could not be fast-forwarded; git's message above says why."
       echo
-      echo "  remove the installed links with uninstall.sh, delete $_d yourself,"
-      echo "    and re-run to clone it again"
+      echo "  no commit and no file of yours is in the way, so that message names"
+      echo "    a condition this script cannot: clear it in the clone and re-run"
     fi
     # Written once below the branches rather than inside each: it is the same
     # route out of all three, and three copies of it had drifted into three
@@ -349,7 +383,15 @@ if [ -z "$SRC_DIR" ]; then
 
   if [ -d "$INSTALL_DIR/.git" ]; then
     echo "Updating $INSTALL_DIR"
-    git -C "$INSTALL_DIR" pull --ff-only -q || update_blocked "$INSTALL_DIR"
+    # Split out of `pull --ff-only` so the two failures it handed back as one
+    # exit status can be told apart. They are different conditions with
+    # different remedies: a remote that could not be read says nothing about
+    # this clone, while a merge that refuses is about nothing else.
+    if git -C "$INSTALL_DIR" fetch -q; then
+      git -C "$INSTALL_DIR" merge --ff-only -q || update_blocked "$INSTALL_DIR"
+    else
+      update_unreachable "$INSTALL_DIR"
+    fi
     # Said on the run that works, because the run that refuses is too late: an
     # edit here costs nothing until an incoming commit lands on that same file,
     # and every update after that one refuses. update_blocked() says what to do
