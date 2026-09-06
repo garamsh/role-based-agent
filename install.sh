@@ -103,6 +103,34 @@ tool_installed() {
   return 1
 }
 
+# Is a path in the clone linked out of a tool directory right now? Asked of the
+# link, never of the file in the clone: the report below is about what a
+# session loads, and #99 is that testing `-e` in the clone answered a different
+# question -- it fired where nothing had ever been installed, and on an
+# untracked file of the user's that no run had seen. A real file at the target
+# path is deliberately not a match either: that file is what the session loads,
+# and it is not the clone's.
+#
+# install_one() links a role file by its own name and a skill by its directory,
+# so the link to look for is derived the same way rather than from the path.
+linked_out() {
+  case "$2" in
+    agents/*.md) _lrel=$2 ;;
+    skills/*)    _lsub=${2#skills/}; _lrel="skills/${_lsub%%/*}" ;;
+    *) return 1 ;;
+  esac
+  _lname=${_lrel##*/}
+  for _lt in $SUPPORTED; do
+    case "$_lrel" in
+      agents/*) _ldir=$(tool_dir "$_lt") ;;
+      *)        _ldir=$(tool_skills_dir "$_lt") ;;
+    esac
+    [ -L "$_ldir/$_lname" ] || continue
+    if [ "$(readlink "$_ldir/$_lname")" = "$1/$_lrel" ]; then return 0; fi
+  done
+  return 1
+}
+
 # The shell opens `< /dev/tty` before stty runs, so a failure to open it is the
 # shell's message on the script's stderr, not stty's, and stty's own 2>&1 comes
 # too late to catch it. The group's redirect is in place first, so it does.
@@ -301,14 +329,16 @@ EOF
   _held=""; _linked=0
   while IFS= read -r _p; do
     [ -n "$_p" ] || continue
-    # Tagged only where the path exists here as well: an incoming file the
-    # clone does not have yet is held back but is not being served, and a tag
+    # Tagged only where a link actually serves it: an incoming file nothing
+    # here has linked out is held back but is not being served, and a tag
     # promising a session reads it would be the wrong answer again.
     _tag=""
-    case "$_p" in
-      agents/*.md|skills/*)
-        if [ -e "$_d/$_p" ]; then _tag=" (installed)"; _linked=1; fi ;;
-    esac
+    if linked_out "$_d" "$_p"; then _tag=" (installed)"; _linked=1; fi
+    # A held-back path can be a blocking one too -- often it is blocked by the
+    # very edit that is in the way. Left untagged, the line below claiming this
+    # clone does not change these contradicted the list above it, which #99
+    # filed: the clone does change that one, because you did.
+    case " $_paths " in *" $_p "*) _tag="$_tag (in the way, above)" ;; esac
     _held="$_held    $_p$_tag
 "
   done <<EOF
@@ -364,7 +394,7 @@ EOF
     if [ -n "$_held" ]; then
       echo
       echo "  held back -- $_at$_when is $_behind commit(s) behind $_up, and the"
-      echo "  update changes each of these while this clone does not:"
+      echo "  update changes each of these:"
       printf '%s' "$_held"
       if [ "$_linked" -eq 1 ]; then
         echo "      an (installed) path is linked into your tool directories: what"
