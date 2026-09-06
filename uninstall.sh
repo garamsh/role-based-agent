@@ -109,16 +109,24 @@ $(tool_dirs "$t")
 EOF
 done
 
-# `if` rather than `test && echo`, because this sits at the end of the script
+# `if` rather than `test && echo`, because these sit at the end of the script
 # and a failed test would hand its status to the caller: removing nothing from
 # a clean machine is success and stays 0. Same reason install.sh's summary was
 # rewritten in #50.
 if [ "$REMOVED" -eq 0 ]; then
   echo "Nothing to remove. Looked in:"
   printf '%s' "$LOOKED"
-# Not the block above widened to this run: its "none ours" holds only where the
-# run removed nothing, and would be false of a directory this run just emptied.
-elif [ "$MISSING" -gt 0 ]; then
+fi
+# Its own `if` and not an `elif` on the block above: a directory that was never
+# opened is itself a reason nothing was removed, so REMOVED -eq 0 is the case
+# this advice exists for and an `elif` under it could never reach that case. In
+# #100 it did not: the run printed "Nothing to remove." over eight live links
+# and never said why (#107).
+#
+# Still a message of its own rather than the block above widened to every run:
+# that block's "none ours" holds only where the run removed nothing, and would
+# be false of a directory this run just emptied.
+if [ "$MISSING" -gt 0 ]; then
   echo "$MISSING of the directories looked in were not there, so links may remain --"
   echo "  set CLAUDE_CONFIG_DIR or XDG_CONFIG_HOME as at install time and re-run."
 fi
