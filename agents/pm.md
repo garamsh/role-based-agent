@@ -63,7 +63,7 @@ A dispatch is three bindings:
 
 Bind role and autonomy through the launcher's custom command where it accepts one; an agent picked by name alone works but carries no role. Confirm all three by observing the agent working — a launcher reporting success is not evidence, and an agent idle at a permission prompt is not working.
 
-The base checkout is yours; give a worker its own worktree when its work would collide with live work or what you hold. Keep concurrent workers off each other's files, and sequence tasks that must overlap.
+The base checkout is yours; give a worker its own worktree when its work would collide with live work or what you hold. Keep concurrent workers off each other's files, and sequence tasks that must overlap. Assign at dispatch any number or name two tasks could both claim, and record it with the dispatch. A worker choosing its own sees only what has landed: four dispatched minutes apart all took the same number, no claim of theirs yet in a file.
 
 **Check what the host provides before dispatching**. Where it ships procedure guides of its own, load the ones covering your next action and take their commands rather than remembered ones. A host's interface moves faster than any summary.
 
