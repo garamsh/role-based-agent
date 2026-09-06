@@ -35,13 +35,17 @@ Each of these was a filed bug. Changing one is a decision, not a detail.
 
 ## Verifying a change to either script
 
-Every test runs in a `mktemp -d` sandbox with `HOME`, `CLAUDE_CONFIG_DIR`,
-`XDG_CONFIG_HOME` and `XDG_DATA_HOME` all overridden. Never touch the real
-`~/.claude` or `~/.config/opencode`. Run the scripts as a subprocess — never
-`source` them, which executes a real install against your own machine.
+Every test runs in a `mktemp -d` sandbox with every environment variable either
+script reads overridden — the names they expand and never assign, taken from
+the scripts and not from a list here. A list is what hid `ROLE_AGENT_DIR`,
+which `install.sh:20` reads *ahead of* `XDG_DATA_HOME`: a shell that exports it
+gets a real fast-forward of its own clone past a sandbox that overrides the
+other four, and nothing here says so. Never touch the real `~/.claude`,
+`~/.config/opencode` or that clone; run the scripts as a subprocess, never
+`source` them, which runs a real install on your machine.
 
-Show both real trees untouched by listing every entry in each with its type
-and symlink target, bracketing the run with it and diffing the two:
+Show all three untouched. The two config trees hold only directories and
+symlinks, so bracket the run with a listing of every entry, its type and target:
 
     L() { find ~/.claude ~/.config/opencode -maxdepth 2 -exec sh -c '
             for p do
@@ -52,7 +56,7 @@ and symlink target, bracketing the run with it and diffing the two:
     L > before          # then the sandboxed run
     L > after; diff before after
 
-Type, path and target are what these scripts move and all they move: each
+Type, path and target are what these scripts move there and all they move: each
 creates a directory, or creates, retargets or removes a symlink, and every one
 of those moves a line — a link written over a real file turns its `f` into an
 `l`. The line carries those three and nothing else: a path listing alone misses
@@ -60,21 +64,24 @@ the retarget `ln -sfn` does on every re-run, `ls -l` adds size and mtime that
 move for one appended prompt, and `find -printf` is GNU-only.
 
 Two levels is derived, not picked: it reaches `agents/<role>.md` and
-`skills/<name>` under both roots — every path either script writes — and stops
+`skills/<name>` under both roots — every path either script links — and stops
 above the transcript the verifying session writes under `~/.claude` as the
 check runs. List everything at that depth, never only the paths the scripts
 write: a hash of just those came back identical across a stray write to
 `settings.local.json` this listing caught at once, so it is not the check.
 
-Bracket the run tightly: `~/.claude` rotates backups and session files of its
-own at that depth — two lines about every five minutes, none across the second
-a run takes, each named by its own timestamp. A non-empty diff is never
-narrowed: name what wrote every line, and anything under `agents/` or
-`skills/` is the failure this check is for.
+Bracket the run tightly, and read a non-empty diff by attribution and never by
+size: `~/.claude` rotates its own backups at that depth, retires a session file
+when a session exits, and adds an empty `session-env/<uuid>`, each named by its
+own timestamp. Name what wrote every line; anything under `agents/` or
+`skills/` is the failure this check is for. Budget it in lines instead and a
+reader meeting four lines of that churn fails a run that passed.
 
 It is a listing and not a content hash, so it cannot see a file rewritten in
-place. That is safe only because neither script writes file contents anywhere.
-Give either of them that, and this check must be replaced in the same change.
+place — and `git clone` and `git pull` rewrite a whole tree, the clone. Git
+hashes that one itself: bracket the run with `rev-parse HEAD` and
+`status --porcelain` there too, and require both unchanged. Give either script
+a write outside git's reach, and this check must be replaced in the same change.
 
 Paste the real output into the pull request. A check you did not run is
 reported as not run, never as passed.
