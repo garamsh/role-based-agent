@@ -103,6 +103,12 @@ instruction set, so every word is paid for on every run.
   whoever ships the host.
 - Do not grow them. Pay for an added rule by consolidating an existing
   duplication, and list every rule before and after to show none was lost.
+  Where no consolidation exists that does not cost a named concrete
+  failure, list in the pull request every candidate pair in the file and
+  why each fails, and let the growth be decided rather than smuggled.
+  Without the survey, "nothing pays" is indistinguishable from "I did not
+  look"; without the branch, an author manufactures a consolidation out of
+  a deliberate extension and deletes a named failure to buy the arithmetic.
 
 ## Skills — `skills/*/SKILL.md`
 
