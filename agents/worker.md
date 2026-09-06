@@ -35,7 +35,7 @@ Send a question the same way and wait for the answer; building on an assumption 
 ## Delivering
 
 1. Run the project's lint, format, and test commands. All must pass.
-2. Use the PR template: what changed, why, which checks ran and their results, and any convention concerns.
+2. Fill in every section of the PR template.
 3. List the convention documents you actually opened. The PM cross-checks that against the diff, and an inaccurate claim costs more than the mistake it was meant to cover.
 4. Do not request review from or assign other agents; the PM picks PRs up.
 

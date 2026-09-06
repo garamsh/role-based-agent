@@ -8,9 +8,7 @@ One skill ships alongside them. `sync-conventions` brings a conventions template
 
 These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. The roles name no paths and assume no file layout: each finds the rules through whatever entry point the project gives contributors, then treats them as binding.
 
-Changing this repository has its own rules, in `CONVENTIONS.md`: what the two
-shell scripts may and may not do, how a change to either is verified, and what
-a role document is allowed to become.
+Changing this repository has its own rules, in `CONVENTIONS.md`. They reach every file here, documentation included: what each kind of file may become, and what a change to one has to survive before it lands.
 
 They do assume a project that keeps its conventions in writing — an index of rules, a template saying what a pull request must state, documentation describing the system's shape. On a repository with none of that, the roles still work but have little to enforce.
 
@@ -37,15 +35,19 @@ Updating that clone is a fast-forward and nothing else, so an edit of your own c
 
 A remote the run cannot reach is a different thing, and is not reported as one: nothing was fetched, so the clone on disk is exactly as it was and every link it serves still resolves. The run says it could not fetch, names the commit and date it is installing from, warns that the clone may be behind with nothing in a session able to tell, and refreshes the links from it rather than failing — so a network blip does not turn an unattended update into a red build, and nothing is deleted to recover from one. Re-run once the remote is reachable and it updates as usual.
 
-`install.sh` takes no arguments; it installs, and that is all it does. Anything you would reach for a flag to say is said by environment variable instead, which is also what survives a pipe — `curl … | sh` cannot take a flag without `sh -s --` in front of it:
+`install.sh` takes no arguments; it installs, and that is all it does. Anything you would reach for a flag to say is said by environment variable instead, which is also what survives a pipe — `curl … | sh` cannot take a flag without `sh -s --` in front of it. The scripts decide which variables those are, not this table: they are the names either script expands and never assigns, and the table is read off them rather than kept in step with them by hand. The `ROLE_AGENT_` names exist only here; the rest are the ones your shell already uses to say where a tool keeps its files:
 
 | Variable | Effect |
 |---|---|
 | `ROLE_AGENT_TOOLS` | Install into exactly these tools — space- or comma-separated, e.g. `claude` or `claude,opencode`. No prompt. An unknown name stops the run before anything is written. A name the host does not appear to have is still installed, and said to be undetected, so a typo shows itself. |
 | `ROLE_AGENT_NONINTERACTIVE` | Any non-empty value: do not prompt, install the set the prompt would have started with. |
 | `ROLE_AGENT_DIR` | Where the piped form keeps its clone. |
+| `XDG_DATA_HOME` | Where the piped form keeps its clone when `ROLE_AGENT_DIR` is unset: `$XDG_DATA_HOME/role-based-agent` in place of `~/.local/share/role-based-agent`. |
+| `CLAUDE_CONFIG_DIR` | Claude Code's config directory in place of `~/.claude`, so the target paths listed above move with it. `uninstall.sh` reads it too and needs the value install had: without it that run looks under `~/.claude`, removes nothing there, and reports the directories it did not find. |
+| `XDG_CONFIG_HOME` | In place of `~/.config`, under which opencode's directory is found. Read by `uninstall.sh` on the same terms. |
+| `HOME` | The base every default above is built from. Read by both scripts. |
 
-`ROLE_AGENT_TOOLS` wins where both of the first two are set, and either beats the prompt. They exist for the caller a missing terminal does not already cover — a provisioning script, a dotfiles bootstrap, a CI runner that allocates a pty and would otherwise block on the question.
+`ROLE_AGENT_TOOLS` wins where it and `ROLE_AGENT_NONINTERACTIVE` are both set, and either beats the prompt. They exist for the caller a missing terminal does not already cover — a provisioning script, a dotfiles bootstrap, a CI runner that allocates a pty and would otherwise block on the question.
 
 Removal is the other script, and it is all-or-nothing: there is no way to remove one tool's symlinks while keeping the other's. If you need that, delete the symlinks yourself — they are only symlinks.
 
