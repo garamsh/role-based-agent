@@ -356,8 +356,28 @@ EOF
       echo "    onto $_up yourself, and re-run"
     elif [ -n "$_stuck" ]; then
       echo "An incoming change lands on a file of yours in $_d."
+    else
+      echo "$_d could not be fast-forwarded; git's message above says why."
       echo
-      echo "  in the way (yours here, and changed by the update):"
+      echo "  no commit and no file of yours is in the way, so that message names"
+      echo "    a condition this script cannot: clear it in the clone and re-run"
+    fi
+
+    # Outside the branch above, because which files are in the way does not
+    # depend on why the run refused. #102 is that the _ahead branch computed
+    # these three lists and printed none of them, leaving the reader in the
+    # worst position -- a commit of their own *and* a blocking edit -- told the
+    # least. A clone that is only ahead has nothing in the way and prints
+    # nothing here, which is why README.md says this of a run something of
+    # yours blocks rather than of every blocked run.
+    if [ -n "$_stuck" ]; then
+      echo
+      if [ "$_ahead" -gt 0 ]; then
+        echo "  in the way as well, once those commits are dealt with (yours here,"
+        echo "  and changed by the update):"
+      else
+        echo "  in the way (yours here, and changed by the update):"
+      fi
       printf '%s' "$_stuck"
       if [ -n "$_spare" ]; then
         echo
@@ -365,7 +385,16 @@ EOF
         printf '%s' "$_spare"
       fi
       echo
-      echo "  set the blocking ones aside, update, put them back:"
+      # The sequence itself is unchanged: #95 proved it works exactly as
+      # printed. Only the lead-in moves, because after a reset it is the step
+      # that follows rather than the whole way past -- and stashing before the
+      # reset is what keeps the reset from taking the edit with it.
+      if [ "$_ahead" -gt 0 ]; then
+        echo "  set those aside first, so the reset above cannot take them with"
+        echo "  it, and put them back after:"
+      else
+        echo "  set the blocking ones aside, update, put them back:"
+      fi
       echo "    git -C $_d stash push$_stash_u --$_paths"
       echo "    (re-run this installer)"
       echo "    git -C $_d stash pop"
@@ -376,11 +405,6 @@ EOF
         echo "  or drop them and take the update:"
         echo "    git -C $_d checkout --$_paths, then re-run"
       fi
-    else
-      echo "$_d could not be fast-forwarded; git's message above says why."
-      echo
-      echo "  no commit and no file of yours is in the way, so that message names"
-      echo "    a condition this script cannot: clear it in the clone and re-run"
     fi
     # Written once below the branches rather than inside each: it is the same
     # route out of all three, and three copies of it had drifted into three
