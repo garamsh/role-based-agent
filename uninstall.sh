@@ -5,10 +5,12 @@
 #
 # Only symlinks of ours are removed: a link is ours when its target names
 # <checkout>/agents/<name>.md or <checkout>/skills/<name> and the link carries
-# that same <name>. The target need not still exist, so a link left dangling by
-# deleting the checkout is still removed; while the checkout is on disk it has
-# to still hold agents/{pm,qa,worker}.md, so a link into an unrelated tree of
-# the same shape is left alone. Real files and directories are never touched.
+# that same <name>. A relative target is read against the link's own directory,
+# so where this script is run from cannot change what it removes. The target
+# need not still exist, so a link left dangling by deleting the checkout is
+# still removed; while the checkout is on disk it has to still hold
+# agents/{pm,qa,worker}.md, so a link into an unrelated tree of the same shape
+# is left alone. Real files and directories are never touched.
 # This is the only script that removes anything; install.sh only installs.
 set -eu
 
@@ -31,11 +33,24 @@ tool_dirs() {
 # While <root> is on disk it still has to look like a checkout, so a link into
 # an unrelated tree that happens to share the shape is not claimed.
 #
+# A relative target is text about the link's own directory, so it is joined to
+# that directory before any line below reads it. Taken as written it was read
+# against the caller's working directory instead, and the "checkout gone" line
+# then claimed whatever that could not find: run from $HOME, a foreign
+# ~/.claude/skills/computer-use -> ../../.agents/skills/computer-use looked for
+# /home/.agents, missed, and was deleted (#97). Joining first is also what puts
+# a relative link and its absolute equivalent on the same verdict, which is why
+# the shape and basename tests below read the joined path and not the raw text.
+#
 # This is the only copy: removing is this script's whole job, so nothing else
 # needs the definition and no second copy can drift from it.
 ours() {
   [ -L "$1" ] || return 1
   _target=$(readlink "$1")
+  case "$_target" in
+    /*) ;;
+    *)  _target="$(dirname "$1")/$_target" ;;
+  esac
   case "$_target" in */agents/*.md|*/skills/*) ;; *) return 1 ;; esac
   [ "$(basename "$_target")" = "$(basename "$1")" ] || return 1
   _root=$(dirname "$(dirname "$_target")")
@@ -54,7 +69,18 @@ REMOVED=0
 LOOKED=""
 MISSING=0
 for t in $SUPPORTED; do
-  for d in $(tool_dirs "$t"); do
+  # `for d in $(tool_dirs "$t")` split the list on every space, so one space in
+  # a config path became two directories that were each "not there": the run
+  # printed "Nothing to remove." over links it had never opened the directory
+  # for, and exited 0 -- the exact failure the paragraph above says the count
+  # exists to prevent. POSIX sh has no arrays; `read -r` off a here-document
+  # keeps a line whole, where a pipeline would put REMOVED, LOOKED and MISSING
+  # in a subshell and lose every count, and IFS=newline splitting would still
+  # glob a path holding a `*`.
+  while IFS= read -r d; do
+    # tool_dirs prints nothing for a tool it does not know, and the substitution
+    # below still feeds one empty line.
+    [ -n "$d" ] || continue
     if [ -d "$d" ]; then
       _seen=0
       for f in "$d"/*; do
@@ -78,7 +104,9 @@ for t in $SUPPORTED; do
     fi
     LOOKED="$LOOKED    $d -- $_how
 "
-  done
+  done <<EOF
+$(tool_dirs "$t")
+EOF
 done
 
 # `if` rather than `test && echo`, because this sits at the end of the script
