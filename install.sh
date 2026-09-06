@@ -468,7 +468,35 @@ if [ -z "$SRC_DIR" ]; then
   SRC_DIR="$INSTALL_DIR"
 fi
 
+# Did the glob the caller just expanded name anything? An empty directory
+# leaves it unexpanded, and that literal names no entry -- which is how
+# uninstall.sh guards its own loop, and #101 is that no loop here guarded at
+# all: a broken symlink literally named `*` landed in ~/.claude/skills/ and the
+# run reported it as `linked`. The `-L` half is why this is a pair and not `-e`
+# alone: a dangling symlink is still an entry, and dropping one would stop
+# installing a link in the clone that every run before this one installed.
+matched() {
+  for _m in "$@"; do
+    if [ -e "$_m" ] || [ -L "$_m" ]; then return 0; fi
+  done
+  return 1
+}
+
 [ -d "$SRC_DIR/agents" ] || die "no agents/ directory in $SRC_DIR"
+# An empty agents/ stops the run and an empty skills/ does not, because the two
+# say different things. The role definitions are what this project is, so a
+# clone holding none of them has nothing to install and its run would otherwise
+# report success having installed nothing; the line above already refuses their
+# directory's absence, and an empty one is that same condition by another
+# route. A clone of your own carrying no skill is a shape README.md supports,
+# so it installs the roles and the summary says no skill was linked.
+#
+# Both are settled here, above the first mkdir and every loop over either glob,
+# so no loop below can meet an unexpanded pattern and none needs a guard of its
+# own -- including tool_installed(), which globs agents/*.md too.
+matched "$SRC_DIR"/agents/*.md || die "no role definition in $SRC_DIR/agents"
+HAVE_SKILLS=0
+if [ -d "$SRC_DIR/skills" ] && matched "$SRC_DIR"/skills/*/; then HAVE_SKILLS=1; fi
 
 # ----------------------------------------------------------------- tools ----
 
@@ -566,7 +594,7 @@ sync_tool() {
     install_one "$src" "$target/$(basename "$src")"
   done
 
-  [ -d "$SRC_DIR/skills" ] || return 0
+  [ "$HAVE_SKILLS" -eq 1 ] || return 0
   target=$(tool_skills_dir "$t")
   mkdir -p "$target"
   for src in "$SRC_DIR"/skills/*/; do
@@ -589,6 +617,12 @@ if [ "$CHANGED" -eq 0 ]; then
 fi
 if [ "$MODIFIED" -gt 0 ]; then
   echo "$MODIFIED path(s) left alone because something of yours sits there."
+fi
+# Said on every run rather than only where skills/ is empty: absent and empty
+# leave the same run behind -- roles linked, nothing at all in the skills
+# directories -- and one message for the pair is one thing to keep true.
+if [ "$HAVE_SKILLS" -eq 0 ]; then
+  echo "No skills in $SRC_DIR/skills, so none were linked."
 fi
 echo "Source: $SRC_DIR"
 echo "Start a session in a role with:  claude --agent pm  |  opencode --agent pm"
