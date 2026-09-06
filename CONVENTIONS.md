@@ -69,6 +69,22 @@ instruction set, so every word is paid for on every run.
 - Do not grow them. Pay for an added rule by consolidating an existing
   duplication, and list every rule before and after to show none was lost.
 
+## Skills — `skills/*/SKILL.md`
+
+`install.sh` links these into the same tools as the roles, so a skill reaches
+every machine a role does. It is not read like one: a role is the whole system
+prompt, while a skill loads only when its description matches what the session
+is doing. Its length is paid for when the procedure runs, not on every session,
+so the budget that binds a role document does not bind it.
+
+- A skill is for a procedure that is occasional and that no role can afford to
+  carry. One needed constantly sits unloaded at exactly the moments it applies,
+  because nobody stops to ask for it by name; that belongs in a role document.
+- Name the role that operates it, and keep every step inside that role's
+  authority. `sync-conventions` shipped without that and no role could run it
+  end to end: every step that rewrote conventions was the PM's alone, while the
+  skill told its operator that merging was the PM's call.
+
 ## Documentation
 
 Seven of the nine files are documentation — everything but the two shell
