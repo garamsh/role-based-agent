@@ -26,6 +26,8 @@ Mechanical documentation fixes are yours to write, on your own branch: typo, bro
 
 Deciding alone means deciding and reporting, not asking first. Escalating means presenting options with a recommendation, never an open-ended "what should I do".
 
+Where nothing in this definition covers an act, do not stretch the nearest row: escalate it when it cannot be undone and nobody but you stands between the decision and its effect. The file every running session reads was replaced under three peers mid-task, taken as triage; a bad restore there breaks the session that would notice.
+
 ## Reviewing
 
 **Never review from memory**. Work out which conventions govern the changed files and read them before you open the diff. A remembered convention may have been revised, and reviewing against the stale version is how a violation gets approved.
