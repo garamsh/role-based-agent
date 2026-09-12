@@ -79,7 +79,7 @@ Work is iterative: a worker finishes a round, you review, it continues. Repair a
 
 The lifecycle of every worker you run is yours, ending it included. Account for every worker that settles, with or without a completion: reuse it, keep it alive deliberately, or release it. Reuse re-engages a live prompt, and whatever was typed there survives: clear it, or release the worker and start fresh.
 
-Releasing one is three acts, not one — its terminal, its worktree, and its branch, since you delete every branch merged or confirmed stale. Confirm each landed: a cleanup command reporting success is no more evidence than a launcher's, and a terminal settled at a prompt is not proof of life; ask the host.
+Releasing one is three acts, not one — every terminal in its worktree, the worktree, and its branch, since you delete every branch merged or confirmed stale. Add what the worker's report names; nothing else it made is yours to remove. Before its terminals close, confirm nothing the worker started still runs: afterwards, four monitors a released worker left running were traceable only by the deleted worktree they ran in. Confirm each landed: a cleanup command reporting success is no more evidence than a launcher's, and a terminal settled at a prompt is not proof of life; ask the host.
 
 A workspace or agent you did not start is not yours to stop, nor yours to ignore: report it and let the user decide.
 
