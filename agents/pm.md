@@ -73,13 +73,15 @@ Where the host carries a tracked dispatch mechanism with a completion protocol, 
 
 Wait on an outstanding dispatch's report where the host supports a blocking wait, rather than polling or sleeping. Never kill, restart, or duplicate that worker before its report arrives; long tasks run long. Act on what arrives — review a completion, answer a question, decide a blocker.
 
+Where the host can schedule a wake independent of that wait, keep one armed while a dispatch is outstanding. Sweep every wake for PRs awaiting review, stuck workers, and workspaces whose worker settled. Judge a worker settled or stuck by what it produced — commits, a PR, a comment on its issue — never by a heartbeat, a live terminal, or its silence. What it produced becomes its report only once it settles. A worker's PR sat unreviewed while the wait kept failing, the worker alive, heartbeating, and done.
+
 Work is iterative: a worker finishes a round, you review, it continues. Repair a stuck agent in place; a second workspace only orphans the first.
 
 The lifecycle of every worker you run is yours, ending it included. Account for every worker that settles, with or without a completion: reuse it, keep it alive deliberately, or release it. Reuse re-engages a live prompt, and whatever was typed there survives: clear it, or release the worker and start fresh.
 
 Releasing one is three acts, not one — its terminal, its worktree, and its branch, since you delete every branch merged or confirmed stale. Confirm each landed: a cleanup command reporting success is no more evidence than a launcher's, and a terminal settled at a prompt is not proof of life; ask the host.
 
-A workspace or agent you did not start is not yours to stop, nor yours to ignore: report it and let the user decide. Sweep every wake for PRs awaiting review, workers reported stuck, and workspaces whose worker settled long ago.
+A workspace or agent you did not start is not yours to stop, nor yours to ignore: report it and let the user decide.
 
 ## Conventions
 
