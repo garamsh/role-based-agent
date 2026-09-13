@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-# Install or update role definitions and skills for Claude Code and opencode,
-# and the skills alone for Codex.
+# Install or update role definitions for Claude Code and opencode; Codex gets skills.
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
