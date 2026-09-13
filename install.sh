@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
-# Install or update role definitions for Claude Code and opencode.
+# Install or update role definitions and skills for Claude Code and opencode,
+# and the skills alone for Codex.
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
@@ -19,7 +20,7 @@ set -eu
 REPO_URL="https://github.com/garamsh/role-based-agent.git"
 INSTALL_DIR="${ROLE_AGENT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/role-based-agent}"
 
-SUPPORTED="claude opencode"
+SUPPORTED="claude opencode codex"
 
 MODIFIED=0
 CHANGED=0
@@ -58,11 +59,16 @@ set +f
 [ -z "${ROLE_AGENT_TOOLS:-}" ] || [ -n "$REQUESTED" ] ||
   die "ROLE_AGENT_TOOLS names no tool (supported: $SUPPORTED)"
 
-# Where each tool keeps user-level agent definitions.
+# Where each tool keeps user-level agent definitions. Codex has no such place:
+# it takes a role only as text in its config, never as a path to a file, so
+# installing one would mean writing a copy -- the second source of truth these
+# symlinks exist to rule out. Its role is given at launch instead (README.md,
+# Use), and the empty answer is what tells every caller to skip roles for it.
 tool_dir() {
   case "$1" in
     claude)   echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents" ;;
     opencode) echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/agents" ;;
+    codex)    ;;
     *) die "unknown tool: $1 (supported: $SUPPORTED)" ;;
   esac
 }
@@ -71,6 +77,9 @@ tool_skills_dir() {
   case "$1" in
     claude)   echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
     opencode) echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills" ;;
+    # HOME and never CODEX_HOME, because that is where Codex looks: its user
+    # skill directory stays put when its config directory moves.
+    codex)    echo "$HOME/.agents/skills" ;;
   esac
 }
 
@@ -78,6 +87,7 @@ tool_label() {
   case "$1" in
     claude)   echo "Claude Code" ;;
     opencode) echo "opencode" ;;
+    codex)    echo "Codex" ;;
   esac
 }
 
@@ -88,14 +98,26 @@ tool_present() {
               [ -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}" ] && return 0 ;;
     opencode) command -v opencode >/dev/null 2>&1 && return 0
               [ -d "${XDG_CONFIG_HOME:-$HOME/.config}/opencode" ] && return 0 ;;
+    codex)    command -v codex >/dev/null 2>&1 && return 0
+              [ -d "${CODEX_HOME:-$HOME/.codex}" ] && return 0 ;;
   esac
   return 1
 }
 
-# Already has at least one role symlink installed. A real file at a target path
-# is the user's own, so it does not count as ours and still needs the prompt.
+# Already has at least one role symlink installed -- or, for Codex, a skill
+# symlink, since an install there leaves no role link to find. A real file at
+# a target path is the user's own, so it does not count as ours and still
+# needs the prompt.
 tool_installed() {
   d=$(tool_dir "$1")
+  if [ -z "$d" ]; then
+    [ "$HAVE_SKILLS" -eq 1 ] || return 1
+    d=$(tool_skills_dir "$1")
+    for f in "$SRC_DIR"/skills/*/; do
+      [ -L "$d/$(basename "$f")" ] && return 0
+    done
+    return 1
+  fi
   [ -d "$d" ] || return 1
   for f in "$SRC_DIR"/agents/*.md; do
     [ -L "$d/$(basename "$f")" ] && return 0
@@ -125,6 +147,9 @@ linked_out() {
       agents/*) _ldir=$(tool_dir "$_lt") ;;
       *)        _ldir=$(tool_skills_dir "$_lt") ;;
     esac
+    # Codex has no role directory, and joining an empty one to the name below
+    # would test a path at the filesystem root instead.
+    [ -n "$_ldir" ] || continue
     [ -L "$_ldir/$_lname" ] || continue
     if [ "$(readlink "$_ldir/$_lname")" = "$1/$_lrel" ]; then return 0; fi
   done
@@ -156,8 +181,11 @@ choose_tools() {
     for _t in $DETECTED; do
       _i=$((_i + 1))
       case " $_checked " in *" $_t "*) _box=x ;; *) _box=" " ;; esac
-      printf '    %d) [%s] %-12s %s/{agents,skills}/\n' \
-        "$_i" "$_box" "$(tool_label "$_t")" "$(dirname "$(tool_dir "$_t")")" > /dev/tty
+      _where=$(tool_dir "$_t")
+      if [ -n "$_where" ]; then _where="$(dirname "$_where")/{agents,skills}/"
+      else _where="$(tool_skills_dir "$_t")/"; fi
+      printf '    %d) [%s] %-12s %s\n' \
+        "$_i" "$_box" "$(tool_label "$_t")" "$_where" > /dev/tty
     done
     printf '\n  Toggle by number, Enter to install: ' > /dev/tty
 
@@ -589,10 +617,14 @@ sync_tool() {
   tool_label "$t"
 
   target=$(tool_dir "$t")
-  mkdir -p "$target"
-  for src in "$SRC_DIR"/agents/*.md; do
-    install_one "$src" "$target/$(basename "$src")"
-  done
+  if [ -n "$target" ]; then
+    mkdir -p "$target"
+    for src in "$SRC_DIR"/agents/*.md; do
+      install_one "$src" "$target/$(basename "$src")"
+    done
+  else
+    echo "  no roles  Codex takes one at launch instead -- see Use in $SRC_DIR/README.md"
+  fi
 
   [ "$HAVE_SKILLS" -eq 1 ] || return 0
   target=$(tool_skills_dir "$t")
