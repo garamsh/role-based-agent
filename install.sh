@@ -59,11 +59,13 @@ set +f
 [ -z "${ROLE_AGENT_TOOLS:-}" ] || [ -n "$REQUESTED" ] ||
   die "ROLE_AGENT_TOOLS names no tool (supported: $SUPPORTED)"
 
-# Where each tool keeps user-level agent definitions. Codex has no such place:
-# it takes a role only as text in its config, never as a path to a file, so
-# installing one would mean writing a copy -- the second source of truth these
-# symlinks exist to rule out. Its role is given at launch instead (README.md,
-# Use), and the empty answer is what tells every caller to skip roles for it.
+# Where each tool keeps user-level agent definitions. Codex has no such place.
+# The only setting that reads its instructions from a file,
+# model_instructions_file, replaces Codex's own base instructions; the one that
+# adds to them, developer_instructions, takes text and no path -- so installing
+# a role would mean writing a copy, the second source of truth these symlinks
+# exist to rule out. Its role is given at launch instead (README.md, Use), and
+# the empty answer is what tells every caller to skip roles for it.
 tool_dir() {
   case "$1" in
     claude)   echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents" ;;
