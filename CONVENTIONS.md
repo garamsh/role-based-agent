@@ -3,8 +3,8 @@
 Rules for changing this repository. They bind every pull request here.
 
 This project is nine files: two POSIX shell scripts that symlink role
-definitions into agent config directories, and seven documents — three role
-documents, one skill, a README, the pull request template that binds every
+definitions and skills where agent tools read them, and seven documents — three
+role documents, one skill, a README, the pull request template that binds every
 change here, and this. It has no build step, no toolchain, and no test harness
 — a check runner was tried and removed as disproportionate. Verification is
 manual and the burden is on the author to show it ran: paste the real output,
@@ -42,13 +42,14 @@ the scripts and not from a list here. A list is what hid `ROLE_AGENT_DIR`,
 which `install.sh:20` reads *ahead of* `XDG_DATA_HOME`: a shell that exports it
 gets a real fast-forward of its own clone past a sandbox that overrides the
 other four, and nothing here says so. Never touch the real `~/.claude`,
-`~/.config/opencode` or that clone; run the scripts as a subprocess, never
-`source` them, which runs a real install on your machine.
+`~/.config/opencode`, `~/.agents` or that clone; run the scripts as a
+subprocess, never `source` them, which runs a real install on your machine.
 
-Show all three untouched. The two config trees hold only directories and
-symlinks, so bracket the run with a listing of every entry, its type and target:
+Show all four untouched. The scripts put only directories and symlinks into
+the three trees they link into, so bracket the run with a listing of every
+entry, its type and target:
 
-    L() { find ~/.claude ~/.config/opencode -maxdepth 2 -exec sh -c '
+    L() { find ~/.claude ~/.config/opencode ~/.agents -maxdepth 2 -exec sh -c '
             for p do
               if [ -L "$p" ]; then echo "l $p -> $(readlink "$p")"
               elif [ -d "$p" ]; then echo "d $p"
@@ -65,7 +66,7 @@ the retarget `ln -sfn` does on every re-run, `ls -l` adds size and mtime that
 move for one appended prompt, and `find -printf` is GNU-only.
 
 Two levels is derived, not picked: it reaches `agents/<role>.md` and
-`skills/<name>` under both roots — every path either script links — and stops
+`skills/<name>` under every root — every path either script links — and stops
 above the transcript the verifying session writes under `~/.claude` as the
 check runs. List everything at that depth, never only the paths the scripts
 write: a hash of just those came back identical across a stray write to
@@ -117,11 +118,12 @@ instruction set, so every word is paid for on every run.
 
 ## Skills — `skills/*/SKILL.md`
 
-`install.sh` links these into the same tools as the roles, so a skill reaches
-every machine a role does. It is not read like one: a role is the whole system
-prompt, while a skill loads only when its description matches what the session
-is doing. Its length is paid for when the procedure runs, not on every session,
-so the budget that binds a role document does not bind it.
+`install.sh` links these into every tool it supports — Codex too, which gets no
+role file — so a skill reaches every machine a role does. It is not read like
+one: a role is the whole system prompt, while a skill loads only when its
+description matches what the session is doing. Its length is paid for when the
+procedure runs, not on every session, so the budget that binds a role document
+does not bind it.
 
 - A skill is for a procedure that is occasional and that no role can afford to
   carry. One needed constantly sits unloaded at exactly the moments it applies,
