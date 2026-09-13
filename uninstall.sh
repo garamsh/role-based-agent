@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Remove the role-definition symlinks for Claude Code and opencode.
+# Remove the symlinks install.sh made for Claude Code, opencode and Codex.
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/uninstall.sh | sh
 #
@@ -14,7 +14,7 @@
 # This is the only script that removes anything; install.sh only installs.
 set -eu
 
-SUPPORTED="claude opencode"
+SUPPORTED="claude opencode codex"
 
 tool_dirs() {
   case "$1" in
@@ -22,6 +22,9 @@ tool_dirs() {
               echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
     opencode) echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/agents"
               echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills" ;;
+    # Skills only: install.sh links no role for Codex. The directory is shared
+    # with other tools' skills, which is what ours() below is for.
+    codex)    echo "$HOME/.agents/skills" ;;
   esac
 }
 
@@ -100,7 +103,12 @@ for t in $SUPPORTED; do
       # ours() rejected -- someone else's link, or ours() itself being wrong.
       if [ "$_seen" -eq 0 ]; then _how="empty"; else _how="$_seen entries, none ours"; fi
     else
-      _how="not there"; MISSING=$((MISSING + 1))
+      _how="not there"
+      # Counted only where a variable can move the directory, because naming
+      # one is all the advice below offers. Codex's follows HOME alone, so its
+      # absence means nothing of ours is there -- and counted, it printed that
+      # advice under a clean removal on every machine without Codex.
+      [ "$t" = codex ] || MISSING=$((MISSING + 1))
     fi
     LOOKED="$LOOKED    $d -- $_how
 "
