@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Install or update role definitions for Claude Code and opencode; Codex gets skills.
+# Install or update role definitions and skills for Claude Code, opencode and Codex.
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
@@ -11,7 +11,7 @@
 # directory you put at a target path is never replaced -- move it yourself and
 # re-run.
 #
-# Removing is uninstall.sh, the only script here that deletes anything:
+# Removing installed files is uninstall.sh:
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/uninstall.sh | sh
 set -eu
@@ -58,18 +58,13 @@ set +f
 [ -z "${ROLE_AGENT_TOOLS:-}" ] || [ -n "$REQUESTED" ] ||
   die "ROLE_AGENT_TOOLS names no tool (supported: $SUPPORTED)"
 
-# Where each tool keeps user-level agent definitions. Codex has no such place.
-# The only setting that reads its instructions from a file,
-# model_instructions_file, replaces Codex's own base instructions; the one that
-# adds to them, developer_instructions, takes text and no path -- so installing
-# a role would mean writing a copy, the second source of truth these symlinks
-# exist to rule out. Its role is given at launch instead (README.md, Use), and
-# the empty answer is what tells every caller to skip roles for it.
+# Codex reads named TOML profiles, so its role directory needs a serializer
+# rather than a symlink to the Markdown source.
 tool_dir() {
   case "$1" in
     claude)   echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents" ;;
     opencode) echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/agents" ;;
-    codex)    ;;
+    codex)    echo "${CODEX_HOME:-$HOME/.codex}" ;;
     *) die "unknown tool: $1 (supported: $SUPPORTED)" ;;
   esac
 }
@@ -105,13 +100,24 @@ tool_present() {
   return 1
 }
 
-# Already has at least one role symlink installed -- or, for Codex, a skill
-# symlink, since an install there leaves no role link to find. A real file at
-# a target path is the user's own, so it does not count as ours and still
-# needs the prompt.
+# Keep this format check in step with uninstall.sh: both scripts must also
+# work when piped alone. The checksum covers the source annotation and TOML,
+# so a user edit makes a generated file ineligible for replacement or removal.
+profile_pristine() {
+  [ ! -L "$1" ] && [ -f "$1" ] || return 1
+  [ "$(sed -n '1p' "$1")" = "# role-based-agent profile v1: $(basename "$1")" ] || return 1
+  _profile_sum=$(tail -n +3 "$1" | cksum)
+  [ "$(sed -n '2p' "$1")" = "# cksum: $_profile_sum" ]
+}
+
+# Keep recognizing the older skills-only Codex installation so an unattended
+# update upgrades it to profiles without changing the selected tools.
 tool_installed() {
   d=$(tool_dir "$1")
-  if [ -z "$d" ]; then
+  if [ "$1" = codex ]; then
+    for f in "$SRC_DIR"/agents/*.md; do
+      profile_pristine "$d/$(basename "$f" .md).config.toml" && return 0
+    done
     [ "$HAVE_SKILLS" -eq 1 ] || return 1
     d=$(tool_skills_dir "$1")
     for f in "$SRC_DIR"/skills/*/; do
@@ -126,17 +132,16 @@ tool_installed() {
   return 1
 }
 
-# Is a path in the clone linked out of a tool directory right now? Asked of the
-# link, never of the file in the clone: the report below is about what a
+# Is a path in the clone installed in a tool directory right now? Asked of the
+# target, never of the file in the clone: the report below is about what a
 # session loads, and #99 is that testing `-e` in the clone answered a different
 # question -- it fired where nothing had ever been installed, and on an
 # untracked file of the user's that no run had seen. A real file at the target
-# path is deliberately not a match either: that file is what the session loads,
-# and it is not the clone's.
+# path is deliberately not a match either, unless it is an unedited generated
+# Codex profile naming this source. Other files carry the user's instructions.
 #
-# install_one() links a role file by its own name and a skill by its directory,
-# so the link to look for is derived the same way rather than from the path.
-linked_out() {
+# Derive the target as sync_tool() does, including the profile filename.
+installed_from() {
   case "$2" in
     agents/*.md) _lrel=$2 ;;
     skills/*)    _lsub=${2#skills/}; _lrel="skills/${_lsub%%/*}" ;;
@@ -144,13 +149,19 @@ linked_out() {
   esac
   _lname=${_lrel##*/}
   for _lt in $SUPPORTED; do
+    if [ "$_lt" = codex ]; then
+      case "$_lrel" in
+        agents/*)
+          _profile="$(tool_dir codex)/${_lname%.md}.config.toml"
+          if profile_pristine "$_profile" &&
+             [ "$(sed -n '3p' "$_profile")" = "# Source: $1/$_lrel" ]; then return 0; fi
+          continue ;;
+      esac
+    fi
     case "$_lrel" in
       agents/*) _ldir=$(tool_dir "$_lt") ;;
       *)        _ldir=$(tool_skills_dir "$_lt") ;;
     esac
-    # Codex has no role directory, and joining an empty one to the name below
-    # would test a path at the filesystem root instead.
-    [ -n "$_ldir" ] || continue
     [ -L "$_ldir/$_lname" ] || continue
     if [ "$(readlink "$_ldir/$_lname")" = "$1/$_lrel" ]; then return 0; fi
   done
@@ -183,8 +194,9 @@ choose_tools() {
       _i=$((_i + 1))
       case " $_checked " in *" $_t "*) _box=x ;; *) _box=" " ;; esac
       _where=$(tool_dir "$_t")
-      if [ -n "$_where" ]; then _where="$(dirname "$_where")/{agents,skills}/"
-      else _where="$(tool_skills_dir "$_t")/"; fi
+      if [ "$_t" = codex ]; then
+        _where="$_where/*.config.toml + $(tool_skills_dir "$_t")/"
+      else _where="$(dirname "$_where")/{agents,skills}/"; fi
       printf '    %d) [%s] %-12s %s\n' \
         "$_i" "$_box" "$(tool_label "$_t")" "$_where" > /dev/tty
     done
@@ -362,7 +374,7 @@ EOF
     # here has linked out is held back but is not being served, and a tag
     # promising a session reads it would be the wrong answer again.
     _tag=""
-    if linked_out "$_d" "$_p"; then _tag=" (installed)"; _linked=1; fi
+    if installed_from "$_d" "$_p"; then _tag=" (installed)"; _linked=1; fi
     # A held-back path can be a blocking one too -- often it is blocked by the
     # very edit that is in the way. Left untagged, the line below claiming this
     # clone does not change these contradicted the list above it, which #99
@@ -450,9 +462,9 @@ EOF
       echo "  update changes each of these:"
       printf '%s' "$_held"
       if [ "$_linked" -eq 1 ]; then
-        echo "      an (installed) path is linked into your tool directories: what"
-        echo "      is here now is what a session loads, and nothing in that"
-        echo "      session can tell how old it is"
+        echo "      an (installed) path has a tool link or generated Codex profile:"
+        echo "      that installed version stays in use until an update succeeds;"
+        echo "      a profile may also predate local edits to its source"
       fi
     fi
     echo
@@ -579,6 +591,18 @@ fi
 
 # --------------------------------------------------------------- install ----
 
+# Codex accepts only these characters in profile names. Check the whole set
+# before installing anything so a custom role cannot leave a partial install.
+case " $TOOLS " in
+  *" codex "*)
+    for _role_path in "$SRC_DIR"/agents/*.md; do
+      _role=$(basename "$_role_path" .md)
+      case "$_role" in
+        ''|*[!a-zA-Z0-9_-]*) die "invalid Codex profile name: $_role" ;;
+      esac
+    done ;;
+esac
+
 # Only symlinks are ours to replace. A real file or directory at a target path
 # belongs to the user and is left alone.
 #
@@ -612,20 +636,77 @@ install_one() {
   echo "  linked    $dest"
 }
 
-# Link every role (and skill) into one tool's directories.
+# A basic TOML string with explicit escapes handles quotes, backslashes and
+# even triple quotes in a role without introducing a TOML/Python dependency.
+# Frontmatter is tool metadata, not an instruction to Codex.
+profile_body() {
+  LC_ALL=C awk '
+    NR == 1 { if ($0 != "---") exit 1; next }
+    !body { if ($0 == "---") { body = 1; printf "developer_instructions = \"" }; next }
+    {
+      for (i = 1; i <= length($0); i++) {
+        c = substr($0, i, 1)
+        if (c == "\\") printf "\\\\"
+        else if (c == "\"") printf "\\\""
+        else if (c == "\t") printf "\\t"
+        else if (c == "\r") printf "\\r"
+        else if (c == "\b") printf "\\b"
+        else if (c == "\f") printf "\\f"
+        else if (c ~ /[[:cntrl:]]/) { bad = 1; exit 1 }
+        else printf "%s", c
+      }
+      printf "\\n"
+    }
+    END { if (!body || bad) exit 1; print "\"" }
+  ' "$1"
+}
+
+PROFILE_TMP=""
+# A staged replacement must not leave a truncated profile if generation fails.
+# Only this run's temporary file is cleaned up; installed files are removed
+# only by uninstall.sh.
+trap '[ -z "$PROFILE_TMP" ] || rm -f "$PROFILE_TMP"' 0
+trap 'exit 1' HUP INT TERM
+
+install_profile() {
+  _psrc=$1
+  _pdest=$2
+  if [ -e "$_pdest" ] || [ -L "$_pdest" ]; then
+    if ! profile_pristine "$_pdest"; then
+      echo "  kept      $_pdest (existing or edited profile; move it and re-run)" >&2
+      MODIFIED=$((MODIFIED + 1))
+      return
+    fi
+  fi
+  _body=$(profile_body "$_psrc") || die "invalid role definition: $_psrc"
+  _payload=$(printf '# Source: %s\n%s\n' "$_psrc" "$_body")
+  _sum=$(printf '%s\n' "$_payload" | cksum)
+  PROFILE_TMP=$(mktemp "$_pdest.tmp.XXXXXX")
+  printf '# role-based-agent profile v1: %s\n# cksum: %s\n%s\n' \
+    "$(basename "$_pdest")" "$_sum" "$_payload" > "$PROFILE_TMP"
+  if cmp -s "$PROFILE_TMP" "$_pdest"; then
+    rm "$PROFILE_TMP"
+  else
+    mv -f "$PROFILE_TMP" "$_pdest"
+    CHANGED=$((CHANGED + 1))
+    echo "  generated $_pdest"
+  fi
+  PROFILE_TMP=""
+}
+
 sync_tool() {
   t=$1
   tool_label "$t"
 
   target=$(tool_dir "$t")
-  if [ -n "$target" ]; then
-    mkdir -p "$target"
-    for src in "$SRC_DIR"/agents/*.md; do
+  mkdir -p "$target"
+  for src in "$SRC_DIR"/agents/*.md; do
+    if [ "$t" = codex ]; then
+      install_profile "$src" "$target/$(basename "$src" .md).config.toml"
+    else
       install_one "$src" "$target/$(basename "$src")"
-    done
-  else
-    echo "  no roles  Codex takes one at launch instead -- see Use in $SRC_DIR/README.md"
-  fi
+    fi
+  done
 
   [ "$HAVE_SKILLS" -eq 1 ] || return 0
   target=$(tool_skills_dir "$t")
@@ -658,4 +739,4 @@ if [ "$HAVE_SKILLS" -eq 0 ]; then
   echo "No skills in $SRC_DIR/skills, so none were linked."
 fi
 echo "Source: $SRC_DIR"
-echo "Start a session in a role with:  claude --agent pm  |  opencode --agent pm"
+echo "Start a session in a role with:  claude --agent pm  |  opencode --agent pm  |  codex -p pm"

@@ -2,7 +2,7 @@
 
 Rules for changing this repository. They bind every pull request here.
 
-This project is nine files: two POSIX shell scripts that symlink role
+This project is nine files: two POSIX shell scripts that install role
 definitions and skills where agent tools read them, and seven documents — three
 role documents, one skill, a README, the pull request template that binds every
 change here, and this. It has no build step, no toolchain, and no test harness
@@ -26,13 +26,19 @@ and report a check you did not run as not run rather than as passed.
 
 Each of these was a filed bug. Changing one is a decision, not a detail.
 
-- Symlinks, never copies. A single clone is the source of truth.
-- `ours()` is defined in `uninstall.sh` alone. `install.sh` does not remove.
-- `uninstall.sh` is the only removal path.
+- The role documents are the source of truth. Use each tool's native format:
+  Claude Code and opencode roles and all skills use symlinks; Codex roles use
+  generated profiles. Refresh profiles on install, not at session launch.
+- `ours()` is defined in `uninstall.sh` alone. Profile format checks occur in
+  both standalone scripts; verify their update and removal decisions agree.
+- `uninstall.sh` is the only installed-file removal path. The installer may
+  clean up its own temporary files when staging a profile replacement.
 - `install.sh` takes no command-line flags. Configuration is by environment
   variable, because a flag through `curl … | sh` needs `sh -s --` plumbing.
-- No `rm -rf` anywhere. A real file or directory at a target path is reported
-  as kept, never replaced.
+- No `rm -rf` anywhere. Preserve user files and directories at target paths.
+  A generated Codex profile is replaceable or removable only when its marker,
+  filename and checksum match. Preserve edited profiles and profile symlinks.
+  Never rewrite the user's base Codex configuration.
 
 ## Verifying a change to either script
 
@@ -42,14 +48,14 @@ the scripts and not from a list here. A list is what hid `ROLE_AGENT_DIR`,
 which `install.sh:20` reads *ahead of* `XDG_DATA_HOME`: a shell that exports it
 gets a real fast-forward of its own clone past a sandbox that overrides the
 other four, and nothing here says so. Never touch the real `~/.claude`,
-`~/.config/opencode`, `~/.agents` or that clone; run the scripts as a
-subprocess, never `source` them, which runs a real install on your machine.
+`~/.config/opencode`, `~/.agents`, Codex config directory or that clone in a test;
+run the scripts as a subprocess, never `source` them, which runs a real install
+on your machine.
 
-Show all four untouched. The scripts put only directories and symlinks into
-the three trees they link into, so bracket the run with a listing of every
-entry, its type and target:
+Bracket the run with a listing of every entry, its type and target in all
+four tool trees, including configured overrides when different from defaults:
 
-    L() { find ~/.claude ~/.config/opencode ~/.agents -maxdepth 2 -exec sh -c '
+    L() { find ~/.claude ~/.config/opencode ~/.agents "${CODEX_HOME:-$HOME/.codex}" -maxdepth 2 -exec sh -c '
             for p do
               if [ -L "$p" ]; then echo "l $p -> $(readlink "$p")"
               elif [ -d "$p" ]; then echo "d $p"
@@ -58,16 +64,16 @@ entry, its type and target:
     L > before          # then the sandboxed run
     L > after; diff before after
 
-Type, path and target are what these scripts move there and all they move: each
-creates a directory, or creates, retargets or removes a symlink, and every one
-of those moves a line — a link written over a real file turns its `f` into an
-`l`. The line carries those three and nothing else: a path listing alone misses
-the retarget `ln -sfn` does on every re-run, `ls -l` adds size and mtime that
-move for one appended prompt, and `find -printf` is GNU-only.
+Type, path and target detect created directories, changed symlinks and files
+replaced with another type. A path listing alone misses a retarget, while
+`ls -l` adds size and mtime that move for one appended prompt. Codex profiles
+also carry content: hash every `*.config.toml` and the base `config.toml` in
+the real Codex config directory before and after the test and require those
+hashes unchanged. A listing alone cannot detect a profile rewritten in place.
 
-Two levels is derived, not picked: it reaches `agents/<role>.md` and
-`skills/<name>` under every root — every path either script links — and stops
-above the transcript the verifying session writes under `~/.claude` as the
+Two levels reaches `agents/<role>.md`, `skills/<name>` and Codex profiles —
+every installed path either script writes — and stops above the transcript
+the verifying session writes under `~/.claude` as the
 check runs. List everything at that depth, never only the paths the scripts
 write: a hash of just those came back identical across a stray write to
 `settings.local.json` this listing caught at once, so it is not the check.
@@ -79,11 +85,9 @@ own timestamp. Name what wrote every line; anything under `agents/` or
 `skills/` is the failure this check is for. Budget it in lines instead and a
 reader meeting four lines of that churn fails a run that passed.
 
-It is a listing and not a content hash, so it cannot see a file rewritten in
-place — and `git clone` and `git pull` rewrite a whole tree, the clone. Git
-hashes that one itself: bracket the run with `rev-parse HEAD` and
-`status --porcelain` there too, and require both unchanged. Give either script
-a write outside git's reach, and this check must be replaced in the same change.
+The source clone needs its own check: bracket the run with `rev-parse HEAD`
+and `status --porcelain` there too, and require both unchanged. When adding
+another write target, extend these checks in the same change.
 
 **Pick an instrument that can only answer the question asked.** A cheap
 command usually answers something adjacent, and a wrong answer looks exactly
@@ -96,15 +100,15 @@ rather than raw strings; run the code rather than search for it.
 
 ## Role documents — `agents/*.md`
 
-These are system prompts. A session launches with one as its entire
-instruction set, so every word is paid for on every run.
+These are session role instructions: system prompts for Claude Code and
+opencode, developer instructions for Codex. Every word is paid for on every run.
 
 - Second person, imperative. Each rule stated once.
 - Name the concrete failure after the rule that prevents it. That habit is why
   these documents produce compliance; a rule flattened into a bare instruction
   loses it.
-- The YAML frontmatter is load-bearing: `install.sh` links by filename and the
-  CLIs select by `name`. Do not touch it.
+- The YAML frontmatter is load-bearing: Claude Code and opencode select by
+  `name`. Codex profiles use the filename and omit frontmatter. Do not touch it.
 - They name no platform and no paths. Host-specific procedure belongs to
   whoever ships the host.
 - Do not grow them. Pay for an added rule by consolidating an existing
@@ -118,10 +122,10 @@ instruction set, so every word is paid for on every run.
 
 ## Skills — `skills/*/SKILL.md`
 
-`install.sh` links these into every tool it supports — Codex too, which gets no
-role file — so a skill reaches every machine a role does. It is not read like
-one: a role is the whole system prompt, while a skill loads only when its
-description matches what the session is doing. Its length is paid for when the
+`install.sh` links these into every tool it supports, so a skill reaches every
+machine a role does. It is not read like one: a role loads at session launch,
+while a skill loads only when its description matches what the session is
+doing. Its length is paid for when the
 procedure runs, not on every session, so the budget that binds a role document
 does not bind it.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Remove the symlinks install.sh made for Claude Code, opencode and Codex.
+# Remove installed symlinks and unedited generated Codex profiles.
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/uninstall.sh | sh
 #
@@ -10,8 +10,9 @@
 # need not still exist, so a link left dangling by deleting the checkout is
 # still removed; while the checkout is on disk it has to still hold
 # agents/{pm,qa,worker}.md, so a link into an unrelated tree of the same shape
-# is left alone. Real files and directories are never touched.
-# This is the only script that removes anything; install.sh only installs.
+# is left alone. Other files and directories are never touched; generated
+# Codex profiles are recognized by their marker and content checksum.
+# This is the only script that removes installed files.
 set -eu
 
 SUPPORTED="claude opencode codex"
@@ -22,9 +23,8 @@ tool_dirs() {
               echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
     opencode) echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/agents"
               echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills" ;;
-    # Skills only: install.sh links no role for Codex. The directory is shared
-    # with other tools' skills, which is what ours() below is for.
-    codex)    echo "$HOME/.agents/skills" ;;
+    codex)    echo "${CODEX_HOME:-$HOME/.codex}"
+              echo "$HOME/.agents/skills" ;;
   esac
 }
 
@@ -62,6 +62,16 @@ ours() {
     [ -f "$_root/agents/worker.md" ]
 }
 
+# Keep this format check in step with install.sh. A matching marker alone
+# would delete profiles the user customized after installation. Checking the
+# embedded checksum needs neither the source checkout nor a separate registry.
+profile_pristine() {
+  [ ! -L "$1" ] && [ -f "$1" ] || return 1
+  [ "$(sed -n '1p' "$1")" = "# role-based-agent profile v1: $(basename "$1")" ] || return 1
+  _profile_sum=$(tail -n +3 "$1" | cksum)
+  [ "$(sed -n '2p' "$1")" = "# cksum: $_profile_sum" ]
+}
+
 # What was covered is tracked alongside what was acted on, because a count of
 # removals cannot tell "there was nothing there" from "the directories were
 # never opened" -- and the second is what a CLAUDE_CONFIG_DIR or XDG_CONFIG_HOME
@@ -93,7 +103,18 @@ for t in $SUPPORTED; do
         # that must always be counted.
         [ -e "$f" ] || [ -L "$f" ] || continue
         _seen=$((_seen + 1))
-        ours "$f" || continue
+        if [ "$t" = codex ] && [ "$d" = "${CODEX_HOME:-$HOME/.codex}" ]; then
+          case "$f" in *.config.toml) ;; *) continue ;; esac
+          if ! profile_pristine "$f"; then
+            if [ ! -L "$f" ] && [ -f "$f" ] &&
+               [ "$(sed -n '1p' "$f")" = "# role-based-agent profile v1: $(basename "$f")" ]; then
+              echo "  kept      $f (edited profile; remove it yourself if no longer needed)"
+            fi
+            continue
+          fi
+        else
+          ours "$f" || continue
+        fi
         rm "$f"
         REMOVED=$((REMOVED + 1))
         echo "  removed   $f"
@@ -104,11 +125,8 @@ for t in $SUPPORTED; do
       if [ "$_seen" -eq 0 ]; then _how="empty"; else _how="$_seen entries, none ours"; fi
     else
       _how="not there"
-      # Counted only where a variable can move the directory, because naming
-      # one is all the advice below offers. Codex's follows HOME alone, so its
-      # absence means nothing of ours is there -- and counted, it printed that
-      # advice under a clean removal on every machine without Codex.
-      [ "$t" = codex ] || MISSING=$((MISSING + 1))
+      # Only the shared skill directory cannot move with a config override.
+      if [ "$d" != "$HOME/.agents/skills" ]; then MISSING=$((MISSING + 1)); fi
     fi
     LOOKED="$LOOKED    $d -- $_how
 "
@@ -135,6 +153,6 @@ fi
 # that block's "none ours" holds only where the run removed nothing, and would
 # be false of a directory this run just emptied.
 if [ "$MISSING" -gt 0 ]; then
-  echo "$MISSING of the directories looked in were not there, so links may remain --"
-  echo "  set CLAUDE_CONFIG_DIR or XDG_CONFIG_HOME as at install time and re-run."
+  echo "$MISSING of the directories looked in were not there, so installed files may remain --"
+  echo "  set CLAUDE_CONFIG_DIR, XDG_CONFIG_HOME and CODEX_HOME as at install time and re-run."
 fi
