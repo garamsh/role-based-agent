@@ -65,10 +65,18 @@ ours() {
 # Keep this format check in step with install.sh. A matching marker alone
 # would delete profiles the user customized after installation. Checking the
 # embedded checksum needs neither the source checkout nor a separate registry.
+# The checksum covers the generated region alone -- the source annotation
+# through the developer_instructions line -- because Codex appends its own
+# keys after it on first use (#124), and install.sh refreshes such a profile.
+profile_region_end() {
+  awk 'NR >= 3 && /^developer_instructions = / { print NR; exit }' "$1"
+}
 profile_pristine() {
   [ ! -L "$1" ] && [ -f "$1" ] || return 1
   [ "$(sed -n '1p' "$1")" = "# role-based-agent profile v1: $(basename "$1")" ] || return 1
-  _profile_sum=$(tail -n +3 "$1" | cksum)
+  _profile_end=$(profile_region_end "$1")
+  [ -n "$_profile_end" ] || return 1
+  _profile_sum=$(sed -n "3,${_profile_end}p" "$1" | cksum)
   [ "$(sed -n '2p' "$1")" = "# cksum: $_profile_sum" ]
 }
 

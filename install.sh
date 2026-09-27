@@ -101,12 +101,22 @@ tool_present() {
 }
 
 # Keep this format check in step with uninstall.sh: both scripts must also
-# work when piped alone. The checksum covers the source annotation and TOML,
-# so a user edit makes a generated file ineligible for replacement or removal.
+# work when piped alone. The checksum covers only the generated region -- the
+# source annotation through the developer_instructions line -- so a user edit
+# there makes the file ineligible for replacement or removal. Codex writes its
+# own keys into the profile on first use (#124); checksumming the whole file
+# read that as a user edit, and the role stopped updating after one session.
+# The region ends at the first developer_instructions line, which is the
+# whole generated TOML: profile_body escapes every newline in the role.
+profile_region_end() {
+  awk 'NR >= 3 && /^developer_instructions = / { print NR; exit }' "$1"
+}
 profile_pristine() {
   [ ! -L "$1" ] && [ -f "$1" ] || return 1
   [ "$(sed -n '1p' "$1")" = "# role-based-agent profile v1: $(basename "$1")" ] || return 1
-  _profile_sum=$(tail -n +3 "$1" | cksum)
+  _profile_end=$(profile_region_end "$1")
+  [ -n "$_profile_end" ] || return 1
+  _profile_sum=$(sed -n "3,${_profile_end}p" "$1" | cksum)
   [ "$(sed -n '2p' "$1")" = "# cksum: $_profile_sum" ]
 }
 
@@ -673,7 +683,7 @@ install_profile() {
   _pdest=$2
   if [ -e "$_pdest" ] || [ -L "$_pdest" ]; then
     if ! profile_pristine "$_pdest"; then
-      echo "  kept      $_pdest (existing or edited profile; move it and re-run)" >&2
+      echo "  kept      $_pdest (not generated here, or its generated part was edited; move it and re-run)" >&2
       MODIFIED=$((MODIFIED + 1))
       return
     fi
@@ -684,6 +694,15 @@ install_profile() {
   PROFILE_TMP=$(mktemp "$_pdest.tmp.XXXXXX")
   printf '# role-based-agent profile v1: %s\n# cksum: %s\n%s\n' \
     "$(basename "$_pdest")" "$_sum" "$_payload" > "$PROFILE_TMP"
+  # Whatever follows the region is Codex's or the user's, and is copied byte
+  # for byte after the new region, never before it and never re-serialized:
+  # TOML puts every key after a [table] header inside that table, so a region
+  # moved below Codex's [tui] would still parse and would set
+  # tui.developer_instructions instead of the role. tail rather than a command
+  # substitution, which would drop the tail's trailing newlines.
+  if [ -f "$_pdest" ]; then
+    tail -n +"$(($(profile_region_end "$_pdest") + 1))" "$_pdest" >> "$PROFILE_TMP"
+  fi
   if cmp -s "$PROFILE_TMP" "$_pdest"; then
     rm "$PROFILE_TMP"
   else
