@@ -149,6 +149,7 @@ for t in $SUPPORTED; do
         # that must always be counted.
         [ -e "$f" ] || [ -L "$f" ] || continue
         _seen=$((_seen + 1))
+        _note=""
         if [ "$t" = codex ] && [ "$d" = "${CODEX_HOME:-$HOME/.codex}" ]; then
           case "$f" in *.config.toml) ;; *) continue ;; esac
           if ! profile_pristine "$f"; then
@@ -158,12 +159,22 @@ for t in $SUPPORTED; do
             fi
             continue
           fi
+          # A pristine region still goes whole: stripping it would leave a
+          # NAME.config.toml that `codex -p NAME` loads with no role. What sits
+          # below the region goes with it, and that is not always Codex's
+          # bookkeeping -- a model and reasoning effort a person chose were lost
+          # under a bare "removed" (#127). awk counts an unterminated last line
+          # too, and reads the tail without parsing it.
+          _below=$(tail -n +"$(($(profile_region_end "$f") + 1))" "$f" | awk 'END { print NR }')
+          if [ "$_below" -gt 0 ]; then
+            _note=" (with $_below line(s) below its generated region: settings Codex or you added)"
+          fi
         else
           claimed "$f" "$@" || continue
         fi
         rm "$f"
         REMOVED=$((REMOVED + 1))
-        echo "  removed   $f"
+        echo "  removed   $f$_note"
       done
       # "none ours" is safe to assert because this string is only ever printed
       # when the whole run removed nothing, so every entry counted here is one
