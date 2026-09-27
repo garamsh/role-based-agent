@@ -31,9 +31,10 @@ Each of these was a filed bug. Changing one is a decision, not a detail.
   generated profiles. Refresh profiles on install, not at session launch.
 - `ours()` is defined in `uninstall.sh` alone. Profile format checks occur in
   both standalone scripts; verify their update and removal decisions agree.
-- Every removal verdict is taken before the first removal, so the order of
-  `SUPPORTED` cannot change one. Deciding and removing in one pass made a
-  foreign link's fate depend on which tool directory was walked first.
+- Every link's removal verdict is taken before the first removal, so the order
+  of `SUPPORTED` cannot change one. Deciding and removing in one pass made a
+  foreign link's fate depend on which tool directory was walked first. A
+  profile's verdict reads only that file's own bytes, so it is taken in place.
 - `uninstall.sh` is the only installed-file removal path. The installer may
   clean up its own temporary files when staging a profile replacement.
 - `install.sh` takes no command-line flags. Configuration is by environment
@@ -52,7 +53,7 @@ script reads overridden — the names they expand and never assign, taken from
 the scripts and not from a list here. A list is what hid `ROLE_AGENT_DIR`,
 which `install.sh:20` reads *ahead of* `XDG_DATA_HOME`: a shell that exports it
 gets a real fast-forward of its own clone past a sandbox that overrides the
-other four, and nothing here says so. Never touch the real `~/.claude`,
+others, and nothing here says so. Never touch the real `~/.claude`,
 `~/.config/opencode`, `~/.agents`, Codex config directory or that clone in a test;
 run the scripts as a subprocess, never `source` them, which runs a real install
 on your machine.
