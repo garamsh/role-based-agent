@@ -41,18 +41,20 @@ tool_dirs() {
 # Both walks below read these directories one line per path, so a newline in
 # one splits it into two that are not there: the install succeeded, this run
 # reported success, and every link stayed (#138). Refused before the first
-# verdict, so nothing is removed.
+# verdict, so nothing is removed. A leading dash is refused because the
+# commands below would parse it as options; install.sh refuses it too (#141).
 NL='
 '
-refuse_newline() {
+refuse_unsafe() {
   case "$2" in
     *"$NL"*) die "$1 contains a newline, which this script cannot walk; set it as it was at install time, or remove what install.sh wrote there yourself (nothing was removed)" ;;
+    -*)      die "$1 begins with a dash, which the commands below would read as an option; set it as it was at install time (nothing was removed)" ;;
   esac
 }
-refuse_newline CLAUDE_CONFIG_DIR "${CLAUDE_CONFIG_DIR:-}"
-refuse_newline XDG_CONFIG_HOME "${XDG_CONFIG_HOME:-}"
-refuse_newline CODEX_HOME "${CODEX_HOME:-}"
-refuse_newline HOME "$HOME"
+refuse_unsafe CLAUDE_CONFIG_DIR "${CLAUDE_CONFIG_DIR:-}"
+refuse_unsafe XDG_CONFIG_HOME "${XDG_CONFIG_HOME:-}"
+refuse_unsafe CODEX_HOME "${CODEX_HOME:-}"
+refuse_unsafe HOME "$HOME"
 
 # A symlink is ours when its target names <root>/agents/<name>.md or
 # <root>/skills/<name> and the link carries that same <name> -- which is how
