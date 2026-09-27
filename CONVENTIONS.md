@@ -31,13 +31,18 @@ Each of these was a filed bug. Changing one is a decision, not a detail.
   generated profiles. Refresh profiles on install, not at session launch.
 - `ours()` is defined in `uninstall.sh` alone. Profile format checks occur in
   both standalone scripts; verify their update and removal decisions agree.
+- Every removal verdict is taken before the first removal, so the order of
+  `SUPPORTED` cannot change one. Deciding and removing in one pass made a
+  foreign link's fate depend on which tool directory was walked first.
 - `uninstall.sh` is the only installed-file removal path. The installer may
   clean up its own temporary files when staging a profile replacement.
 - `install.sh` takes no command-line flags. Configuration is by environment
   variable, because a flag through `curl … | sh` needs `sh -s --` plumbing.
 - No `rm -rf` anywhere. Preserve user files and directories at target paths.
   A generated Codex profile is replaceable or removable only when its marker,
-  filename and checksum match. Preserve edited profiles and profile symlinks.
+  filename and the checksum of its generated region match; a profile whose
+  region is unedited is removed whole, with anything written below it.
+  Preserve edited profiles and profile symlinks.
   Never rewrite the user's base Codex configuration.
 
 ## Verifying a change to either script
