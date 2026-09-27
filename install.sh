@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Install or update role definitions and skills for Claude Code, opencode and Codex.
+# Install or update role documents and skills for Claude Code, opencode and Codex.
 #
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
@@ -535,7 +535,7 @@ matched() {
 
 [ -d "$SRC_DIR/agents" ] || die "no agents/ directory in $SRC_DIR"
 # An empty agents/ stops the run and an empty skills/ does not, because the two
-# say different things. The role definitions are what this project is, so a
+# say different things. The role documents are what this project is, so a
 # clone holding none of them has nothing to install and its run would otherwise
 # report success having installed nothing; the line above already refuses their
 # directory's absence, and an empty one is that same condition by another
@@ -545,7 +545,7 @@ matched() {
 # Both are settled here, above the first mkdir and every loop over either glob,
 # so no loop below can meet an unexpanded pattern and none needs a guard of its
 # own -- including tool_installed(), which globs agents/*.md too.
-matched "$SRC_DIR"/agents/*.md || die "no role definition in $SRC_DIR/agents"
+matched "$SRC_DIR"/agents/*.md || die "no role document in $SRC_DIR/agents"
 HAVE_SKILLS=0
 if [ -d "$SRC_DIR/skills" ] && matched "$SRC_DIR"/skills/*/; then HAVE_SKILLS=1; fi
 
@@ -580,11 +580,11 @@ else
   [ -n "$DETECTED" ] || die "no supported tool found (looked for: $SUPPORTED)"
 
   if [ -n "$INSTALLED" ]; then
-    PROMPT_TITLE="Update role definitions in:"
+    PROMPT_TITLE="Update role documents in:"
     DEFAULT="$INSTALLED"
     NOTICE="Refreshing:"
   else
-    PROMPT_TITLE="Install role definitions into:"
+    PROMPT_TITLE="Install role documents into:"
     DEFAULT="$DETECTED"
     NOTICE="Detected:"
   fi
@@ -688,7 +688,7 @@ install_profile() {
       return
     fi
   fi
-  _body=$(profile_body "$_psrc") || die "invalid role definition: $_psrc"
+  _body=$(profile_body "$_psrc") || die "invalid role document: $_psrc"
   _payload=$(printf '# Source: %s\n%s\n' "$_psrc" "$_body")
   _sum=$(printf '%s\n' "$_payload" | cksum)
   PROFILE_TMP=$(mktemp "$_pdest.tmp.XXXXXX")

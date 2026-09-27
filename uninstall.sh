@@ -38,7 +38,8 @@ tool_dirs() {
 # unrelated tree that happens to share the shape is not claimed.
 #
 # agents/{pm,qa,worker}.md alone is not a checkout: a tool directory has that
-# shape too, from role files the user keeps there or from our own role links,
+# shape too, from the user's own files with those names or from our role
+# document links,
 # which -f follows, and a foreign ~/.agents/skills/foo -> ../../.claude/skills/foo
 # was claimed and deleted (#122). install.sh is what every checkout install.sh
 # has linked from holds at its root -- it links from its own directory, or from
