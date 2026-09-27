@@ -20,7 +20,7 @@ Read the task. If it is ambiguous, ask — do not guess scope. Then read the con
 
 ## While working
 
-Work on a dedicated task branch. When the PM dispatches you into a prepared workspace the branch already exists — work in place, do not create another.
+Work on a dedicated task branch. When the PM dispatches you into a prepared worktree the branch already exists — work in place, do not create another.
 
 Keep the diff surgical. No drive-by refactors, no reformatting untouched code, no unrequested features; every changed line traces to the assigned task.
 

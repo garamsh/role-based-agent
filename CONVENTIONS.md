@@ -3,7 +3,7 @@
 Rules for changing this repository. They bind every pull request here.
 
 This project is nine files: two POSIX shell scripts that install role
-definitions and skills where agent tools read them, and seven documents — three
+documents and skills where agent tools read them, and seven documents — three
 role documents, one skill, a README, the pull request template that binds every
 change here, and this. It has no build step, no toolchain, and no test harness
 — a check runner was tried and removed as disproportionate. Verification is

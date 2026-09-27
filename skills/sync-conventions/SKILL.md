@@ -11,7 +11,7 @@ The PM operates it. The conventions it rewrites are the PM's to maintain, and
 a user invoking the skill is the explicit instruction the PM needs for what
 **Bootstrap** writes on top of them: the `Makefile`, hooks and CI workflow of
 5, the architecture documents and ADRs of 6, and the project `README.md` of 7.
-One instruction reaches all three because the PM's role definition routes
+One instruction reaches all three because the PM's role document routes
 substantive documentation exactly as it routes code, and code is the PM's to
 write on the user's explicit instruction. It is the invocation and nothing
 wider — **Step 1** confirms the mode with the user before anything changes, and
