@@ -7,9 +7,9 @@
 # attached it lists the tools it finds on this machine as a checkbox list:
 # numbers toggle a row, enter installs whatever is checked. Without a terminal
 # it just refreshes. ROLE_AGENT_TOOLS or ROLE_AGENT_NONINTERACTIVE skips the
-# prompt for a caller that has a terminal but wants no question. A real file or
-# directory you put at a target path is never replaced -- move it yourself and
-# re-run.
+# prompt for a caller that has a terminal but wants no question. A real file,
+# directory or other link you put at a target path is never replaced -- move it
+# yourself and re-run.
 #
 # Removing installed files is uninstall.sh:
 #
@@ -134,6 +134,9 @@ tool_present() {
 # read that as a user edit, and the role stopped updating after one session.
 # The region ends at the first developer_instructions line, which is the
 # whole generated TOML: profile_body escapes every newline in the role.
+# Check the two agree by giving both scripts the same files and comparing their
+# verdicts, never their text: a text diff calls a differing message a
+# disagreement and a diverged decision a match.
 profile_region_end() {
   awk 'NR >= 3 && /^developer_instructions = / { print NR; exit }' "$1"
 }
@@ -220,6 +223,8 @@ have_tty() { [ -c /dev/tty ] && { stty -g < /dev/tty >/dev/null; } 2>/dev/null; 
 # what is checked is the whole point of a checkbox, and reprinting buys that
 # for the price of a few lines of output -- no raw mode, no cursor control, no
 # escape sequence anywhere in this script.
+# No documented check reaches this because it needs a terminal, but a pty gives
+# it one -- `script -qec 'sh install.sh' /dev/null` -- so a change is testable.
 choose_tools() {
   _checked=$1
   _wrong=0
@@ -627,8 +632,13 @@ fi
 
 # --------------------------------------------------------------- install ----
 
-# Only symlinks are ours to replace. A real file or directory at a target path
-# belongs to the user and is left alone.
+# Nothing at a target path is ours to replace: a real file, a directory or a
+# symlink there belongs to the user and is left alone. A link is left as found
+# unless its text is exactly the one this run writes, which asks no "is this
+# ours" question -- uninstall.sh's ours() is that, and a second copy here could
+# drift from it. Replacing any link destroyed one the removal side refuses to
+# touch (#143); the cost is that a link into another checkout is now kept
+# rather than silently repointed, so the message says how to adopt it.
 #
 # Every branch ends by checking the disk rather than trusting the command it
 # just ran: the reported outcome is what is at $dest now, not which branch got
@@ -648,8 +658,12 @@ install_one() {
     return
   fi
 
-  if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
-    return                            # already current, say nothing
+  if [ -L "$dest" ]; then
+    _to=$(readlink "$dest")
+    if [ "$_to" = "$src" ]; then return; fi   # already current, say nothing
+    printf '%s\n' "  kept      $dest (a link to $_to, not this checkout's; if that is another checkout, move or delete the link and re-run to link it here)" >&2
+    MODIFIED=$((MODIFIED + 1))
+    return
   fi
 
   ln -sfn "$src" "$dest"
@@ -663,6 +677,9 @@ install_one() {
 # A basic TOML string with explicit escapes handles quotes, backslashes and
 # even triple quotes in a role without introducing a TOML/Python dependency.
 # Frontmatter is tool metadata, not an instruction to Codex.
+# A mistake here is silent: the checksum covers the region as written, so a
+# mangled body reads as pristine, no refresh repairs it, and it surfaces only
+# as Codex failing to start.
 profile_body() {
   LC_ALL=C awk '
     NR == 1 { if ($0 != "---") exit 1; next }
