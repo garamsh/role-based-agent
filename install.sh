@@ -87,17 +87,23 @@ tool_skills_dir() {
 # of them turns a path this run can write into two it would look for: the
 # install succeeds, the removal reports success, and every link stays (#138).
 # Refused here, before anything is written, rather than installed unremovably.
+#
+# A leading dash is refused here too: the commands below would parse such a
+# path as options, and GNU tools do so wherever it sits on the line, so `--` at
+# the mkdir calls stopped nothing -- ln failed next, after earlier tools were
+# already written (#141). A dash inside the path never looks like an option.
 NL='
 '
-refuse_newline() {
+refuse_unsafe() {
   case "$2" in
     *"$NL"*) die "$1 contains a newline, which uninstall.sh cannot walk; set it to a path without one and re-run (nothing was written)" ;;
+    -*)      die "$1 begins with a dash, which the commands below would read as an option; set it to a path that does not, such as ./$2, and re-run (nothing was written)" ;;
   esac
 }
-refuse_newline CLAUDE_CONFIG_DIR "${CLAUDE_CONFIG_DIR:-}"
-refuse_newline XDG_CONFIG_HOME "${XDG_CONFIG_HOME:-}"
-refuse_newline CODEX_HOME "${CODEX_HOME:-}"
-refuse_newline HOME "$HOME"
+refuse_unsafe CLAUDE_CONFIG_DIR "${CLAUDE_CONFIG_DIR:-}"
+refuse_unsafe XDG_CONFIG_HOME "${XDG_CONFIG_HOME:-}"
+refuse_unsafe CODEX_HOME "${CODEX_HOME:-}"
+refuse_unsafe HOME "$HOME"
 
 tool_label() {
   case "$1" in
