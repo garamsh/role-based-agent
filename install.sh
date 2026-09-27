@@ -718,6 +718,18 @@ install_profile() {
       MODIFIED=$((MODIFIED + 1))
       return
     fi
+    # Kept for the reason install_one keeps a link into another checkout: since
+    # #143 that link stays, and regenerating the profile anyway split one role
+    # across two clones -- Claude Code and opencode on one's text, Codex on the
+    # other's -- with nothing in the output saying so (#146). The Source line
+    # is inside the checksummed region, so a pristine profile's is one a run
+    # wrote and nobody edited, and it names the checkout without a registry.
+    _prec=$(sed -n '3p' "$_pdest")
+    if [ "$_prec" != "# Source: $_psrc" ]; then
+      printf '%s\n' "  kept      $_pdest (generated from ${_prec#\# Source: }, not this checkout's; if that is another checkout, move or delete the profile and re-run to generate it here)" >&2
+      MODIFIED=$((MODIFIED + 1))
+      return
+    fi
   fi
   _body=$(profile_body "$_psrc") || die "invalid role document: $_psrc"
   _payload=$(printf '# Source: %s\n%s\n' "$_psrc" "$_body")
