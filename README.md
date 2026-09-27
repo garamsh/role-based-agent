@@ -28,7 +28,7 @@ Clones to `~/.local/share/role-based-agent`, then asks which tools to install in
 | opencode | `~/.config/opencode/{agents,skills}/` | `opencode` on `PATH`, or `~/.config/opencode/` exists |
 | Codex | `~/.codex/{pm,worker,qa}.config.toml` and `~/.agents/skills/` | `codex` on `PATH`, or `~/.codex/` exists |
 
-The role definitions in `agents/` are the source of truth. Claude Code and opencode roles, and every tool's skills, are symlinked to the clone. Codex roles are generated TOML profiles: each contains the role body as `developer_instructions`, without its YAML frontmatter. Re-run the installer after editing a role to refresh its Codex profile; source edits alone do not update a generated file.
+The role documents in `agents/` are the source of truth. Claude Code and opencode roles, and every tool's skills, are symlinked to the clone. Codex roles are generated TOML profiles: each contains the role body as `developer_instructions`, without its YAML frontmatter. Re-run the installer after editing a role to refresh its Codex profile; source edits alone do not update a generated file.
 
 A generated profile begins with a generated region — a marker, a checksum, its source path and the `developer_instructions` line — and install and uninstall only replace or remove profiles with the expected marker, filename and an unchanged region. Anything after that region is yours and Codex's: Codex writes its own settings there on first use, and a refresh replaces only the region and keeps everything after it byte for byte, so those settings stay in place. Existing user profiles, profile symlinks, and generated profiles whose region you have edited are reported as kept during installation — move them yourself and re-run if you want the generated role there. The checksum detects edits; it is not a security signature. Your base `config.toml` is never changed. At the symlink targets, real files and directories are left alone as before.
 
@@ -67,7 +67,7 @@ curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/unins
 
 It removes unedited generated Codex profiles even if their source checkout is gone. It also removes symlinks that name a role-based-agent checkout — by the link's text, not by what it still resolves to. A relative link text is read against the link's own directory, so where you run it from cannot change what it removes. A profile whose region is unedited is removed whole, with any settings Codex or you added below it. Other real files and directories, profile symlinks, and profiles with an edited region are preserved. Edited profiles retaining their marker are reported as kept.
 
-To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. Installing from a URL requires `git`; profile generation uses standard shell utilities and needs no Python or Node runtime. That clone has to hold the roles it is being asked to install: an `agents/` directory with no role definition in it stops the run before installing anything. Skills are not required — a clone carrying none installs the roles as usual and says that it linked no skill.
+To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place. Installing from a URL requires `git`; profile generation uses standard shell utilities and needs no Python or Node runtime. That clone has to hold the roles it is being asked to install: an `agents/` directory with no role document in it stops the run before installing anything. Skills are not required — a clone carrying none installs the roles as usual and says that it linked no skill.
 
 Which clone you edit decides what it costs you. A clone you run `install.sh` from supplies links and generated profiles and is never pulled, so your edits there survive every run. The clone the piped one-liner keeps at `~/.local/share/role-based-agent` is the one it fast-forwards, so an edit there is what the blocked update above is about — recoverable, and it costs nothing until an incoming commit lands on that same file, which is when the update starts refusing and the clone stops moving. Edit your own clone, and leave the managed one to the installer.
 
@@ -81,7 +81,7 @@ claude --agent worker    opencode --agent worker    codex -p worker
 claude --agent qa        opencode --agent qa        codex -p qa
 ```
 
-In Claude Code and opencode the role file becomes the session's system prompt, so the session *is* that role rather than delegating to a subagent.
+In Claude Code and opencode the role document becomes the session's system prompt, so the session *is* that role rather than delegating to a subagent.
 
 Codex selects the generated profile by name. Launch it from the project you want to work on; additional CLI options and a starting prompt work as usual:
 
