@@ -8,10 +8,11 @@
 # that same <name>. A relative target is read against the link's own directory,
 # so where this script is run from cannot change what it removes. The target
 # need not still exist, so a link left dangling by deleting the checkout is
-# still removed; while the checkout is on disk it has to still hold
-# agents/{pm,qa,worker}.md, so a link into an unrelated tree of the same shape
-# is left alone. Other files and directories are never touched; generated
-# Codex profiles are recognized by their marker and content checksum.
+# still removed; while the checkout is on disk it has to still hold install.sh
+# and agents/{pm,qa,worker}.md, so a link into a tool directory or any other
+# tree that only shares the agents/ shape is left alone. Other files and
+# directories are never touched; generated Codex profiles are recognized by
+# their marker and content checksum.
 # This is the only script that removes installed files.
 set -eu
 
@@ -33,8 +34,17 @@ tool_dirs() {
 # install.sh writes them, and nothing else does. The check is on the link text,
 # not on what it resolves to, because deleting the checkout before uninstalling
 # is the normal order and leaves every link of ours dangling but still named.
-# While <root> is on disk it still has to look like a checkout, so a link into
-# an unrelated tree that happens to share the shape is not claimed.
+# While <root> is on disk it still has to be a checkout, so a link into an
+# unrelated tree that happens to share the shape is not claimed.
+#
+# agents/{pm,qa,worker}.md alone is not a checkout: a tool directory has that
+# shape too, from role files the user keeps there or from our own role links,
+# which -f follows, and a foreign ~/.agents/skills/foo -> ../../.claude/skills/foo
+# was claimed and deleted (#122). install.sh is what every checkout install.sh
+# has linked from holds at its root -- it links from its own directory, or from
+# a clone of this repository, which has carried it since the first commit --
+# and nothing this project writes into a tool directory is named that. Only a
+# regular file counts, so no link -- ours or anyone's -- can stand in for it.
 #
 # A relative target is text about the link's own directory, so it is joined to
 # that directory before any line below reads it. Taken as written it was read
@@ -58,7 +68,8 @@ ours() {
   [ "$(basename "$_target")" = "$(basename "$1")" ] || return 1
   _root=$(dirname "$(dirname "$_target")")
   [ -d "$_root" ] || return 0         # checkout gone: the link text is all there is
-  [ -f "$_root/agents/pm.md" ] && [ -f "$_root/agents/qa.md" ] &&
+  [ -f "$_root/install.sh" ] && [ ! -L "$_root/install.sh" ] &&
+    [ -f "$_root/agents/pm.md" ] && [ -f "$_root/agents/qa.md" ] &&
     [ -f "$_root/agents/worker.md" ]
 }
 
@@ -78,6 +89,33 @@ profile_pristine() {
   [ -n "$_profile_end" ] || return 1
   _profile_sum=$(sed -n "3,${_profile_end}p" "$1" | cksum)
   [ "$(sed -n '2p' "$1")" = "# cksum: $_profile_sum" ]
+}
+
+# Every verdict is taken before the first removal. ours() resolves the link's
+# target, and that path can run through another link this run removes:
+# ~/.claude/skills/x -> ~/.agents/skills/sync-conventions/skills/x resolves into
+# the checkout and is kept while our sync-conventions link stands, and falls to
+# "checkout gone" once it does not. Deciding and removing in one pass made the
+# verdict turn on the order of SUPPORTED, which nothing chose (#122). "$@" is
+# the one list POSIX sh has, and it holds any path whole.
+set --
+for t in $SUPPORTED; do
+  while IFS= read -r d; do
+    [ -n "$d" ] && [ -d "$d" ] || continue
+    for f in "$d"/*; do
+      if ours "$f"; then set -- "$@" "$f"; fi
+    done
+  done <<EOF
+$(tool_dirs "$t")
+EOF
+done
+claimed() {
+  _claim=$1
+  shift
+  for _c do
+    if [ "$_c" = "$_claim" ]; then return 0; fi
+  done
+  return 1
 }
 
 # What was covered is tracked alongside what was acted on, because a count of
@@ -121,7 +159,7 @@ for t in $SUPPORTED; do
             continue
           fi
         else
-          ours "$f" || continue
+          claimed "$f" "$@" || continue
         fi
         rm "$f"
         REMOVED=$((REMOVED + 1))
