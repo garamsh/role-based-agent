@@ -107,6 +107,9 @@ ours() {
 # The checksum covers the generated region alone -- the source annotation
 # through the developer_instructions line -- because Codex appends its own
 # keys after it on first use (#124), and install.sh refreshes such a profile.
+# Check the two agree by giving both scripts the same files and comparing their
+# verdicts, never their text: a text diff calls a differing message a
+# disagreement and a diverged decision a match.
 profile_region_end() {
   awk 'NR >= 3 && /^developer_instructions = / { print NR; exit }' "$1"
 }
