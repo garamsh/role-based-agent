@@ -39,7 +39,8 @@ Each of these was a filed bug. Changing one is a decision, not a detail.
   clean up its own temporary files when staging a profile replacement.
 - `install.sh` takes no command-line flags. Configuration is by environment
   variable, because a flag through `curl … | sh` needs `sh -s --` plumbing.
-- No `rm -rf` anywhere. Preserve user files and directories at target paths.
+- No `rm -rf` anywhere. Preserve at target paths whatever the user put there:
+  files, directories, and any link other than the one a run would write.
   A generated Codex profile is replaceable or removable only when its marker,
   filename and the checksum of its generated region match; a profile whose
   region is unedited is removed whole, with anything written below it.
