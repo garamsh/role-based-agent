@@ -24,7 +24,7 @@ SUPPORTED="claude opencode codex"
 MODIFIED=0
 CHANGED=0
 
-die() { echo "error: $*" >&2; exit 1; }
+die() { printf '%s\n' "error: $*" >&2; exit 1; }
 
 # No flags at all: this script installs, uninstall.sh removes. An argument is a
 # caller reaching for an option that no longer exists, and ignoring it would be
@@ -44,7 +44,7 @@ die() { echo "error: $*" >&2; exit 1; }
 NONINTERACTIVE="${ROLE_AGENT_NONINTERACTIVE:-}"
 REQUESTED=""
 set -f                              # a bare * names no tool, and must not glob
-for t in $(echo "${ROLE_AGENT_TOOLS:-}" | tr ',' ' '); do
+for t in $(printf '%s\n' "${ROLE_AGENT_TOOLS:-}" | tr ',' ' '); do
   case " $SUPPORTED " in
     *" $t "*) ;;
     *) die "ROLE_AGENT_TOOLS: unknown tool: $t (supported: $SUPPORTED)" ;;
@@ -60,24 +60,44 @@ set +f
 
 # Codex reads named TOML profiles, so its role directory needs a serializer
 # rather than a symlink to the Markdown source.
+#
+# printf and not echo, here and on every line that prints a path or a value the
+# caller set: dash's echo expands backslash sequences, so CLAUDE_CONFIG_DIR=a\claude
+# stopped at `\c`, this returned `a`, and every link landed flat in it (#138).
 tool_dir() {
   case "$1" in
-    claude)   echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents" ;;
-    opencode) echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/agents" ;;
-    codex)    echo "${CODEX_HOME:-$HOME/.codex}" ;;
+    claude)   printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents" ;;
+    opencode) printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/agents" ;;
+    codex)    printf '%s\n' "${CODEX_HOME:-$HOME/.codex}" ;;
     *) die "unknown tool: $1 (supported: $SUPPORTED)" ;;
   esac
 }
 
 tool_skills_dir() {
   case "$1" in
-    claude)   echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
-    opencode) echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills" ;;
+    claude)   printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
+    opencode) printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills" ;;
     # HOME and never CODEX_HOME, because that is where Codex looks: its user
     # skill directory stays put when its config directory moves.
-    codex)    echo "$HOME/.agents/skills" ;;
+    codex)    printf '%s\n' "$HOME/.agents/skills" ;;
   esac
 }
+
+# uninstall.sh reads these directories back one line each, so a newline in one
+# of them turns a path this run can write into two it would look for: the
+# install succeeds, the removal reports success, and every link stays (#138).
+# Refused here, before anything is written, rather than installed unremovably.
+NL='
+'
+refuse_newline() {
+  case "$2" in
+    *"$NL"*) die "$1 contains a newline, which uninstall.sh cannot walk; set it to a path without one and re-run (nothing was written)" ;;
+  esac
+}
+refuse_newline CLAUDE_CONFIG_DIR "${CLAUDE_CONFIG_DIR:-}"
+refuse_newline XDG_CONFIG_HOME "${XDG_CONFIG_HOME:-}"
+refuse_newline CODEX_HOME "${CODEX_HOME:-}"
+refuse_newline HOME "$HOME"
 
 tool_label() {
   case "$1" in
@@ -228,7 +248,7 @@ choose_tools() {
     _next=$_checked
     _bad=$_reply                      # cleared by the first number that parses
     set -f
-    for _n in $(echo "$_reply" | tr ',' ' '); do
+    for _n in $(printf '%s\n' "$_reply" | tr ',' ' '); do
       _j=0; _t=""
       for _s in $DETECTED; do _j=$((_j + 1)); [ "$_n" = "$_j" ] && _t=$_s; done
       [ -n "$_t" ] || { _bad=$_n; break; }
@@ -248,7 +268,7 @@ choose_tools() {
     if [ -n "$_bad" ]; then
       _wrong=$((_wrong + 1))
       [ "$_wrong" -lt 3 ] || die "no valid choice after 3 tries"
-      echo "  not a number on the list: $_reply" > /dev/tty
+      printf '%s\n' "  not a number on the list: $_reply" > /dev/tty
       continue
     fi
     _checked=$_next
@@ -296,7 +316,7 @@ update_unreachable() {
   clone_at "$_d"
   {
     echo
-    echo "Could not fetch from the remote of $_d; git's message above says why."
+    printf '%s\n' "Could not fetch from the remote of $_d; git's message above says why."
     echo
     echo "  installing from the clone as it stands, at $_at$_when -- nothing"
     echo "    was fetched, so it may be behind, and nothing in a session that"
@@ -401,14 +421,14 @@ EOF
   {
     echo
     if [ "$_ahead" -gt 0 ]; then
-      echo "$_d has $_ahead commit(s) of its own, so it cannot be fast-forwarded."
+      printf '%s\n' "$_d has $_ahead commit(s) of its own, so it cannot be fast-forwarded."
       echo
       echo "  put them somewhere they survive (a branch, a push), reset this clone"
       echo "    onto $_up yourself, and re-run"
     elif [ -n "$_stuck" ]; then
-      echo "An incoming change lands on a file of yours in $_d."
+      printf '%s\n' "An incoming change lands on a file of yours in $_d."
     else
-      echo "$_d could not be fast-forwarded; git's message above says why."
+      printf '%s\n' "$_d could not be fast-forwarded; git's message above says why."
       echo
       echo "  no commit and no file of yours is in the way, so that message names"
       echo "    a condition this script cannot: clear it in the clone and re-run"
@@ -446,21 +466,21 @@ EOF
       else
         echo "  set the blocking ones aside, update, put them back:"
       fi
-      echo "    git -C $_d stash push$_stash_u --$_paths"
+      printf '%s\n' "    git -C $_d stash push$_stash_u --$_paths"
       echo "    (re-run this installer)"
-      echo "    git -C $_d stash pop"
+      printf '%s\n' "    git -C $_d stash pop"
       echo "      can stop on a conflict, since the update touched these paths"
       echo "      too: nothing is lost -- the update is in, your edit is still"
       echo "      in the stash"
       if [ "$_restorable" -eq 1 ]; then
         echo "  or drop them and take the update:"
-        echo "    git -C $_d checkout --$_paths, then re-run"
+        printf '%s\n' "    git -C $_d checkout --$_paths, then re-run"
       fi
     fi
     # Written once below the branches rather than inside each: it is the same
     # route out of all three, and three copies of it had drifted into three
     # lead-ins. Every branch prints a route first, so "or" always fits.
-    echo "  or keep what you have here and stop updating this clone: sh $_d/install.sh"
+    printf '%s\n' "  or keep what you have here and stop updating this clone: sh $_d/install.sh"
     echo "    installs from where it sits and never pulls"
     # Last, so it is read whichever route was taken -- and the route above is
     # the one that makes this permanent. Below the branches for the same reason
@@ -487,7 +507,7 @@ if [ -z "$SRC_DIR" ]; then
   command -v git >/dev/null 2>&1 || die "git is required to install from a URL"
 
   if [ -d "$INSTALL_DIR/.git" ]; then
-    echo "Updating $INSTALL_DIR"
+    printf '%s\n' "Updating $INSTALL_DIR"
     # Split out of `pull --ff-only` so the two failures it handed back as one
     # exit status can be told apart. They are different conditions with
     # different remedies: a remote that could not be read says nothing about
@@ -512,7 +532,7 @@ if [ -z "$SRC_DIR" ]; then
     [ "$_ahead" -eq 0 ] ||
       echo "  commits of yours here -- an update stops once anything lands upstream" >&2
   else
-    echo "Cloning into $INSTALL_DIR"
+    printf '%s\n' "Cloning into $INSTALL_DIR"
     mkdir -p "$(dirname "$INSTALL_DIR")"
     git clone -q "$REPO_URL" "$INSTALL_DIR" || die "clone failed"
   fi
@@ -601,18 +621,6 @@ fi
 
 # --------------------------------------------------------------- install ----
 
-# Codex accepts only these characters in profile names. Check the whole set
-# before installing anything so a custom role cannot leave a partial install.
-case " $TOOLS " in
-  *" codex "*)
-    for _role_path in "$SRC_DIR"/agents/*.md; do
-      _role=$(basename "$_role_path" .md)
-      case "$_role" in
-        ''|*[!a-zA-Z0-9_-]*) die "invalid Codex profile name: $_role" ;;
-      esac
-    done ;;
-esac
-
 # Only symlinks are ours to replace. A real file or directory at a target path
 # belongs to the user and is left alone.
 #
@@ -629,7 +637,7 @@ install_one() {
   # instead. Nothing here clears the path, so nothing here may link at it.
   if [ -e "$dest" ] && [ ! -L "$dest" ]; then
     if [ -d "$dest" ]; then _what="directory"; else _what="file"; fi
-    echo "  kept      $dest (your own $_what; move it and re-run)" >&2
+    printf '%s\n' "  kept      $dest (your own $_what; move it and re-run)" >&2
     MODIFIED=$((MODIFIED + 1))
     return
   fi
@@ -643,7 +651,7 @@ install_one() {
     die "could not link $dest -> $src"
   fi
   CHANGED=$((CHANGED + 1))
-  echo "  linked    $dest"
+  printf '%s\n' "  linked    $dest"
 }
 
 # A basic TOML string with explicit escapes handles quotes, backslashes and
@@ -683,7 +691,7 @@ install_profile() {
   _pdest=$2
   if [ -e "$_pdest" ] || [ -L "$_pdest" ]; then
     if ! profile_pristine "$_pdest"; then
-      echo "  kept      $_pdest (not generated here, or its generated part was edited; move it and re-run)" >&2
+      printf '%s\n' "  kept      $_pdest (not generated here, or its generated part was edited; move it and re-run)" >&2
       MODIFIED=$((MODIFIED + 1))
       return
     fi
@@ -708,7 +716,7 @@ install_profile() {
   else
     mv -f "$PROFILE_TMP" "$_pdest"
     CHANGED=$((CHANGED + 1))
-    echo "  generated $_pdest"
+    printf '%s\n' "  generated $_pdest"
   fi
   PROFILE_TMP=""
 }
@@ -736,6 +744,23 @@ sync_tool() {
   done
 }
 
+# Codex accepts only these characters in profile names, and only a body
+# profile_body() can serialize. Check the whole set before installing anything
+# so a custom role cannot leave a partial install: a bad body used to be found
+# inside sync_tool(), after earlier tools and roles were already written (#137).
+# The body is serialized again when its profile is generated; running awk twice
+# costs less than carrying the bodies from here into sync_tool().
+case " $TOOLS " in
+  *" codex "*)
+    for _role_path in "$SRC_DIR"/agents/*.md; do
+      _role=$(basename "$_role_path" .md)
+      case "$_role" in
+        ''|*[!a-zA-Z0-9_-]*) die "invalid Codex profile name: $_role" ;;
+      esac
+      profile_body "$_role_path" >/dev/null || die "invalid role document: $_role_path"
+    done ;;
+esac
+
 for t in $TOOLS; do
   sync_tool "$t"
 done
@@ -755,7 +780,7 @@ fi
 # leave the same run behind -- roles linked, nothing at all in the skills
 # directories -- and one message for the pair is one thing to keep true.
 if [ "$HAVE_SKILLS" -eq 0 ]; then
-  echo "No skills in $SRC_DIR/skills, so none were linked."
+  printf '%s\n' "No skills in $SRC_DIR/skills, so none were linked."
 fi
-echo "Source: $SRC_DIR"
+printf '%s\n' "Source: $SRC_DIR"
 echo "Start a session in a role with:  claude --agent pm  |  opencode --agent pm  |  codex -p pm"

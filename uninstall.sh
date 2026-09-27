@@ -18,16 +18,41 @@ set -eu
 
 SUPPORTED="claude opencode codex"
 
+die() { printf '%s\n' "error: $*" >&2; exit 1; }
+
+# No arguments, as install.sh takes none: there is no selective removal, and an
+# argument ignored here removed everything for `uninstall.sh claude` and said
+# nothing about it (#136). Refused before the verdict pass below clears "$@".
+[ $# -eq 0 ] || die "uninstall.sh takes no arguments (got: $1); it removes from every tool at once -- to remove one tool's files only, delete its links or generated profiles yourself"
+
+# printf and not echo: dash's echo expands backslash sequences, and a `\c` in a
+# config path cut the directory short (#138).
 tool_dirs() {
   case "$1" in
-    claude)   echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents"
-              echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
-    opencode) echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/agents"
-              echo "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills" ;;
-    codex)    echo "${CODEX_HOME:-$HOME/.codex}"
-              echo "$HOME/.agents/skills" ;;
+    claude)   printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/agents"
+              printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
+    opencode) printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/agents"
+              printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/opencode/skills" ;;
+    codex)    printf '%s\n' "${CODEX_HOME:-$HOME/.codex}"
+              printf '%s\n' "$HOME/.agents/skills" ;;
   esac
 }
+
+# Both walks below read these directories one line per path, so a newline in
+# one splits it into two that are not there: the install succeeded, this run
+# reported success, and every link stayed (#138). Refused before the first
+# verdict, so nothing is removed.
+NL='
+'
+refuse_newline() {
+  case "$2" in
+    *"$NL"*) die "$1 contains a newline, which this script cannot walk; set it as it was at install time, or remove what install.sh wrote there yourself (nothing was removed)" ;;
+  esac
+}
+refuse_newline CLAUDE_CONFIG_DIR "${CLAUDE_CONFIG_DIR:-}"
+refuse_newline XDG_CONFIG_HOME "${XDG_CONFIG_HOME:-}"
+refuse_newline CODEX_HOME "${CODEX_HOME:-}"
+refuse_newline HOME "$HOME"
 
 # A symlink is ours when its target names <root>/agents/<name>.md or
 # <root>/skills/<name> and the link carries that same <name> -- which is how
@@ -136,7 +161,9 @@ for t in $SUPPORTED; do
   # exists to prevent. POSIX sh has no arrays; `read -r` off a here-document
   # keeps a line whole, where a pipeline would put REMOVED, LOOKED and MISSING
   # in a subshell and lose every count, and IFS=newline splitting would still
-  # glob a path holding a `*`.
+  # glob a path holding a `*`. A whole line is a whole path because the top of
+  # this script refuses a newline in every variable tool_dirs reads; one split
+  # in two stranded every link under it and still reported success (#138).
   while IFS= read -r d; do
     # tool_dirs prints nothing for a tool it does not know, and the substitution
     # below still feeds one empty line.
@@ -156,7 +183,7 @@ for t in $SUPPORTED; do
           if ! profile_pristine "$f"; then
             if [ ! -L "$f" ] && [ -f "$f" ] &&
                [ "$(sed -n '1p' "$f")" = "# role-based-agent profile v1: $(basename "$f")" ]; then
-              echo "  kept      $f (edited profile; remove it yourself if no longer needed)"
+              printf '%s\n' "  kept      $f (edited profile; remove it yourself if no longer needed)"
             fi
             continue
           fi
@@ -175,7 +202,7 @@ for t in $SUPPORTED; do
         fi
         rm "$f"
         REMOVED=$((REMOVED + 1))
-        echo "  removed   $f$_note"
+        printf '%s\n' "  removed   $f$_note"
       done
       # "none ours" is safe to assert because this string is only ever printed
       # when the whole run removed nothing, so every entry counted here is one
