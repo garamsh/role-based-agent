@@ -42,7 +42,11 @@ git remote -v | grep '^template'
   ```
   The remote is the only record needed; do not write a config file for it.
 
-Then fetch, which touches `refs/remotes/template/*` only:
+Then fetch. It is not a merge: it creates no local branch, moves no tracked
+file, and records `template/main` for the commands below to read. It does copy
+the template's whole history — every commit and file version — into this
+repository's object store, the database git keeps them in, where it stays
+beside the project's own with nothing marking which is which:
 
 ```bash
 git fetch template
