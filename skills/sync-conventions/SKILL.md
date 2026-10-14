@@ -178,7 +178,7 @@ Do not invent conventions beyond the chosen stack's needs; the template defaults
 | Category | The file holds | Action |
 |---|---|---|
 | Take verbatim | the template's content, unadapted here | `git checkout template/main -- <path>` |
-| Compare hunks | the template's content, adapted here | adopt improvements, keep deliberate local changes |
+| Compare hunks | the template's content, adapted here | adopt improvements and removals, keep deliberate local changes |
 | Never touch | this project's own content, whether or not the template ships a file at that path | the template supplies none of it |
 
 A file can hold both. The convention index's tables and the architecture
@@ -186,8 +186,18 @@ README's index name what this project selected and what it wrote, so an entry
 missing from either is a selection, not a missed improvement; the rules around
 them are the template's and compare with the rest.
 
+A removal is not a local change. In an adapted region, text upstream deleted
+looks exactly like text the project added: a line the project holds and
+`template/main` lacks is a removal when
+`git log -S'<line>' template/main -- <path>` shows upstream deleting it, and
+the project's own otherwise. Delete it here. A removing commit often adds the
+replacement in the same commit, so adopt the commit whole, as step 1 reads it:
+taking only the addition leaves the retracted text beside its replacement.
+This is content inside a file the project keeps; a file the project deleted
+stays deleted.
+
 4. Open one PR titled `chore: sync template updates`.
-   The body lists what was adopted, adapted, and deliberately skipped — skipped items are not re-proposed on later syncs.
+   The body lists what was adopted, adapted, and deliberately skipped — an upstream removal kept here included — skipped items are not re-proposed on later syncs.
 
 ## Rules
 
