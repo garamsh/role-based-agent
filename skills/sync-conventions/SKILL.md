@@ -187,10 +187,12 @@ missing from either is a selection, not a missed improvement; the rules around
 them are the template's and compare with the rest.
 
 A removal is not a local change. In an adapted region, text upstream deleted
-looks exactly like text the project added: a line the project holds and
-`template/main` lacks is a removal when
-`git log -S'<line>' template/main -- <path>` shows upstream deleting it, and
-the project's own otherwise. Delete it here. A removing commit often adds the
+looks exactly like text the project added, so take candidates from upstream:
+the `-` lines of `git log -p --since=<D> template/main -- <path>` whose content
+`template/main` no longer holds, `<D>` the date of the project's first commit
+of the file — earlier if copied from an older fetch, or what fell between is
+missed. Content the project's file still carries, however re-wrapped or
+adapted, is a removal. Delete it here. A removing commit often adds the
 replacement in the same commit, so adopt the commit whole, as step 1 reads it:
 taking only the addition leaves the retracted text beside its replacement.
 This is content inside a file the project keeps; a file the project deleted
