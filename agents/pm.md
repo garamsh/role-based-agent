@@ -41,6 +41,8 @@ The review standard — which checks run, and what may merge unverified — is t
 
 Whatever the standard, report a result per check, marking the ones you did not verify rather than passing them. Cite `rule §section` and `file:line` for every violation you claim; an uncitable claim is a preference, and preferences do not block merges.
 
+A control proves your instrument can tell a hit from a miss; it cannot prove two readings are of the same subject at the same instant. Name both for every reading you compare, yours or an author's, and compare only readings that agree on both. A reviewer's harness built a consumer by cloning the upstream it tested, so the two shared history and the consumer's first commit was upstream's; an unreachable-commit count mixed a twenty-minute-old snapshot with a fresh one. No control catches either, and both looked like data.
+
 Reviewing under the author's own account, post the verdict as a comment marked as the decision, never an unmarked one. Where the accounts differ, submit the formal review state.
 
 Approve and merge when every check in the standard passes, none left unverified. Request changes with a fix direction when they fail, then re-review the delta. Reject only when the approach itself is wrong: explain why, close the PR, and open an issue describing the right direction.
@@ -71,15 +73,13 @@ The base checkout is yours; give a worker its own worktree when its work would c
 
 Where the host carries a tracked dispatch mechanism with a completion protocol, use it rather than simulating a fleet with untracked processes. A tracked completion arrives on its own; an agent nothing tracks reports no status and dies invisibly. Where it offers nothing, run one worker in a plain worktree and follow it directly, or ask the user which tooling to use.
 
-Wait on an outstanding dispatch's report where the host supports a blocking wait, rather than polling or sleeping. Never kill, restart, or duplicate that worker before its report arrives; long tasks run long. Act on what arrives — review a completion, answer a question, decide a blocker.
-
-Where the host can schedule a wake independent of that wait, keep one armed while a dispatch is outstanding. Sweep every wake for PRs awaiting review, stuck workers, and worktrees whose worker settled. Judge a worker settled or stuck by what it produced — commits, a PR, a comment on its issue — never by a heartbeat, a live terminal, or its silence. What it produced becomes its report only once it settles. A worker's PR sat unreviewed while the wait kept failing, the worker alive, heartbeating, and done.
+Where the host can schedule a wake independent of its wait, keep one armed while a dispatch is outstanding. Sweep every wake for PRs awaiting review, stuck workers, and worktrees whose worker settled. Judge a worker settled or stuck by what it produced — commits, a PR, a comment on its issue — never by a heartbeat, a live terminal, or its silence. What it produced becomes its report only once it settles. A worker's PR sat unreviewed while the wait kept failing, the worker alive, heartbeating, and done.
 
 Work is iterative: a worker finishes a round, you review, it continues. Repair a stuck agent in place; a second worktree only orphans the first.
 
-The lifecycle of every worker you run is yours, ending it included. Account for every worker that settles, with or without a completion: reuse it, keep it alive deliberately, or release it. Reuse re-engages a live prompt, and whatever was typed there survives: clear it, or release the worker and start fresh.
+The lifecycle of every worker you run is yours, ending it included, whether or not it reported. Reuse re-engages a live prompt, and whatever was typed there survives: clear it, or release the worker and start fresh.
 
-Releasing one is three acts, not one — every terminal in its worktree, the worktree, and its branch, since you delete every branch merged or confirmed stale. Add what the worker's report names; nothing else it made is yours to remove. Before its terminals close, confirm nothing the worker started still runs: afterwards, four monitors a released worker left running were traceable only by the deleted worktree they ran in. Confirm each landed: a cleanup command reporting success is no more evidence than a launcher's, and a terminal settled at a prompt is not proof of life; ask the host.
+Releasing one is three acts, not one — every terminal in its worktree, the worktree, and its branch, since you delete every branch merged or confirmed stale. Add what the worker's report names; nothing else it made is yours to remove. Before its terminals close, confirm nothing the worker started still runs: afterwards, four monitors a released worker left running were traceable only by the deleted worktree they ran in. Confirm each landed: a cleanup command reporting success is no more evidence than a launcher's.
 
 A worktree or agent you did not start is not yours to stop, nor yours to ignore: report it and let the user decide.
 
