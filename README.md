@@ -4,7 +4,11 @@ Roles and procedures for AI coding agents, installed once per machine and shared
 
 Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-One skill ships alongside them. `sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote and reads that template's own convention index to decide what the project keeps, so a template that adds or renames a tier of conventions needs no change here — but one that indexes its conventions some other way is not a template it can read. Unlike the roles it is not neutral: it names paths and assumes a file layout, so its reach ends where that layout does.
+Two skills ship alongside them, and the PM runs both.
+
+`sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote and reads that template's own convention index to decide what the project keeps, so a template that adds or renames a tier of conventions needs no change here — but one that indexes its conventions some other way is not a template it can read. Unlike the roles it is not neutral: it names paths and assumes a file layout, so its reach ends where that layout does.
+
+`goal` carries an owner's requirement to done. The PM writes the requirement up as a formal goal statement — scope, non-goals, acceptance criteria, and the decisions it will take alone — and once the owner approves it, proceeds without asking again, bringing back only a convention change, work outside the goal's scope, anything that cannot be undone, or a conflict between two conventions. The work is divided into areas with one standing owner each, run in rounds of task, pull request and review, and recorded as a tree of issues: the goal, a charter per area, a task per round. In Claude Code it is entered as `/goal <requirement>`; a tool without that syntax loads it when its description matches what the session is doing. Like the roles, it names no platform and no paths.
 
 These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. The roles name no paths and assume no file layout: each finds the rules through whatever entry point the project gives contributors, then treats them as binding.
 
@@ -12,7 +16,7 @@ Changing this repository has its own rules, in `CONVENTIONS.md`. They reach ever
 
 They do assume a project that keeps its conventions in writing — an index of rules, a template saying what a pull request must state, documentation describing the system's shape. On a repository with none of that, the roles still work but have little to enforce.
 
-Nothing here names a platform. The PM's dispatch rule says only that a host may ship procedure guides of its own, and that you load the ones covering your next action rather than working from memory. It does not say which host, or which commands — a host that ships guides advertises them itself, and its own copy is the one that cannot drift from the binary you are about to run. A summary kept here could only go stale, so there is none.
+Nothing here names a platform. The PM's dispatch rule says only that a host may ship procedure guides of its own, and that you load the ones covering your next action rather than working from memory. It does not say which host, or which commands — a host that ships guides advertises them itself, and its own copy is the one that cannot drift from the binary you are about to run. A summary kept here could only go stale, so there is none. `goal` defers the same way: where it and a host's guide decide the same mechanism, the host's wins.
 
 ## Install
 
@@ -34,7 +38,7 @@ A generated profile begins with a generated region — a marker, a checksum, its
 
 Codex 0.134.0 or later is required for separate `NAME.config.toml` profiles selected with `codex -p NAME`. The installer does not require the Codex binary, so it can also provision a machine before Codex is installed. See the [official profile format](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles).
 
-`~/.agents/skills/` is not Codex's alone. Other tools keep skills there too, as real directories, and both scripts leave those alone. opencode reads it as well, besides `~/.claude/skills/` and its own directory, so where the skill is installed for more than one tool opencode finds it more than once: it loads one and logs `duplicate skill name` for each of the others — all links to the same clone, so which one it loads makes no difference. Claude Code and Codex each read only their own of the three, and load it once.
+`~/.agents/skills/` is not Codex's alone. Other tools keep skills there too, as real directories, and both scripts leave those alone. opencode reads it as well, besides `~/.claude/skills/` and its own directory, so where a skill is installed for more than one tool opencode finds it more than once: it loads one and logs `duplicate skill name` for each of the others — all links to the same clone, so which one it loads makes no difference. Claude Code and Codex each read only their own of the three, and load each skill once.
 
 Re-run the same command to update: the list starts with your installed set checked, and enter refreshes exactly that set. An older skills-only Codex installation is recognized and gains role profiles on the next run. Unchecking only limits what is refreshed; it never removes. Run without a terminal — CI, cron — it refreshes in place and never blocks on a prompt. Nothing re-runs it for you: links serve the clone's current text, while profiles serve the text captured when they were generated. Editing a generated profile's region protects it from subsequent updates and removal, so maintain the role in the source clone instead if you want it to keep updating; settings added below the region do neither.
 
@@ -52,7 +56,7 @@ A remote the run cannot reach is a different thing, and is not reported as one: 
 | `XDG_DATA_HOME` | Where the piped form keeps its clone when `ROLE_AGENT_DIR` is unset: `$XDG_DATA_HOME/role-based-agent` in place of `~/.local/share/role-based-agent`. |
 | `CLAUDE_CONFIG_DIR` | Claude Code's config directory in place of `~/.claude`, so the target paths listed above move with it. `uninstall.sh` reads it too and needs the value install had: without it that run looks under `~/.claude`, removes nothing there, and reports the directories it did not find. |
 | `XDG_CONFIG_HOME` | In place of `~/.config`, under which opencode's directory is found. Read by `uninstall.sh` on the same terms. |
-| `CODEX_HOME` | Codex's config directory in place of `~/.codex`, used for detection and generated role profiles. `uninstall.sh` needs the same value to find those profiles. The skill remains at `~/.agents/skills/`. |
+| `CODEX_HOME` | Codex's config directory in place of `~/.codex`, used for detection and generated role profiles. `uninstall.sh` needs the same value to find those profiles. Skills remain at `~/.agents/skills/`. |
 | `HOME` | The base every default above is built from. Read by both scripts. |
 
 `ROLE_AGENT_TOOLS` wins where it and `ROLE_AGENT_NONINTERACTIVE` are both set, and either beats the prompt. They exist for the caller a missing terminal does not already cover — a provisioning script, a dotfiles bootstrap, a CI runner that allocates a pty and would otherwise block on the question.
