@@ -134,6 +134,11 @@ tool_present() {
 # read that as a user edit, and the role stopped updating after one session.
 # The region ends at the first developer_instructions line, which is the
 # whole generated TOML: profile_body escapes every newline in the role.
+# The Commit line sits inside the region, below Source and not above it: lines
+# 1 to 3 are read by position, so a line placed there would orphan every
+# profile already installed. Found by search rather than position, the region
+# admits it with no change to this check, which is why the marker stays v1 --
+# it names how to parse the file, not what it was made from (#172).
 # Check the two agree by giving both scripts the same files and comparing their
 # verdicts, never their text: a text diff calls a differing message a
 # disagreement and a diverged decision a match.
@@ -702,6 +707,25 @@ profile_body() {
   ' "$1"
 }
 
+# The commit a role's text was last changed in, for the profile's Commit line.
+# A profile is a snapshot, and one two changes behind read exactly like a
+# current one: this machine ran for hours on a stale PM profile (#172). The
+# commit that last touched the file rather than HEAD, so a commit elsewhere in
+# the clone does not rewrite every profile with an identical body; an edit not
+# yet committed is said, because the body then matches no commit at all. git is
+# optional here -- a clone run in place may be a copy with no history.
+source_commit() {
+  _crel=${1#"$SRC_DIR"/}
+  _commit=$(git -C "$SRC_DIR" log -1 --format=%H -- "$_crel" 2>/dev/null) || _commit=""
+  if [ -z "$_commit" ]; then
+    echo "none (not in a git history)"
+  elif [ -n "$(git -C "$SRC_DIR" status --porcelain -- "$_crel" 2>/dev/null)" ]; then
+    printf '%s\n' "$_commit + uncommitted edits"
+  else
+    printf '%s\n' "$_commit"
+  fi
+}
+
 PROFILE_TMP=""
 # A staged replacement must not leave a truncated profile if generation fails.
 # Only this run's temporary file is cleaned up; installed files are removed
@@ -732,7 +756,7 @@ install_profile() {
     fi
   fi
   _body=$(profile_body "$_psrc") || die "invalid role document: $_psrc"
-  _payload=$(printf '# Source: %s\n%s\n' "$_psrc" "$_body")
+  _payload=$(printf '# Source: %s\n# Commit: %s\n%s\n' "$_psrc" "$(source_commit "$_psrc")" "$_body")
   _sum=$(printf '%s\n' "$_payload" | cksum)
   PROFILE_TMP=$(mktemp "$_pdest.tmp.XXXXXX")
   printf '# role-based-agent profile v1: %s\n# cksum: %s\n%s\n' \
