@@ -26,7 +26,7 @@ Nothing here names a platform. The PM's rule on hosts says only that a host may 
 curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 ```
 
-Clones to `~/.local/share/role-based-agent`, then asks which tools to install into with a checkbox list. Only tools it finds on the host are listed, and they start checked; a number toggles that row and reprints the list, enter installs whatever is checked:
+Clones to `~/.local/share/role-based-agent`, then asks which tools to install into with a checkbox list. Only tools it finds on the host are listed, and they start checked. Under each row is what checking it would do — how many paths it would link or generate, how many profiles it would regenerate, and how many it would keep because something of yours or another checkout's is there — read off the disk before anything is written; the run's own report afterwards is what it did. An entry toggles any number of rows at once, as `2`, `1 3` or `1,3`; `a` checks every row and `n` none; each entry reprints the list, and an empty one installs whatever is checked. An entry holding anything other than a listed number, `a` or `n` is refused whole, and three refused in a row stop the run:
 
 | Tool | Targets | Detected by |
 |---|---|---|
