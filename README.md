@@ -20,6 +20,8 @@ They do assume a project that keeps its conventions in writing — an index of r
 
 Nothing here names a platform. The PM's rule on hosts says only that a host may ship procedure guides of its own, and that you load the ones covering your next action rather than working from memory. It does not say which host, or which commands — a host that ships guides advertises them itself, and its own copy is the one that cannot drift from the binary you are about to run. A summary kept here could only go stale, so there is none. `assign-work` defers the same way: where it and a host's guide decide the same mechanism, the host's wins.
 
+It is installed by a script rather than published as a plugin, because a plugin cannot carry the roles: a plugin's agents are, in Claude Code's own words, "subagent definitions Claude can delegate to" — a subagent a session hands work to, never the role the session runs as — and a Codex profile is configuration no plugin writes. The other two things a plugin is for, packaging the pieces as one unit and publishing versioned releases, are what the installer and the release tags already do, and a skill linked into a skills directory works without one.
+
 ## Install
 
 ```bash

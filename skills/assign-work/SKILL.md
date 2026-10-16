@@ -1,6 +1,7 @@
 ---
 name: assign-work
 description: Sends issues out to workers in waves without collisions — measures which files change together, partitions issues by disjoint target paths, batches overlapping issues to one worker, writes and validates each brief before dispatch, and accounts for every worker until it is retired. Use when the PM is about to dispatch, assign, delegate or parallelise issues across workers, plan a wave or round, write a worker's brief, handle a worker that needs files outside its issue, or decide whether to keep or retire a standing worker.
+license: Apache-2.0
 metadata:
   version: "0.1.0"
 ---
