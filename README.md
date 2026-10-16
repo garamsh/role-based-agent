@@ -4,11 +4,13 @@ Roles and procedures for AI coding agents, installed once per machine and shared
 
 Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-Two skills ship alongside them, and the PM runs both.
+Three skills ship alongside them, and the PM runs all three.
 
 `sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote and reads that template's own convention index to decide what the project keeps, so a template that adds or renames a tier of conventions needs no change here — but one that indexes its conventions some other way is not a template it can read. Unlike the roles it is not neutral: it names paths and assumes a file layout, so its reach ends where that layout does.
 
-`goal` carries an owner's requirement to done. The PM writes the requirement up as a formal goal statement — scope, non-goals, acceptance criteria, and the decisions it will take alone — and once the owner approves it, proceeds without asking again, bringing back only a convention change, work outside the goal's scope, anything that cannot be undone, or a conflict between two conventions. The work is divided into areas with one standing owner each, run in rounds of task, pull request and review, and recorded as a tree of issues: the goal, a charter per area, a task per round. In Claude Code it is entered as `/goal <requirement>`; a tool without that syntax loads it when its description matches what the session is doing. Like the roles, it names no platform and no paths.
+`manage-issues` keeps the backlog small enough to schedule from: it searches before filing, merges issues whose target paths overlap or that must land in one pull request, and closes rather than deletes, so the next batch of work can be chosen by reading the open issues rather than remembering them.
+
+`assign-work` sends that work out. Two issues run at once exactly when their target paths are disjoint; overlapping issues go to one worker in one dispatch. It measures which files change together from the project's git history rather than guessing, checks each brief against its issue before sending it, and accounts for every worker until it is retired. Like the roles, these two name no platform and no host command — `assign-work`'s one command is git's.
 
 These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. The roles name no paths and assume no file layout: each finds the rules through whatever entry point the project gives contributors, then treats them as binding.
 
@@ -16,7 +18,7 @@ Changing this repository has its own rules, in `CONVENTIONS.md`. They reach ever
 
 They do assume a project that keeps its conventions in writing — an index of rules, a template saying what a pull request must state, documentation describing the system's shape. On a repository with none of that, the roles still work but have little to enforce.
 
-Nothing here names a platform. The PM's rule on hosts says only that a host may ship procedure guides of its own, and that you load the ones covering your next action rather than working from memory. It does not say which host, or which commands — a host that ships guides advertises them itself, and its own copy is the one that cannot drift from the binary you are about to run. A summary kept here could only go stale, so there is none. `goal` defers the same way: where it and a host's guide decide the same mechanism, the host's wins.
+Nothing here names a platform. The PM's rule on hosts says only that a host may ship procedure guides of its own, and that you load the ones covering your next action rather than working from memory. It does not say which host, or which commands — a host that ships guides advertises them itself, and its own copy is the one that cannot drift from the binary you are about to run. A summary kept here could only go stale, so there is none. `assign-work` defers the same way: where it and a host's guide decide the same mechanism, the host's wins.
 
 ## Install
 
