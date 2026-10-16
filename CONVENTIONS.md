@@ -5,15 +5,17 @@ Rules for changing this repository. They bind every pull request here.
 This project is two POSIX shell scripts that install role documents and skills
 where agent tools read them, and the documents themselves: a role document per
 role, a skill per procedure, a README, the pull request template that binds
-every change here, and this. Those are the kinds it has, and a file of another
-kind is a decision rather than a detail. A count in their place has already
-been wrong once — #58 met "seven" against a repository of nine — and an added
-role or skill falsifies it in the pull request that added it, which only a
-worker may write, landing in a file only the PM may edit. It has no build step,
-no toolchain, and no test harness — a check runner was tried and removed as
-disproportionate. Verification is manual and the burden is on the author to
-show it ran: paste the real output, and report a check you did not run as not
-run rather than as passed.
+every change here, the licence they are published under, and this. Those are
+the kinds it has. A file of another kind is the user's decision, and the PM
+lists it here in the same change that admits it, because the pull request
+adding it is a worker's and this file is not theirs to edit. Leaving the list
+behind is how it was already wrong once: #58 met "seven" against a repository
+of nine, and naming kinds in place of a count did not end it — a licence is a
+kind, and the list had to be opened for it. It has no build step, no toolchain,
+and no test harness — a check runner was tried and removed as disproportionate.
+Verification is manual and the burden is on the author to show it ran: paste
+the real output, and report a check you did not run as not run rather than as
+passed.
 
 ## Shell — `install.sh`, `uninstall.sh`
 
