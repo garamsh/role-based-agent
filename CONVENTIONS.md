@@ -155,6 +155,19 @@ does not bind it.
   down — a static summary of someone else's interface.
 - Name it the way the skills already here are named, so one collection does not
   mix forms.
+- Verify it with the specification's own validator rather than a check written
+  for the occasion — `uvx --from skills-ref agentskills validate <dir>`, and a
+  tool's own beside it where there is one. #169 hand-wrote a frontmatter check
+  because this host has no PyYAML, and a control nobody else can re-run is
+  worth less than one they can. The validator is looser than the specification
+  in at least one place, accepting an unquoted `metadata` value where the map
+  holds strings, so passing it is not being correct.
+- A change to a skill's instructions bumps its `metadata.version` in the same
+  pull request: the third number where only the wording moved, the second where
+  a step or a rule's scope did, the first where someone following the old
+  version would now be wrong. These skills ship together, so the version earns
+  its place only by moving when the skill does; one that stops moving is the
+  wrong claim §Documentation already treats as a defect.
 
 ## Documentation
 
