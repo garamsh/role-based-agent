@@ -158,12 +158,16 @@ does not bind it.
 - Name it the way the skills already here are named, so one collection does not
   mix forms.
 - Verify it with the specification's own validator rather than a check written
-  for the occasion — `uvx --from skills-ref agentskills validate <dir>`, and a
-  tool's own beside it where there is one. #169 hand-wrote a frontmatter check
-  because this host has no PyYAML, and a control nobody else can re-run is
-  worth less than one they can. The validator is looser than the specification
-  in at least one place, accepting an unquoted `metadata` value where the map
-  holds strings, so passing it is not being correct.
+  for the occasion — `uvx --from skills-ref agentskills validate <dir>`. #169
+  hand-wrote a frontmatter check because this host has no PyYAML, and a control
+  nobody else can re-run is worth less than one they can.
+- A tool's own validator runs **beside** that one and never instead. One passed
+  a skill whose frontmatter keys were misspelled and whose `name` did not match
+  its directory — both forbidden by the specification, both caught by its
+  validator — so a licence field that did nothing would have shipped. And that
+  validator is itself looser than the specification in one place, accepting an
+  unquoted `metadata` value where the map holds strings, so passing it is not
+  being correct either.
 - A change to a skill's instructions bumps its `metadata.version` in the same
   pull request: the third number where only the wording moved, the second where
   a step or a rule's scope did, the first where someone following the old
