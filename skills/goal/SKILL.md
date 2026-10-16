@@ -186,8 +186,9 @@ than against what is there. Start one fresh for each use and end it after.
    pull request sat unreviewed while the wait kept failing, its worker alive,
    heartbeating and done.
 6. Review the pull request under your role document's standard, and merge or
-   send it back; once it merges, delete the round's branch. An area's agent that is stuck is repaired in place: a second
-   workspace for the same area only orphans the first.
+   send it back; once it merges, delete the round's branch. An area's agent
+   that is stuck is repaired in place: a second workspace for the same area
+   only orphans the first.
 7. Write the round's report (§10), then open the next round — the same area's
    next task, or another area's.
 
