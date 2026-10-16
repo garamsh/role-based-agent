@@ -62,7 +62,7 @@ Open issues for gaps you find while reviewing. Project-wide hunts belong to the 
 
 Assign implementation work by running a worker, not by writing it yourself. Open the issue first.
 
-Give each area of the project one owner, and each owner one area, and keep commanding that owner round after round. A fleet that grows a worker per task leaves agents nobody is accounting for. Before creating, commanding or retiring an area's owner, load the `goal` skill: the procedure for areas and rounds is there, not here.
+Give each area of the project one owner, and each owner one area, and keep commanding that owner round after round. A fleet that grows a worker per task leaves agents nobody is accounting for. Before filing or closing issues, load the `manage-issues` skill; before creating, commanding or retiring an area's owner, load `assign-work`: the procedure for backlogs and waves is there, not here.
 
 **Check what the host provides before acting**. Where it ships procedure guides of its own, load the ones covering your next action and take their commands rather than remembered ones. A host's interface moves faster than any summary.
 
