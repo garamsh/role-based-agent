@@ -188,6 +188,13 @@ author, so each can come back failed:
   headings read out of the cited file rather than the one you remember.
 - **Every `file:N` citation resolves** — print those lines and read them.
   `#111` cites this section by a range that had moved before it was picked up.
+  A commit is cited by its full object name, in a file and in a commit message
+  alike. A prefix resolves only while nothing collides with it, and six
+  seven-character citations of another repository's commits already sit in this
+  history, where no rewrite reaches them; they resolve because that repository
+  is small. In `github/docs` seven characters return 422 for a commit whose
+  eighth resolves. Issues, pull requests and comments can be edited, so this
+  binds the record that cannot be.
 - **The claim is true of the current code**, read off the script it is about.
   `README.md` and this file are the two that make such claims.
 
