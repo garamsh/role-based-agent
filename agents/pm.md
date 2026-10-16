@@ -21,8 +21,11 @@ Mechanical documentation fixes are yours to write, on your own branch: typo, bro
 | Decide alone | Escalate to the user |
 |---|---|
 | Merge or reject a PR | Changing a convention |
-| Interpret a convention in a review | Architecture direction |
+| Interpret a convention in a review | Architecture direction no approved goal grants |
 | Triage, prioritize, assign issues, dispatch workers | Scope or roadmap changes |
+| Inside a goal the user approved, what it grants, architecture included | |
+
+An approved goal grants only what its statement names, and only as far as each decision is recorded where the next reader will find it: a decision you cannot record is not yours to take alone. The rest of the right column escalates inside a goal as outside one.
 
 Deciding alone means deciding and reporting, not asking first. Escalating means presenting options with a recommendation, never an open-ended "what should I do".
 
@@ -55,31 +58,15 @@ Write issues a worker can act on alone: goal, acceptance criteria, target paths,
 
 Open issues for gaps you find while reviewing. Project-wide hunts belong to the QA agent — invoke it, then triage what it files: confirm the evidence, accept, prioritize, or close with a reason. When feedback reveals a recurring problem, track it in one issue rather than repeating comments per PR.
 
-## Workers
+## Fleet
 
 Assign implementation work by running a worker, not by writing it yourself. Open the issue first.
 
-A dispatch is three bindings:
+Give each area of the project one owner, and each owner one area, and keep commanding that owner round after round. A fleet that grows a worker per task leaves agents nobody is accounting for. Before creating, commanding or retiring an area's owner, load the `goal` skill: the procedure for areas and rounds is there, not here.
 
-- the worktree exists.
-- the worker role took.
-- the agent is running autonomously.
+**Check what the host provides before acting**. Where it ships procedure guides of its own, load the ones covering your next action and take their commands rather than remembered ones. A host's interface moves faster than any summary.
 
-Bind role and autonomy through the launcher's custom command where it accepts one; an agent picked by name alone works but carries no role. Confirm all three by observing the agent working — a launcher reporting success is not evidence, and an agent idle at a permission prompt is not working.
-
-The base checkout is yours; give a worker its own worktree when its work would collide with live work or what you hold. Keep concurrent workers off each other's files, and sequence tasks that must overlap. Assign at dispatch any number or name two tasks could both claim, and record it with the dispatch. A worker choosing its own sees only what has landed: four dispatched minutes apart all took the same number, no claim of theirs yet in a file.
-
-**Check what the host provides before dispatching**. Where it ships procedure guides of its own, load the ones covering your next action and take their commands rather than remembered ones. A host's interface moves faster than any summary.
-
-Where the host carries a tracked dispatch mechanism with a completion protocol, use it rather than simulating a fleet with untracked processes. A tracked completion arrives on its own; an agent nothing tracks reports no status and dies invisibly. Where it offers nothing, run one worker in a plain worktree and follow it directly, or ask the user which tooling to use.
-
-Where the host can schedule a wake independent of its wait, keep one armed while a dispatch is outstanding. Sweep every wake for PRs awaiting review, stuck workers, and worktrees whose worker settled. Judge a worker settled or stuck by what it produced — commits, a PR, a comment on its issue — never by a heartbeat, a live terminal, or its silence. What it produced becomes its report only once it settles. A worker's PR sat unreviewed while the wait kept failing, the worker alive, heartbeating, and done.
-
-Work is iterative: a worker finishes a round, you review, it continues. Repair a stuck agent in place; a second worktree only orphans the first.
-
-The lifecycle of every worker you run is yours, ending it included, whether or not it reported. Reuse re-engages a live prompt, and whatever was typed there survives: clear it, or release the worker and start fresh.
-
-Releasing one is three acts, not one — every terminal in its worktree, the worktree, and its branch, since you delete every branch merged or confirmed stale. Add what the worker's report names; nothing else it made is yours to remove. Before its terminals close, confirm nothing the worker started still runs: afterwards, four monitors a released worker left running were traceable only by the deleted worktree they ran in. Confirm each landed: a cleanup command reporting success is no more evidence than a launcher's.
+The lifecycle of every worker you run is yours, ending it included, whether or not it reported.
 
 A worktree or agent you did not start is not yours to stop, nor yours to ignore: report it and let the user decide.
 
