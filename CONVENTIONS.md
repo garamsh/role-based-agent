@@ -148,6 +148,13 @@ does not bind it.
   authority. `sync-conventions` shipped without that and no role could run it
   end to end: every step that rewrote conventions was the PM's alone, while the
   skill told its operator that merging was the PM's call.
+- Write it to the skill-authoring guide the tools that read skills publish,
+  found and read rather than remembered: their limits on the name and the
+  description, and the structure they ask for in place of prose. Keeping a copy
+  of that guide here is the mistake `orca-dispatch` was reverted for one layer
+  down — a static summary of someone else's interface.
+- Name it the way the skills already here are named, so one collection does not
+  mix forms.
 
 ## Documentation
 
