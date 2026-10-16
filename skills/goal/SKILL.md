@@ -115,7 +115,8 @@ round's state as the round moves.
   belong to another area or to you, named so the owner does not have to infer
   them.
 - **The owning agent**, and the workspace it works in, filled in when the agent
-  is created and updated when it is replaced.
+  is created and updated when it is replaced. The workspace is the area's own,
+  never the base checkout, which is yours.
 - **Any launch preference fixed when the agent was created** — the kind of
   agent, or what it was told to run with. Some hosts will not let one change on
   reuse, so a preference the area needs is decided before the agent exists, and
@@ -169,10 +170,25 @@ than against what is there. Start one fresh for each use and end it after.
    since none of their claims was in a file yet.
 3. Command the area's standing owner with that task. Anything left typed at its
    prompt from the last round is still there and goes in with the new command,
-   so clear it first.
-4. The owner delivers a pull request. Review it under your role document's
-   standard, and merge or send it back.
-5. Write the round's report (§10), then open the next round — the same area's
+   so clear it first. Where the host tracks dispatched work with a completion
+   protocol, command through it rather than through an untracked process: an
+   agent nothing tracks reports no status and dies invisibly. Where it offers
+   none, run one agent directly and follow it, or ask the owner which tooling
+   to use.
+4. Confirm the round started by the agent working under its role, never by the
+   host reporting that it started: a start reported as a success left an agent
+   idle at a permission prompt, and an agent started by name alone works but
+   carries no role.
+5. Judge the round by what it produced — commits, a pull request, a comment on
+   its task — never by a heartbeat, a live terminal or silence; what it
+   produced is its report only once its agent has reported. Look for that each
+   time you return to the goal, not only when the host signals completion: a
+   pull request sat unreviewed while the wait kept failing, its worker alive,
+   heartbeating and done.
+6. Review the pull request under your role document's standard, and merge or
+   send it back; once it merges, delete the round's branch. An area's agent that is stuck is repaired in place: a second
+   workspace for the same area only orphans the first.
+7. Write the round's report (§10), then open the next round — the same area's
    next task, or another area's.
 
 A round in an area with no owner yet starts by creating one and filling in the
@@ -196,6 +212,13 @@ Retire an area's agent on an observable trigger, not on a feeling:
   task, so the next round would be commanding an agent that is not working;
 - **the partition changed** — the area it owns is no longer the area its
   charter names.
+
+Retiring an agent ends what it started: its workspace, its branch once merged
+or confirmed stale, and what its report names. Nothing else it made is yours
+to remove. Before its terminals close, confirm nothing it started still runs:
+four monitors a released worker left running were traceable afterwards only by
+the deleted workspace they ran in. Confirm each removal landed — a cleanup
+reporting success is no more evidence than a start reporting success.
 
 Retiring the agent does not close the charter. Record the retirement and why
 in the charter, clear its owner fields, and leave it open for a successor, who
