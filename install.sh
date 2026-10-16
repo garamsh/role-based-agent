@@ -4,8 +4,8 @@
 #   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
 #
 # Installing is all this does, and it takes no arguments. With a terminal
-# attached it lists the tools it finds on this machine as a checkbox list:
-# numbers toggle a row, enter installs whatever is checked. Without a terminal
+# attached it lists the tools found here as checkboxes, each with what it would
+# do: numbers toggle rows, a/n check all/none, enter installs. Without a terminal
 # it just refreshes. ROLE_AGENT_TOOLS or ROLE_AGENT_NONINTERACTIVE skips the
 # prompt for a caller that has a terminal but wants no question. A real file,
 # directory or other link you put at a target path is never replaced -- move it
@@ -134,6 +134,11 @@ tool_present() {
 # read that as a user edit, and the role stopped updating after one session.
 # The region ends at the first developer_instructions line, which is the
 # whole generated TOML: profile_body escapes every newline in the role.
+# The Commit line sits inside the region, below Source and not above it: lines
+# 1 to 3 are read by position, so a line placed there would orphan every
+# profile already installed. Found by search rather than position, the region
+# admits it with no change to this check, which is why the marker stays v1 --
+# it names how to parse the file, not what it was made from (#172).
 # Check the two agree by giving both scripts the same files and comparing their
 # verdicts, never their text: a text diff calls a differing message a
 # disagreement and a diverged decision a match.
@@ -207,6 +212,98 @@ installed_from() {
   return 1
 }
 
+# The decision is link_verdict() and the act is install_one(), split so the
+# prompt can show the decision before anything is written (#171) from the same
+# rule the write then follows: a second copy for the preview would be a second
+# thing to keep in step, and would drift into promising what the run does not do.
+# The verdict reads the disk and writes nothing, so it lands in _verdict, and
+# for a link not this checkout's its text in _verdict_to.
+#
+# `ln -sfn` cannot replace a real directory: -n only stops it following a
+# *symlink* to one, so against a real directory it drops the link inside it
+# instead. Nothing here clears the path, so nothing here may link at it.
+link_verdict() {
+  if [ -e "$2" ] && [ ! -L "$2" ]; then
+    if [ -d "$2" ]; then _verdict="directory"; else _verdict="file"; fi
+  elif [ -L "$2" ]; then
+    _verdict_to=$(readlink "$2")
+    if [ "$_verdict_to" = "$1" ]; then _verdict=current; else _verdict=other; fi
+  else
+    _verdict=new
+  fi
+}
+
+# The profile's half of link_verdict(), split from install_profile() for the
+# same reason: the prompt's preview and the write read one rule. `ours` is a
+# pristine profile generated from this checkout, which the run regenerates and
+# rewrites only if the result differs.
+#
+# `other` is kept for the reason install_one keeps a link into another
+# checkout: since #143 that link stays, and regenerating the profile anyway
+# split one role across two clones -- Claude Code and opencode on one's text,
+# Codex on the other's -- with nothing in the output saying so (#146). The
+# Source line is inside the checksummed region, so a pristine profile's is one
+# a run wrote and nobody edited, and it names the checkout without a registry.
+profile_verdict() {
+  if [ ! -e "$2" ] && [ ! -L "$2" ]; then
+    _verdict=new
+  elif ! profile_pristine "$2"; then
+    _verdict=edited
+  else
+    _verdict_to=$(sed -n '3p' "$2")
+    if [ "$_verdict_to" = "# Source: $1" ]; then _verdict=ours; else _verdict=other; fi
+    _verdict_to=${_verdict_to#\# Source: }
+  fi
+}
+
+# Every path a run writes for tool $1, handed to $2 as `link|profile SRC DEST`.
+# The one enumeration sync_tool() writes from and the prompt previews from, so
+# the preview cannot count a path the run would not touch, or miss one it would.
+for_each_target() {
+  _fdir=$(tool_dir "$1")
+  for _fsrc in "$SRC_DIR"/agents/*.md; do
+    if [ "$1" = codex ]; then
+      "$2" profile "$_fsrc" "$_fdir/$(basename "$_fsrc" .md).config.toml"
+    else
+      "$2" link "$_fsrc" "$_fdir/$(basename "$_fsrc")"
+    fi
+  done
+  [ "$HAVE_SKILLS" -eq 1 ] || return 0
+  _fdir=$(tool_skills_dir "$1")
+  for _fsrc in "$SRC_DIR"/skills/*/; do
+    _fsrc=${_fsrc%/}
+    "$2" link "$_fsrc" "$_fdir/$(basename "$_fsrc")"
+  done
+}
+
+# What checking tool $1 would do, as one line under its row. Worded as intent
+# throughout -- "would link", never "linked" -- because nothing is on disk yet
+# to check it against: install_one reports only what it then finds at the
+# path, and a preview phrased as that report would be a command's word taken
+# for evidence. Counts and not paths, since the whole list is reprinted on
+# every entry and a row of names would scroll it away.
+preview_count() {
+  case "$1" in link) link_verdict "$2" "$3" ;; *) profile_verdict "$2" "$3" ;; esac
+  case "$_verdict" in
+    new)     if [ "$1" = link ]; then _plink=$((_plink + 1)); else _pgen=$((_pgen + 1)); fi ;;
+    current) _pcur=$((_pcur + 1)) ;;
+    ours)    _pref=$((_pref + 1)) ;;
+    *)       _pkeep=$((_pkeep + 1)) ;;
+  esac
+}
+preview_tool() {
+  _plink=0; _pgen=0; _pcur=0; _pref=0; _pkeep=0
+  for_each_target "$1" preview_count
+  _pline=""
+  [ "$_pgen" -eq 0 ] || _pline="$_pline, generate $_pgen profile(s)"
+  [ "$_plink" -eq 0 ] || _pline="$_pline, link $_plink"
+  [ "$_pref" -eq 0 ] || _pline="$_pline, regenerate $_pref profile(s) if changed"
+  [ "$_pkeep" -eq 0 ] || _pline="$_pline, keep $_pkeep that are yours or another checkout's"
+  if [ -n "$_pline" ]; then _pline="would ${_pline#, }"; else _pline="would change nothing"; fi
+  [ "$_pcur" -eq 0 ] || _pline="$_pline; $_pcur already linked here"
+  printf '%s\n' "$_pline"
+}
+
 # The shell opens `< /dev/tty` before stty runs, so a failure to open it is the
 # shell's message on the script's stderr, not stty's, and stty's own 2>&1 comes
 # too late to catch it. The group's redirect is in place first, so it does.
@@ -240,8 +337,12 @@ choose_tools() {
       else _where="$(dirname "$_where")/{agents,skills}/"; fi
       printf '    %d) [%s] %-12s %s\n' \
         "$_i" "$_box" "$(tool_label "$_t")" "$_where" > /dev/tty
+      printf '                         %s\n' "$(preview_tool "$_t")" > /dev/tty
     done
-    printf '\n  Toggle by number, Enter to install: ' > /dev/tty
+    echo > /dev/tty
+    echo "  Each row's second line is what checking it would do, read off the disk now." > /dev/tty
+    echo "  Toggle rows by number, several at once as 1 3 or 1,3; a checks all, n none." > /dev/tty
+    printf '  Enter to install what is checked: ' > /dev/tty
 
     _eof=0; _reply=""
     read -r _reply < /dev/tty || _eof=1
@@ -260,6 +361,12 @@ choose_tools() {
     _bad=$_reply                      # cleared by the first number that parses
     set -f
     for _n in $(printf '%s\n' "$_reply" | tr ',' ' '); do
+      # Set rather than flipped, so "a" twice is still all and "a 2" reads as
+      # everything but row 2. DETECTED is already in row order.
+      case "$_n" in
+        a) _next=$DETECTED; _bad=""; continue ;;
+        n) _next=""; _bad=""; continue ;;
+      esac
       _j=0; _t=""
       for _s in $DETECTED; do _j=$((_j + 1)); [ "$_n" = "$_j" ] && _t=$_s; done
       [ -n "$_t" ] || { _bad=$_n; break; }
@@ -279,7 +386,7 @@ choose_tools() {
     if [ -n "$_bad" ]; then
       _wrong=$((_wrong + 1))
       [ "$_wrong" -lt 3 ] || die "no valid choice after 3 tries"
-      printf '%s\n' "  not a number on the list: $_reply" > /dev/tty
+      printf '%s\n' "  not a number on the list, a or n: $_reply" > /dev/tty
       continue
     fi
     _checked=$_next
@@ -648,23 +755,18 @@ install_one() {
   src="$1"
   dest="$2"
 
-  # `ln -sfn` cannot replace a real directory: -n only stops it following a
-  # *symlink* to one, so against a real directory it drops the link inside it
-  # instead. Nothing here clears the path, so nothing here may link at it.
-  if [ -e "$dest" ] && [ ! -L "$dest" ]; then
-    if [ -d "$dest" ]; then _what="directory"; else _what="file"; fi
-    printf '%s\n' "  kept      $dest (your own $_what; move it and re-run)" >&2
-    MODIFIED=$((MODIFIED + 1))
-    return
-  fi
-
-  if [ -L "$dest" ]; then
-    _to=$(readlink "$dest")
-    if [ "$_to" = "$src" ]; then return; fi   # already current, say nothing
-    printf '%s\n' "  kept      $dest (a link to $_to, not this checkout's; if that is another checkout, move or delete the link and re-run to link it here)" >&2
-    MODIFIED=$((MODIFIED + 1))
-    return
-  fi
+  link_verdict "$src" "$dest"
+  case "$_verdict" in
+    file|directory)
+      printf '%s\n' "  kept      $dest (your own $_verdict; move it and re-run)" >&2
+      MODIFIED=$((MODIFIED + 1))
+      return ;;
+    current) return ;;                        # already current, say nothing
+    other)
+      printf '%s\n' "  kept      $dest (a link to $_verdict_to, not this checkout's; if that is another checkout, move or delete the link and re-run to link it here)" >&2
+      MODIFIED=$((MODIFIED + 1))
+      return ;;
+  esac
 
   ln -sfn "$src" "$dest"
   if [ ! -L "$dest" ] || [ "$(readlink "$dest")" != "$src" ]; then
@@ -702,6 +804,25 @@ profile_body() {
   ' "$1"
 }
 
+# The commit a role's text was last changed in, for the profile's Commit line.
+# A profile is a snapshot, and one two changes behind read exactly like a
+# current one: this machine ran for hours on a stale PM profile (#172). The
+# commit that last touched the file rather than HEAD, so a commit elsewhere in
+# the clone does not rewrite every profile with an identical body; an edit not
+# yet committed is said, because the body then matches no commit at all. git is
+# optional here -- a clone run in place may be a copy with no history.
+source_commit() {
+  _crel=${1#"$SRC_DIR"/}
+  _commit=$(git -C "$SRC_DIR" log -1 --format=%H -- "$_crel" 2>/dev/null) || _commit=""
+  if [ -z "$_commit" ]; then
+    echo "none (not in a git history)"
+  elif [ -n "$(git -C "$SRC_DIR" status --porcelain -- "$_crel" 2>/dev/null)" ]; then
+    printf '%s\n' "$_commit + uncommitted edits"
+  else
+    printf '%s\n' "$_commit"
+  fi
+}
+
 PROFILE_TMP=""
 # A staged replacement must not leave a truncated profile if generation fails.
 # Only this run's temporary file is cleaned up; installed files are removed
@@ -712,27 +833,19 @@ trap 'exit 1' HUP INT TERM
 install_profile() {
   _psrc=$1
   _pdest=$2
-  if [ -e "$_pdest" ] || [ -L "$_pdest" ]; then
-    if ! profile_pristine "$_pdest"; then
+  profile_verdict "$_psrc" "$_pdest"
+  case "$_verdict" in
+    edited)
       printf '%s\n' "  kept      $_pdest (not generated here, or its generated part was edited; move it and re-run)" >&2
       MODIFIED=$((MODIFIED + 1))
-      return
-    fi
-    # Kept for the reason install_one keeps a link into another checkout: since
-    # #143 that link stays, and regenerating the profile anyway split one role
-    # across two clones -- Claude Code and opencode on one's text, Codex on the
-    # other's -- with nothing in the output saying so (#146). The Source line
-    # is inside the checksummed region, so a pristine profile's is one a run
-    # wrote and nobody edited, and it names the checkout without a registry.
-    _prec=$(sed -n '3p' "$_pdest")
-    if [ "$_prec" != "# Source: $_psrc" ]; then
-      printf '%s\n' "  kept      $_pdest (generated from ${_prec#\# Source: }, not this checkout's; if that is another checkout, move or delete the profile and re-run to generate it here)" >&2
+      return ;;
+    other)
+      printf '%s\n' "  kept      $_pdest (generated from $_verdict_to, not this checkout's; if that is another checkout, move or delete the profile and re-run to generate it here)" >&2
       MODIFIED=$((MODIFIED + 1))
-      return
-    fi
-  fi
+      return ;;
+  esac
   _body=$(profile_body "$_psrc") || die "invalid role document: $_psrc"
-  _payload=$(printf '# Source: %s\n%s\n' "$_psrc" "$_body")
+  _payload=$(printf '# Source: %s\n# Commit: %s\n%s\n' "$_psrc" "$(source_commit "$_psrc")" "$_body")
   _sum=$(printf '%s\n' "$_payload" | cksum)
   PROFILE_TMP=$(mktemp "$_pdest.tmp.XXXXXX")
   printf '# role-based-agent profile v1: %s\n# cksum: %s\n%s\n' \
@@ -756,27 +869,14 @@ install_profile() {
   PROFILE_TMP=""
 }
 
+install_target() {
+  mkdir -p "$(dirname "$3")"
+  case "$1" in link) install_one "$2" "$3" ;; *) install_profile "$2" "$3" ;; esac
+}
+
 sync_tool() {
-  t=$1
-  tool_label "$t"
-
-  target=$(tool_dir "$t")
-  mkdir -p "$target"
-  for src in "$SRC_DIR"/agents/*.md; do
-    if [ "$t" = codex ]; then
-      install_profile "$src" "$target/$(basename "$src" .md).config.toml"
-    else
-      install_one "$src" "$target/$(basename "$src")"
-    fi
-  done
-
-  [ "$HAVE_SKILLS" -eq 1 ] || return 0
-  target=$(tool_skills_dir "$t")
-  mkdir -p "$target"
-  for src in "$SRC_DIR"/skills/*/; do
-    src=${src%/}
-    install_one "$src" "$target/$(basename "$src")"
-  done
+  tool_label "$1"
+  for_each_target "$1" install_target
 }
 
 # Codex accepts only these characters in profile names, and only a body

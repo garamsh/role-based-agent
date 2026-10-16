@@ -1,6 +1,8 @@
 ---
 name: sync-conventions
 description: Bring a conventions template repository into this project and keep it current — first-time adoption, initial bootstrap, and later updates. Use when asked to adopt, apply, bootstrap, or update project conventions, architecture document structure, or shared GitHub templates from a template repository.
+metadata:
+  version: "0.1.0"
 ---
 
 # Sync conventions from a template repository
