@@ -574,10 +574,16 @@ EOF
         printf '%s' "$_spare"
       fi
       echo
-      # The sequence itself is unchanged: #95 proved it works exactly as
-      # printed. Only the lead-in moves, because after a reset it is the step
-      # that follows rather than the whole way past -- and stashing before the
-      # reset is what keeps the reset from taking the edit with it.
+      # The sequence is the same in both branches: #95 proved its first three
+      # steps work as printed. Only the lead-in moves, because after a reset it
+      # is the step that follows rather than the whole way past -- and stashing
+      # before the reset is what keeps the reset from taking the edit with it.
+      #
+      # It ends with an in-place run because the re-run generates Codex
+      # profiles while the edit is stashed, so their Commit line records a
+      # clean source the clone is never in once the pop returns the edit
+      # (#183). In place and not the one-liner: the clone is already current,
+      # and the in-place form regenerates from it without pulling.
       if [ "$_ahead" -gt 0 ]; then
         echo "  set those aside first, so the reset above cannot take them with"
         echo "  it, and put them back after:"
@@ -590,6 +596,9 @@ EOF
       echo "      can stop on a conflict, since the update touched these paths"
       echo "      too: nothing is lost -- the update is in, your edit is still"
       echo "      in the stash"
+      printf '%s\n' "    sh $_d/install.sh"
+      echo "      once your edit is back: the re-run made Codex profiles while it"
+      echo "      was set aside, and this records it in their Commit line"
       if [ "$_restorable" -eq 1 ]; then
         echo "  or drop them and take the update:"
         printf '%s\n' "    git -C $_d checkout --$_paths, then re-run"
