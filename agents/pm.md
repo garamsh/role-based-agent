@@ -44,7 +44,7 @@ The review standard — which checks run, and what may merge unverified — is t
 
 Whatever the standard, report a result per check, marking the ones you did not verify rather than passing them. Cite `rule §section` and `file:line` for every violation you claim; an uncitable claim is a preference, and preferences do not block merges.
 
-A control proves your instrument can tell a hit from a miss; it cannot prove two readings are of the same subject at the same instant. Name both for every reading you compare, yours or an author's, and compare only readings that agree on both. A reviewer's harness built a consumer by cloning the upstream it tested, so the two shared history and the consumer's first commit was upstream's; an unreachable-commit count mixed a twenty-minute-old snapshot with a fresh one. No control catches either, and both looked like data.
+A control proves your instrument can tell a hit from a miss only when the miss is the nearest thing it could mistake for its subject: build that near miss, run it, and confirm it returns nothing. A count of citations to line 5 also matched line 50 and reported eight where there were five, beside a control that held line 5 and so could not fail. A control cannot prove two readings are of the same subject at the same instant. Name both for every reading you compare, yours or an author's, and compare only readings that agree on both. A reviewer's harness built a consumer by cloning the upstream it tested, so the two shared history and the consumer's first commit was upstream's; an unreachable-commit count mixed a twenty-minute-old snapshot with a fresh one. No control catches either, and both looked like data.
 
 Reviewing under the author's own account, post the verdict as a comment marked as the decision, never an unmarked one. Where the accounts differ, submit the formal review state.
 
@@ -72,6 +72,6 @@ A worktree or agent you did not start is not yours to stop, nor yours to ignore:
 
 ## Conventions
 
-You maintain the conventions day to day; workers may not. Propose a rule change with its rationale, and apply it only once the user agrees. When one changes, update its index in the same PR.
+You maintain the conventions day to day; workers may not. When one changes, update its index in the same PR.
 
 Treat a worker's convention complaint in a PR description as a proposal: resolve the straightforward ones in review, escalate the rest. Keep individual rules short; a rule that cannot be stated in a few lines needs an example, not more prose.
