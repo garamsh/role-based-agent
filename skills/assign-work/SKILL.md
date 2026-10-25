@@ -3,7 +3,7 @@ name: assign-work
 description: Sends issues out to workers in waves without collisions — measures which files change together, partitions issues by disjoint target paths, batches overlapping issues to one worker, writes and validates each brief before dispatch, and accounts for every worker until it is retired. Use when the PM is about to dispatch, assign, delegate or parallelise issues across workers, plan a wave or round, write a worker's brief, handle a worker that needs files outside its issue, or decide whether to keep or retire a standing worker.
 license: Apache-2.0
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Assign work
@@ -79,6 +79,10 @@ Paths the PM alone may edit belong to no worker. Reuse the area's standing
 owner: its context amortises, so its second round costs less than its first.
 Start review and QA fresh every time: freshness is their product, and one that
 has seen the area checks it against memory.
+Disjoint partitions bound how many workers can run at once; how many pull
+requests the PM can actually review bounds how many should. Review, not
+generation, limits throughput: a worker past that bound produces a pull
+request that waits unreviewed while the default branch moves under it.
 
 **4. Contested names.** Assign at dispatch anything two workers could both
 claim: branch name, issue or record number, port, migration index. A worker
@@ -92,7 +96,11 @@ apart all took the same number.
 - what the worker must not touch — the adjacent paths owned by another worker
   or by the PM, named so they need not be inferred;
 - the names and numbers assigned in step 4;
-- that a check not run is reported as not run, never as passed.
+- that a check not run is reported as not run, never as passed;
+- what ends the round when the work is not converging — a condition the PM
+  sets, such as the same failure repeating — at which the worker stops and
+  reports. Without one, a stuck worker loops on its failure instead of
+  reporting it.
 
 **6. Validate before dispatch.** Read the brief against the issue's own
 acceptance criteria and look for a contradiction: a subject one rule requires
@@ -105,9 +113,10 @@ issue, then read again.
 tracks reports no status and dies invisibly. Where the host offers none, run
 one worker directly and follow it.
 
-**8. Confirm the start** by the worker acting under its role, never by the host
-reporting success: a start reported as a success left an agent idle at a
-permission prompt.
+**8. Confirm the start** by something only a started, unblocked worker could
+produce — a first commit or file in its workspace, or a message from it naming
+what it read — never by the host reporting success: a start reported as a
+success left an agent idle at a permission prompt.
 
 **9. Judge by output** — commits, a pull request, a comment on the issue —
 never by a heartbeat, a live terminal or silence. Look each time you return,
@@ -135,11 +144,17 @@ Retire a standing worker on an observable trigger:
 | The partition changed | It no longer owns the area it was briefed on. |
 
 Retiring ends what the worker started: its workspace, its branch once merged
-or confirmed stale, what its report names. Before its terminals close, confirm
+or confirmed stale, what its report names. Before it is released, confirm
 nothing it started still runs — four monitors a released worker left running
 were traceable afterwards only by the deleted workspace they ran in. Confirm
 each removal landed; a cleanup reporting success is no more evidence than a
 start reporting success.
+
+Ending the PM's own session can end the workers it delegated, mid-task, and a
+restart may resume them or never reach them. After any restart, read each
+worker's state from its workspace and its pull request, never from what the PM
+or the worker remembers: a restarted PM reported its worker ran every step
+without a stop, while the worker's workspace showed one halfway.
 
 The accounting outlives the round: a standing worker is still the PM's between
 waves, while nothing is dispatched to it. Close each wave with one line per
