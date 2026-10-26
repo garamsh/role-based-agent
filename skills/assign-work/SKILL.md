@@ -153,7 +153,7 @@ Retire a standing worker on an observable trigger:
 
 | Trigger | Because |
 |---|---|
-| Its context passed the size threshold the PM set, before compaction | Every call re-reads the whole context; past the threshold (about 400k tokens where measured) that costs more than a fresh brief, and compaction fires too late to save it. |
+| Its context passed the size threshold the PM set, before compaction | Every call re-reads the whole context; past the threshold (one project set about 400k tokens) that costs more than a fresh brief, and compaction fires too late to save it. |
 | Its context was compacted | What it remembers is a summary: the reason to keep it is gone, the hazard of stale rules remains. |
 | A round produced nothing | The next round would command an agent that is not working. |
 | The partition changed | It no longer owns the area it was briefed on. |
