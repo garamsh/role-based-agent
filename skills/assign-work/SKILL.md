@@ -99,9 +99,10 @@ apart all took the same number.
   or by the PM, named so they need not be inferred;
 - the names and numbers assigned in step 4;
 - that a check not run is reported as not run, never as passed;
-- that a long output — a build, a test run, a log — is read by its tail or a
-  filtered search, never in full: a whole output enters the context and is
-  re-read on every later turn;
+- that the worker waits on its own long job — a build, a test run, CI — for
+  one completion signal rather than waking to check, and reads a long output
+  by its tail or a filtered search, never in full: a wake after a long wait
+  rewrites the whole context, and a whole output is re-read every later turn;
 - what ends the round when the work is not converging — a condition the PM
   sets, such as the same failure repeating — at which the worker stops and
   reports. Without one, a stuck worker loops on its failure instead of
@@ -138,8 +139,9 @@ success left an agent idle at a permission prompt.
 **9. Judge by output** — commits, a pull request, a comment on the issue —
 never by a heartbeat, a live terminal or silence. Wait on a worker or a long
 verification for one completion signal, by the host's mechanism, rather than
-waking to check: each wake re-reads the whole context, and one project reported
-much of its standing workers' token use went to re-reading while they waited.
+waking to check: a wake after a wait that outlived the host's cache rewrites
+the whole context, and one project reported that its standing workers' wakes
+from long waits were much of their cost.
 The signal is how you return, not the evidence. Look for output each time you
 return, for any reason, not only when the host signals: a pull request sat
 unreviewed while the wait kept failing, its worker alive, heartbeating and
