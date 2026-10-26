@@ -4,7 +4,8 @@ Rules for changing this repository. They bind every pull request here.
 
 This project is two POSIX shell scripts that install role documents and skills
 where agent tools read them, and the documents themselves: a role document per
-role, a skill per procedure, a README, the pull request template that binds
+role, a skill per procedure and the POSIX shell script a skill may bundle,
+a README, the pull request template that binds
 every change here, the licence they are published under, and this. Those are
 the kinds it has. A file of another kind is the user's decision, and the PM
 lists it here in the same change that admits it, because the pull request
@@ -17,17 +18,20 @@ Verification is manual and the burden is on the author to show it ran: paste
 the real output, and report a check you did not run as not run rather than as
 passed.
 
-## Shell — `install.sh`, `uninstall.sh`
+## Shell — `install.sh`, `uninstall.sh`, `skills/*/scripts/*.sh`
 
 - POSIX `sh` only. No bashisms.
 - `set -eu` at the top.
 - Comments explain **why** a non-obvious construct is needed, never what the
   line does. A construct with no comment should be obvious; one with a comment
   should say which bug the comment is protecting against.
-- `npx shellcheck -s sh install.sh uninstall.sh` is clean at default severity
+- `npx shellcheck -s sh <script>` is clean at default severity
   with **no exclusion list**. Suppress a false positive inline with
   `# shellcheck disable=` and a reason on the same line; fix a real finding
   instead of suppressing it.
+- A skill's script is tested in a `mktemp -d` repository, each refusal run
+  beside the pass it guards; §Verifying a change to either script binds the
+  installers alone.
 
 ## Invariants — do not regress these without saying so
 
