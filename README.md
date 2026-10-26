@@ -4,13 +4,15 @@ Roles and procedures for AI coding agents, installed once per machine and shared
 
 Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-Three skills ship alongside them, and the PM runs all three.
+Four skills ship alongside them, and the PM runs all four.
 
 `sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote and reads that template's own convention index to decide what the project keeps, so a template that adds or renames a tier of conventions needs no change here — but one that indexes its conventions some other way is not a template it can read. Unlike the roles it is not neutral: it names paths and assumes a file layout, so its reach ends where that layout does.
 
 `manage-issues` keeps the backlog small enough to schedule from: it searches before filing, merges issues whose target paths overlap or that must land in one pull request, and closes rather than deletes, so the next batch of work can be chosen by reading the open issues rather than remembering them.
 
 `assign-work` sends that work out. Two issues run at once exactly when their target paths are disjoint; overlapping issues go to one worker in one dispatch. It measures which files change together from the project's git history rather than guessing, checks each brief against its issue before sending it, and accounts for every worker until it is retired. Like the roles, these two name no platform and no host command — `assign-work`'s one command is git's.
+
+`review-work` reviews what comes back and, on approve, merges it. It holds the order of a review, not its rules: which checks run and what may merge unverified stay the project's, found before the diff, and the PM role's own standard applies only where the project has none. It verifies the merge of head onto base rather than the head, starting that run first and reviewing while it goes, re-reviews only the delta after a request for changes, refuses to merge once the base or the head has moved since verification, and afterwards confirms that the tree which landed is the one verified and that every author of a squash survived it. It names no platform either: posting and merging are the host's, and every command it names is git's.
 
 These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. The roles name no paths and assume no file layout: each finds the rules through whatever entry point the project gives contributors, then treats them as binding.
 
