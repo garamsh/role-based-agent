@@ -3,7 +3,7 @@ name: assign-work
 description: Sends issues out to workers in waves without collisions — measures which files change together, partitions issues by disjoint target paths, batches overlapping issues to one worker, writes and validates each brief before dispatch, matches each agent's model capability to its task, and accounts for every worker until it is retired. Use when the PM is about to dispatch, assign, delegate or parallelise issues across workers, plan a wave or round, write a worker's brief, choose the model an agent runs on, handle a worker that needs files outside its issue, or decide whether to keep or retire a standing worker.
 license: Apache-2.0
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Assign work
@@ -76,7 +76,9 @@ Wave:
 file produce conflicting pull requests only the PM can sequence. Each worker
 works in its own workspace, never the base checkout — that is the PM's.
 Paths the PM alone may edit belong to no worker. Reuse the area's standing
-owner: its context amortises, so its second round costs less than its first.
+owner: up to the context threshold under §Retirement and accounting, its
+context amortises, so its second round costs less than its first; past it, a
+fresh context takes over the area.
 Start review and QA fresh every time: freshness is their product, and one that
 has seen the area checks it against memory.
 Disjoint partitions bound how many workers can run at once; how many pull
@@ -151,9 +153,14 @@ Retire a standing worker on an observable trigger:
 
 | Trigger | Because |
 |---|---|
+| Its context passed the size threshold the PM set, before compaction | Every call re-reads the whole context; past the threshold (about 400k tokens where measured) that costs more than a fresh brief, and compaction fires too late to save it. |
 | Its context was compacted | What it remembers is a summary: the reason to keep it is gone, the hazard of stale rules remains. |
 | A round produced nothing | The next round would command an agent that is not working. |
 | The partition changed | It no longer owns the area it was briefed on. |
+
+Before retiring one at the threshold, have it write its state to the pull
+request, the issue and its workspace: the next context starts from those
+records, not from a summary.
 
 Retiring ends what the worker started: its workspace, its branch once merged
 or confirmed stale, what its report names. Before it is released, confirm
