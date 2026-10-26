@@ -3,7 +3,7 @@ name: assign-work
 description: Sends issues out to workers in waves without collisions — measures which files change together, partitions issues by disjoint target paths, batches overlapping issues to one worker, writes and validates each brief before dispatch, matches each agent's model capability to its task, and accounts for every worker until it is retired. Use when the PM is about to dispatch, assign, delegate or parallelise issues across workers, plan a wave or round, write a worker's brief, choose the model an agent runs on, handle a worker that needs files outside its issue, or decide whether to keep or retire a standing worker.
 license: Apache-2.0
 metadata:
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 # Assign work
@@ -89,7 +89,10 @@ request that waits unreviewed while the default branch moves under it.
 **4. Contested names.** Assign at dispatch anything two workers could both
 claim: branch name, issue or record number, port, migration index. A worker
 choosing its own sees only what has landed — four agents dispatched minutes
-apart all took the same number.
+apart all took the same number. Give a name carrying the issue number to
+whatever the worker starts outside its workspace — a container, an image, a
+scratch service, a long job: a stopped worker reports none of it, and two
+containers one left running were recorded nowhere.
 
 **5. The brief carries what the issue does not:**
 
@@ -173,9 +176,11 @@ request, the issue and its workspace: the next context starts from those
 records, not from a summary.
 
 Retiring ends what the worker started: its workspace, its branch once merged
-or confirmed stale, what its report names. Before it is released, confirm
-nothing it started still runs — four monitors a released worker left running
-were traceable afterwards only by the deleted workspace they ran in. Confirm
+or confirmed stale, what its report names. Before it is released, and once it
+is stopped without reporting, find what it started by the name step 4 gave it
+and confirm none of it still runs or remains — a stopped worker's two
+containers were found only by hand, and four monitors a released worker left
+running were traceable only by the deleted workspace they ran in. Confirm
 each removal landed; a cleanup reporting success is no more evidence than a
 start reporting success.
 
