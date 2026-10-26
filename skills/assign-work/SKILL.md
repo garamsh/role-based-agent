@@ -3,7 +3,7 @@ name: assign-work
 description: Sends issues out to workers in waves without collisions — measures which files change together, partitions issues by disjoint target paths, batches overlapping issues to one worker, writes and validates each brief before dispatch, matches each agent's model capability to its task, and accounts for every worker until it is retired. Use when the PM is about to dispatch, assign, delegate or parallelise issues across workers, plan a wave or round, write a worker's brief, choose the model an agent runs on, handle a worker that needs files outside its issue, or decide whether to keep or retire a standing worker.
 license: Apache-2.0
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 # Assign work
@@ -99,6 +99,10 @@ apart all took the same number.
   or by the PM, named so they need not be inferred;
 - the names and numbers assigned in step 4;
 - that a check not run is reported as not run, never as passed;
+- that the worker waits on its own long job — a build, a test run, CI — for
+  one completion signal rather than waking to check, and reads a long output
+  by its tail or a filtered search, never in full: a wake after a long wait
+  rewrites the whole context, and a whole output is re-read every later turn;
 - what ends the round when the work is not converging — a condition the PM
   sets, such as the same failure repeating — at which the worker stops and
   reports. Without one, a stuck worker loops on its failure instead of
@@ -133,10 +137,16 @@ what it read — never by the host reporting success: a start reported as a
 success left an agent idle at a permission prompt.
 
 **9. Judge by output** — commits, a pull request, a comment on the issue —
-never by a heartbeat, a live terminal or silence. Look each time you return,
-not only when the host signals: a pull request sat unreviewed while the wait
-kept failing, its worker alive, heartbeating and done. A stuck worker is
-repaired in place; a second workspace for the same area orphans the first.
+never by a heartbeat, a live terminal or silence. Wait on a worker or a long
+verification for one completion signal, by the host's mechanism, rather than
+waking to check: a wake after a wait that outlived the host's cache rewrites
+the whole context, and one project reported that its standing workers' wakes
+from long waits were much of their cost.
+The signal is how you return, not the evidence. Look for output each time you
+return, for any reason, not only when the host signals: a pull request sat
+unreviewed while the wait kept failing, its worker alive, heartbeating and
+done. A stuck worker is repaired in place; a second workspace for the same
+area orphans the first.
 
 ## When a wave goes wrong
 
