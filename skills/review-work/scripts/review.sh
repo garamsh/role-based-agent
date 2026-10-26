@@ -48,6 +48,11 @@ identities() {
 # change, and its author is whoever pressed the button.
 authors() { identities --no-merges "$1..$2"; }
 
+# A host writes a squash under the account's display name, not the git name
+# the commits carry, so one person reads as two by name; the email is what
+# stays. Hosts and people vary its case. A line with no <...> stays whole.
+email() { sed 's/^.*<\([^>]*\)>.*$/\1/' | tr '[:upper:]' '[:lower:]'; }
+
 case ${1:-} in
   record)
     [ $# -eq 3 ] || usage
@@ -105,10 +110,11 @@ case ${1:-} in
     want=$(authors "$b" "$h")
     # base..landed covers every merge method: the squash commit alone, or the
     # merge commit with the branch commits it brought.
-    have=$(identities "$b..$l")
+    have=$(identities "$b..$l"); have=$(printf '%s\n' "$have" | email)
     missing=$(printf '%s\n' "$want" | while IFS= read -r a; do
       [ -n "$a" ] || continue
-      printf '%s\n' "$have" | grep -Fqx -- "$a" || printf '%s\n' "$a"
+      e=$(printf '%s\n' "$a" | email)
+      printf '%s\n' "$have" | grep -Fqx -- "$e" || printf '%s\n' "$a"
     done)
     if [ -n "$missing" ]; then
       printf 'review.sh: REFUSED: authors missing from what landed:\n%s\n' "$missing" >&2
