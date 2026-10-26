@@ -100,8 +100,9 @@ apart all took the same number.
 - what ends the round when the work is not converging — a condition the PM
   sets, such as the same failure repeating — at which the worker stops and
   reports. Without one, a stuck worker loops on its failure instead of
-  reporting it. The next round of that work runs one capability tier up,
-  never again on the same model: a repeat meets the same failure;
+  reporting it. The next round runs one capability tier up; at the top tier it
+  changes the work: re-scope the brief, split the issue, or report to the PM.
+  Never again unchanged: a repeat meets the same failure;
 - the model tier, chosen by who catches the agent's mistake, not by the task's
   size. A smaller model fits work a mechanical check catches: a search that
   returns a conclusion, a test or build run that reports output, a fully
@@ -111,7 +112,7 @@ apart all took the same number.
   lands in review, the bottleneck step 3 names. A standing owner changes tier
   only in a new round, so reusing it never conflicts with escalating.
   Recorded, the tier lets the accounting say which tier did what; left
-  unchosen, every agent runs on the costliest model whatever its task.
+  unchosen, the host's default runs every task alike.
 
 **6. Validate before dispatch.** Read the brief against the issue's own
 acceptance criteria and look for a contradiction: a subject one rule requires
