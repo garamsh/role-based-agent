@@ -1,9 +1,9 @@
 ---
 name: assign-work
-description: Sends issues out to workers in waves without collisions — measures which files change together, partitions issues by disjoint target paths, batches overlapping issues to one worker, writes and validates each brief before dispatch, matches each agent's model capability to its task, and accounts for every worker until it is retired. Use when the PM is about to dispatch, assign, delegate or parallelise issues across workers, plan a wave or round, write a worker's brief, choose the model an agent runs on, handle a worker that needs files outside its issue, or decide whether to keep or retire a standing worker.
+description: Sends issues out to workers in waves without collisions — splits an issue one fresh context cannot finish, measures which files change together, partitions issues by disjoint target paths, batches overlapping issues to one worker, writes and validates each brief before dispatch, matches each agent's model capability to its task, and accounts for every worker until it is retired. Use when the PM is about to dispatch, assign, delegate or parallelise issues across workers, plan a wave or round, write a worker's brief, choose the model an agent runs on, handle a worker that needs files outside its issue, or decide whether to keep or retire a standing worker.
 license: Apache-2.0
 metadata:
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 # Assign work
@@ -24,7 +24,7 @@ exactly when their target paths are disjoint.
 
 The second branch is where several issues at once belongs. Overlapping issues
 cannot be parallelised, so batching them to one owner removes the rebase churn
-rather than causing it.
+rather than causing it, up to the bound in step 1.
 
 Parallelism is real and bounded. Measured on the 60 commits of the repository
 this skill ships from: a third of commit pairs conflict on a file, and 25
@@ -60,7 +60,7 @@ Copy and check off:
 
 ```
 Wave:
-- [ ] 1. Backlog passes (manage-issues); pick the issues
+- [ ] 1. Backlog passes (manage-issues); pick the issues; split any too large
 - [ ] 2. Expand each issue's target paths by its coupled groups
 - [ ] 3. Partition: overlap → one worker; disjoint → separate workers
 - [ ] 4. Assign contested names and numbers
@@ -72,13 +72,18 @@ Wave:
 - [ ] 10. Account for every worker; retire on a trigger
 ```
 
+**1. Split.** The unit of work is one reviewable pull request: an issue a worker
+cannot finish in one fresh context, or that bundles independently deliverable
+problems, is split first: one ran through a chain of replacement workers.
+
 **3. Partition.** No file belongs to two workers in one wave: two owners of one
 file produce conflicting pull requests only the PM can sequence. Each worker
 works in its own workspace, never the base checkout — that is the PM's.
 Paths the PM alone may edit belong to no worker. Reuse the area's standing
 owner: up to the context threshold under §Retirement and accounting, its
 context amortises, so its second round costs less than its first; past it, a
-fresh context takes over the area.
+fresh context takes over the area. A batch stops at the bound in step 1; the
+rest waits for a later wave, recorded as blocked (manage-issues).
 Start review and QA fresh every time: freshness is their product, and one that
 has seen the area checks it against memory.
 Disjoint partitions bound how many workers can run at once; how many pull
