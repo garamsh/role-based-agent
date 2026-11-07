@@ -111,7 +111,8 @@ paid when it runs, not every session.
 - Name the role that operates it, and keep every step inside that role's
   authority: `sync-conventions` once told its operator to do the PM's work.
 - Write it to the skill-authoring guide the tools publish, read rather than
-  remembered; keep no copy of it here.
+  remembered, and evaluate it with the host's skill-authoring tool where one
+  ships (Claude Code: `skill-creator`); keep no copy of either here.
 - Name it as the skills here are named.
 - Validate with `uvx --from skills-ref agentskills validate <dir>`, not a
   check written for the occasion that nobody else can re-run. Where a
