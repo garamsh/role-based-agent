@@ -3,7 +3,7 @@ name: assign-work
 description: Sends issues out to workers in waves without collisions — splits an issue one fresh context cannot finish, measures which files change together, partitions issues by disjoint target paths, batches overlapping issues to one worker, writes and validates each brief before dispatch, matches each agent's model capability to its task, and accounts for every worker until it is retired. Use when the PM is about to dispatch, assign, delegate or parallelise issues across workers, plan a wave or round, write a worker's brief, choose the model an agent runs on, handle a worker that needs files outside its issue, or decide whether to keep or retire a standing worker.
 license: Apache-2.0
 metadata:
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 # Assign work
@@ -118,15 +118,15 @@ containers one left running were recorded nowhere.
   changes the work: re-scope the brief, split the issue, or report to the PM.
   Never again unchanged: a repeat meets the same failure;
 - the model tier, chosen by who catches the agent's mistake, not by the task's
-  size. A smaller model fits work a mechanical check catches: a search that
-  returns a conclusion, a test or build run that reports output, a fully
-  specified mechanical edit. The independent reviewer, design-bearing
-  implementation, debugging and wording whose sentences change behaviour stay
-  on the most capable model the host offers: there a weaker model's mistake
-  lands in review, the bottleneck step 3 names. A standing owner changes tier
-  only in a new round, so reusing it never conflicts with escalating.
-  Recorded, the tier lets the accounting say which tier did what; left
-  unchosen, the host's default runs every task alike.
+  size. Default to one tier below the most capable model the host offers, as
+  for a fix round answering listed review findings, a continuation from a
+  recorded state or a documentation-only change; work a mechanical check
+  catches may go lower. Only the independent reviewer, an architecture or
+  design decision the pull request records, and a round after the same failure
+  repeated run on the top tier: there only review would catch a weaker model's
+  mistake. A standing owner changes tier only in a new round, so reuse never
+  conflicts with escalating. Recorded, the tier lets the accounting say which
+  tier did what; left unchosen, the host's default runs every task alike.
 
 **6. Validate before dispatch.** Read the brief against the issue's own
 acceptance criteria and look for a contradiction: a subject one rule requires
