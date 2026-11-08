@@ -1,25 +1,41 @@
 ---
-name: local-worker
-description: Runs this machine's implementation role agents on the local model — each role's agent a live opencode TUI in its own Orca worktree, reused round after round and open to the PM's and the user's questions. Use when the PM, following manage-agents, dispatches implementation (code, tests, docs a check verifies) on this machine, creates, assigns to or retires an implementation role's agent, or needs the Orca commands for one. Decisions, design, review and QA stay on Claude.
+name: run-agents
+description: Runs the PM's role agents on the model that fits the work — Opus for the PM and the final review, Sonnet for what only a reader can judge, the local model for what a check judges — and, for the local model, each role's agent a live opencode TUI in its own Orca worktree, reused round after round and open to the PM's and the user's questions. Use when the PM, following plan-work, dispatches a round, chooses a role's model, starts, reuses, commands or retires a role's agent, hands a fresh session its role note, or needs the Orca commands for one.
 license: Apache-2.0
 metadata:
-  version: "2.0.0"
+  version: "1.0.0"
 ---
 
-# Local worker
+# Run agents
 
-On this machine code goes to the local model and judgement stays on Claude.
-`manage-agents` still governs the roles (scopes, roster, assignment, briefs,
-accounting); this skill is only how an implementation role's agent is created,
-commanded and retired in Orca. Record its worktree, terminal handle and
+`plan-work` governs the roles (scopes, roster, assignment, briefs,
+accounting); this skill is the model each role runs on and how its agent is
+started, commanded and retired. Record its worktree, terminal handle and
 session id on the roster.
 
-| Local model | Claude |
-|---|---|
-| Implementing an issue: code, tests, the docs a check verifies | Review, QA, a design or architecture decision, the brief itself |
-| | A round after the same failure repeated twice locally |
+| Opus (Claude Code) | Sonnet (Claude Code) | Local model (opencode) |
+|---|---|---|
+| The PM; the final review | Implementation only a reader can judge (design, rule documents, a change with no test); a round after the same failure repeated twice locally; the optional independent reviewer; QA | Implementation a test or check judges; the review's first pass; research that needs no web |
 
-## The agent is a terminal that stays open
+Review stays on Opus because only review would catch a weaker model's mistake
+in a design decision or after a repeated failure; QA runs below it because QA
+files evidence the PM triages, so review still stands behind it. An agent
+changes model only in a new round. No Claude subagent runs on Opus: name
+Sonnet when starting one, since a subagent inherits the PM's model.
+
+## Sessions and role notes
+
+A local role's opencode session stays open and gets every round. A Sonnet
+role's session is reused only while work continues (within about an hour,
+before its cache expires); otherwise the next round starts a fresh session.
+At the end of each round a Sonnet role leaves a **role note** (1–2k tokens:
+structure learnt, pitfalls, state) as a comment on the roster issue, and the
+brief of a fresh session tells it to read that role's latest note first.
+Subagent `memory` was measured and rejected: `local` lives inside the worktree,
+so it shows as untracked and is lost when the worktree is removed; `user` is
+one file shared by every project.
+
+## The local agent is a terminal that stays open
 
 A worker is an agent the PM and the user can still talk to. A command that
 takes a prompt and exits is not one: a question asked mid-round goes
@@ -28,9 +44,9 @@ three local rounds ended that way — one died in compaction, one was cut off
 resolving a conflict — and neither was recoverable afterwards, because the
 terminal that held the agent was gone.
 
-## One agent per implementation role
+## One local agent per role
 
-Each implementation role's agent is one Orca worktree and one opencode
+Each local role's agent is one Orca worktree and one opencode
 session, both named after the role (`<area>` below).
 
 ```sh
@@ -99,7 +115,7 @@ evidence: one sat at a permission prompt while the host reported success.
 
 ## Retiring
 
-When `manage-agents` says to retire a role's agent, start its next round on a
+When `plan-work` says to retire a role's agent, start its next round on a
 new session id (`…2`). When the role itself is removed, run
 `orca-ide worktree rm --worktree path:<worktree>`, after its branches are
 merged or closed.
@@ -107,7 +123,7 @@ merged or closed.
 ## Limits
 
 The local server runs two rounds at once. If it is down
-(`curl -s 127.0.0.1:8080/health`), dispatch the round to a Claude worker.
+(`curl -s 127.0.0.1:8080/health`), dispatch the round to a Sonnet worker.
 
 Nothing here enforces the worker's `git push … main` deny: opencode's
 permission rules do that, not the command line. Confirm the rule is in force

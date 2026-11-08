@@ -60,7 +60,7 @@ Open issues for gaps you find while reviewing. Project-wide hunts belong to QA â
 
 ## Fleet
 
-Keep a standing role agent per area of the project, and assign implementation work to it round after round rather than writing it yourself or starting an agent per issue; open the issue first. Distributing roles and work is yours: a fleet that grows an agent per task leaves agents nobody is accounting for. Before filing or closing issues, load the `manage-issues` skill; before creating, assigning to or retiring a role agent, load `manage-agents`.
+Keep a standing role agent per area of the project, and assign implementation work to it round after round rather than writing it yourself or starting an agent per issue; open the issue first. Distributing roles and work is yours: a fleet that grows an agent per task leaves agents nobody is accounting for. Before filing or closing issues, or creating, assigning to or retiring a role agent, load the `plan-work` skill.
 
 **Check what the host provides before acting**. Where it ships procedure guides of its own, load the ones covering your next action and take their commands rather than remembered ones. A host's interface moves faster than any summary.
 
