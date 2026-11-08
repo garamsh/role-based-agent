@@ -1,5 +1,5 @@
 #!/bin/sh
-# The git steps of review-work: verify the tree that will land, and land only
+# The git steps of review-pr: verify the tree that will land, and land only
 # the tree verified. Run from inside the repository under review.
 set -eu
 
@@ -96,7 +96,7 @@ case ${1:-} in
     [ ! -e "$4" ] || die "$4 already exists"
     # A worktree checks out a commit, not a tree; both parents make the
     # commit read as the merge it stands for.
-    c=$(git commit-tree "$t" -p "$b" -p "$h" -m "review-work: verify $h onto $b") ||
+    c=$(git commit-tree "$t" -p "$b" -p "$h" -m "review-pr: verify $h onto $b") ||
       die "git commit-tree failed"
     git worktree add --detach "$4" "$c" >&2 || die "git worktree add $4 failed"
     printf 'tree=%s\ncommit=%s\nworktree=%s\n' "$t" "$c" "$4" ;;

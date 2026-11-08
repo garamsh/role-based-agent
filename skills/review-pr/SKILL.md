@@ -1,5 +1,5 @@
 ---
-name: review-work
+name: review-pr
 description: Reviews one pull request and, on approve, merges it and confirms what landed — verifies the merge of head onto base while the review runs, judges every section of the body, re-reviews only the delta after a request for changes, refuses to merge when base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review, approve, request changes on or merge a pull request, delegate an independent reviewer, or confirm what landed.
 license: Apache-2.0
 metadata:
