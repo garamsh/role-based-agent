@@ -115,8 +115,9 @@ the issue number: a stopped agent reports none of it.
   long output by its tail: a wake rewrites the whole context, and a whole
   output is re-read every turn;
 - what ends a round that is not converging, such as the same failure
-  repeating: the agent stops and reports, or a stuck agent loops. The next round runs one tier up; at the top tier, re-scope the brief,
-  split the issue or report to the PM;
+  repeating: the agent stops and reports, or a stuck agent loops. The next
+  round runs one tier up; at the top tier, re-scope the brief, split the issue
+  or report to the PM;
 - its tier, from the role.
 
 **5. Validate before dispatch.** Read the brief against the issue's acceptance
@@ -134,9 +135,9 @@ host reporting success: one reported start sat idle at a permission prompt.
 
 **8. Judge by output** — commits, a pull request, a comment on the issue —
 never by a heartbeat, a live terminal or silence. Look for output each time
-you return, for any reason: a pull request sat unreviewed
-while the wait kept failing. Repair a stuck agent in place; a second workspace
-for its area orphans the first.
+you return, for any reason: a pull request sat unreviewed while the wait kept
+failing. Repair a stuck agent in place; a second workspace for its area
+orphans the first.
 
 ## When a round goes wrong
 
