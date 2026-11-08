@@ -1,9 +1,9 @@
 ---
 name: review-work
-description: Reviews one pull request and, on approve, merges it and confirms what landed — reads whatever governs the changed paths before the diff, verifies the merge of head onto base while the review runs, judges every section the pull request body fills, re-reviews only the delta after a request for changes, refuses to merge when the base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review, approve, request changes on or merge a pull request, delegate an independent reviewer, or confirm what a merge landed.
+description: Reviews one pull request and, on approve, merges it and confirms what landed — verifies the merge of head onto base while the review runs, judges every section of the body, re-reviews only the delta after a request for changes, refuses to merge when base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review, approve, request changes on or merge a pull request, delegate an independent reviewer, or confirm what landed.
 license: Apache-2.0
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Review work
@@ -14,9 +14,17 @@ whatever governs the changed paths, and from `agents/pm.md` §Reviewing where
 nothing does. Posting and merging are the host's; take its guide's commands. A
 review procedure the project ships decides every mechanic it covers.
 
+A **short path** applies when `git diff --shortstat` shows at most 50 changed
+lines, all in documentation files (`.md`, `.txt`, `.rst`, `.adoc`): skip only
+step 2's worktree and verification, and step 4. A cheaper model the host
+offers may first run the mechanical checks the rules list and rank the hunks
+by risk; that orders the review and excludes nothing: every changed line is
+still read for scope, and the top-tier reviewer re-verifies each finding it
+reports.
+
 **Verify the tree that will land, and land only the tree verified.** One
 change landed as a tree nobody had verified, because another pull request
-merged between its verification and its merge.
+merged between verification and merge.
 
 The git steps are `scripts/review.sh` in this skill's directory. Run it with
 `sh` from inside the repository under review, and do not retype its commands.
@@ -25,19 +33,19 @@ why on stderr.
 
 ## Running a review
 
-Copy and check off:
+Check off:
 
 ```
 Review of #<n>:
-- [ ] 1. Find what governs, and read it
-- [ ] 2. Record base, head and merge tree; start verification on that tree
-- [ ] 3. Read the governing conventions, then the diff
-- [ ] 4. (Optional) Delegate an independent reviewer; re-verify each claim
-- [ ] 5. Judge every section the pull request body fills
-- [ ] 6. Read verification's outcome; report a result per check
-- [ ] 7. Post the review through the host
-- [ ] 8. On approve: guard, then merge keeping every author
-- [ ] 9. Check what landed
+[ ] 1. What governs
+[ ] 2. Record; verify
+[ ] 3. Conventions, diff
+[ ] 4. (Optional) Independent reviewer
+[ ] 5. Body
+[ ] 6. Read verification's outcome; per-check result
+[ ] 7. Post
+[ ] 8. On approve: guard; merge, every author kept
+[ ] 9. Landed
 ```
 
 **1. Find what governs, and read it**, before the diff: from the project's
@@ -45,7 +53,7 @@ entry point for contributors, read at the base whatever governs the paths
 `git diff --name-only <base>...<head>` lists, and the pull request template if
 there is one. Take from them which checks run, how to verify, and how to merge
 and word the message. What you looked for and did not find goes in the review
-as `unverified`: a guessed command reads exactly like a written one.
+as `unverified`: a guessed command reads like a written one.
 
 **2. Verify early.** Fetch, then:
 
@@ -63,28 +71,23 @@ its outcome line died part-way. Remove the worktree once the outcome is read.
 `git diff <base>...<head>`.
 
 **4. Independent reviewer.** A reviewer delegated with a clean context finds
-what the PM's own reading misses: in one project it found the blockers on
-three pull requests in a row. Its brief carries:
-
-- the pull request, base, head and what step 1 found — not the PM's
-  conclusion, which it would confirm;
-- that it changes no checkout: it reads with `git show <head>:<path>` and
-  `git diff`, or works in a throwaway worktree it adds and removes. One told
-  "read-only" checked out a branch in the base checkout.
-
-Re-verify every claim it makes, from the files, before posting it: its
-mistakes arrive in the same confident register as its findings.
+what the PM's reading misses: in one project it found the blockers on
+three pull requests in a row. Its brief carries the pull request, base, head
+and what step 1 found, not the PM's conclusion, which it would confirm; and
+that it changes no checkout: it reads with `git show <head>:<path>` and
+`git diff`, or works in a throwaway worktree it adds and removes. One told
+"read-only" checked out a branch in the base checkout. Re-verify every claim
+it makes, from the files, before posting it: its mistakes arrive in the same
+confident register as its findings.
 
 **5. Pull request body.** Judge every section the body fills, as part of the
 review: is its claim true of the diff and the files, and is a "none" or "not
-applicable" justified? Build nothing to do it with.
-
-- A section whose claim you could not check is `unverified`. Left to memory,
-  sections such as what the author declined to restructure were read only
-  when the reviewer happened to remember them.
-- A claim that a test was seen to fail without the change is re-run in the
-  worktree with the behaviour reverted, or marked `unverified`; passed on the
-  body's say-so, it is the author's check, not the review's.
+applicable" justified? Build nothing to do it with. A section whose claim you
+could not check is `unverified`. Left to memory, sections such as what the
+author declined to restructure were read only when the reviewer happened to
+remember them. A claim that a test was seen to fail without the change is
+re-run in the worktree with the behaviour reverted, or marked `unverified`;
+passed on the body's say-so, it is the author's check, not the review's.
 
 **6. Per-check result**, as `agents/pm.md` §Reviewing requires, with the
 recorded head and tree beside verification. A check folded into a general
@@ -114,10 +117,10 @@ points at:
 sh scripts/review.sh landed <landed commit> <tree> <base> <head> [<excluded>...]
 ```
 
-Pass the same `<excluded>` as step 8, so the commit convention decides here
-too which identities must have landed. Exit 1 names the wrong tree or the
-missing authors. The merge has happened; record the failure where the next
-reader finds it, so it gets repaired.
+Pass step 8's `<excluded>`: the commit convention decides here too which
+identities must have landed. Exit 1 names the wrong tree or the missing
+authors. The merge has happened; record the failure where the next reader
+finds it, so it gets repaired.
 
 ## Re-review after a request for changes
 
