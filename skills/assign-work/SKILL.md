@@ -3,15 +3,15 @@ name: assign-work
 description: Sends issues out to workers in waves without collisions — splits an issue one fresh context cannot finish, measures which files change together, partitions issues by disjoint target paths, batches overlapping issues to one worker, writes and validates each brief before dispatch, matches each agent's model capability to its task, and accounts for every worker until it is retired. Use when the PM is about to dispatch, assign, delegate or parallelise issues across workers, plan a wave or round, write a worker's brief, choose the model an agent runs on, handle a worker that needs files outside its issue, or decide whether to keep or retire a standing worker.
 license: Apache-2.0
 metadata:
-  version: "0.8.0"
+  version: "0.9.0"
 ---
 
 # Assign work
 
-The PM operates this; every step is the PM's. It decides what goes to which
-worker. **The host owns how an agent is started, waited on, reused and
-ended**: load the host's own guide for those and take its commands. Where this
-skill and a host guide decide the same mechanism, the host wins.
+The PM operates every step of this, deciding what goes to which worker. **The
+host owns how an agent is started, waited on, reused and ended**: load the
+host's guide for those. Where this skill and a host guide decide the same
+mechanism, the host wins.
 
 ## The rule
 
@@ -20,15 +20,8 @@ exactly when their target paths are disjoint.
 
 - Disjoint paths → different workers, same wave.
 - Overlapping paths → one worker, one dispatch, all of those issues in one
-  brief.
-
-The second branch is where several issues at once belongs. Overlapping issues
-cannot be parallelised, so batching them to one owner removes the rebase churn
-rather than causing it, up to the bound in step 1.
-
-Parallelism is real and bounded. Measured on the 60 commits of the repository
-this skill ships from: a third of commit pairs conflict on a file, and 25
-changes needed 10 waves, the widest 6.
+  brief, up to the bound in step 1: one owner removes the rebase churn rather
+  than causing it.
 
 ## Measure coupling; do not guess it
 
@@ -46,13 +39,8 @@ git log -60 --name-only --format='format:@' | awk '
 ```
 
 Each line: commits changing both, Jaccard (both ÷ either), the pair. The
-coupled groups stand apart at the top. In the repository above they were the
-two installer scripts (0.43), the PM and worker role documents (0.45), and the
-README with the installer (0.39); everything below fell under 0.35.
-
-A file that changes with everything (the README: 24 of 60 commits) is a shared
-index, not a coupling. Treating such files as PM-owned moved 10 waves to 9;
-coupled groups set the rest. Build nothing special for the index case.
+coupled groups stand apart at the top. A file changing with everything, such
+as a README, is a shared index, not a coupling.
 
 ## Running a wave
 
@@ -72,98 +60,74 @@ Wave:
 - [ ] 10. Account for every worker; retire on a trigger
 ```
 
-**1. Split.** The unit of work is one reviewable pull request: an issue a worker
-cannot finish in one fresh context, or that bundles independently deliverable
-problems, is split first: one ran through a chain of replacement workers.
+**1. Split.** An issue a worker cannot finish in one fresh context, or that
+bundles independently deliverable problems, is split first: one ran through a
+chain of replacement workers.
 
 **3. Partition.** No file belongs to two workers in one wave: two owners of one
 file produce conflicting pull requests only the PM can sequence. Each worker
-works in its own workspace, never the base checkout — that is the PM's.
-Paths the PM alone may edit belong to no worker. Reuse the area's standing
-owner: up to the context threshold under §Retirement and accounting, its
-context amortises, so its second round costs less than its first; past it, a
-fresh context takes over the area. A batch stops at the bound in step 1; the
-rest waits for a later wave, recorded as blocked (manage-issues).
-Start review and QA fresh every time: freshness is their product, and one that
-has seen the area checks it against memory.
-Disjoint partitions bound how many workers can run at once; how many pull
-requests the PM can actually review bounds how many should. Review, not
-generation, limits throughput: a worker past that bound produces a pull
-request that waits unreviewed while the default branch moves under it.
+works in its own workspace, never the PM's base checkout. Paths the PM alone
+may edit belong to no worker. Reuse the area's standing owner: its context
+amortises, so its second round costs less. A batch stops at the bound in step
+1; the rest waits, recorded as blocked (manage-issues). Start review and QA
+fresh every time: one that has seen the area checks it against memory.
+Review, not generation, bounds how many workers run: a pull request the PM
+cannot yet review waits while the default branch moves under it.
 
 **4. Contested names.** Assign at dispatch anything two workers could both
-claim: branch name, issue or record number, port, migration index. A worker
-choosing its own sees only what has landed — four agents dispatched minutes
-apart all took the same number. Give a name carrying the issue number to
-whatever the worker starts outside its workspace — a container, an image, a
-scratch service, a long job: a stopped worker reports none of it, and two
-containers one left running were recorded nowhere.
+claim: branch name, issue or record number, port, migration index. Four agents
+choosing their own took the same number. Give whatever the worker starts
+outside its workspace — a container, an image, a scratch service, a long job —
+a name carrying the issue number: a stopped worker reports none of it.
 
 **5. The brief carries what the issue does not:**
 
 - what changed since the issue was written, and the default branch's tip to
   start from;
-- what the worker must not touch — the adjacent paths owned by another worker
-  or by the PM, named so they need not be inferred;
+- what the worker must not touch: adjacent paths another worker or the PM
+  owns;
 - the names and numbers assigned in step 4;
 - that a check not run is reported as not run, never as passed;
-- that the worker waits on its own long job — a build, a test run, CI — for
-  one completion signal rather than waking to check, and reads a long output
-  by its tail or a filtered search, never in full: a wake after a long wait
-  rewrites the whole context, and a whole output is re-read every later turn;
-- what ends the round when the work is not converging — a condition the PM
-  sets, such as the same failure repeating — at which the worker stops and
-  reports. Without one, a stuck worker loops on its failure instead of
-  reporting it. The next round runs one capability tier up; at the top tier it
-  changes the work: re-scope the brief, split the issue, or report to the PM.
-  Never again unchanged: a repeat meets the same failure;
-- the model tier, chosen by who catches the agent's mistake, not by the task's
-  size. Default to one tier below the most capable model the host offers, as
-  for a fix round answering listed review findings, a continuation from a
-  recorded state or a documentation-only change; work a mechanical check
-  catches may go lower. Only the independent reviewer, an architecture or
-  design decision the pull request records, and a round after the same failure
-  repeated run on the top tier: there only review would catch a weaker model's
-  mistake. A standing owner changes tier only in a new round, so reuse never
-  conflicts with escalating. Recorded, the tier lets the accounting say which
-  tier did what; left unchosen, the host's default runs every task alike.
+- that the worker waits on its own long job for one completion signal rather
+  than waking to check, since a wake after a long wait rewrites the whole
+  context, and reads a long output by its tail or a filtered search, since a
+  whole output is re-read every later turn;
+- what ends a round that is not converging, such as the same failure
+  repeating, at which the worker stops and reports: otherwise a stuck worker
+  loops. The next round runs one tier up; at the top tier, re-scope the brief,
+  split the issue or report to the PM instead. A round repeated unchanged meets
+  the same failure;
+- the model tier: one below the most capable model the host offers, lower
+  where a mechanical check catches the mistakes. Only the independent reviewer,
+  a design decision the pull request records, and a round after the same
+  failure repeated run on the top tier: there only review would catch a weaker
+  model's mistake. A standing owner changes tier only in a new round.
 
-**6. Validate before dispatch.** Read the brief against the issue's own
-acceptance criteria and look for a contradiction: a subject one rule requires
-and another forbids, a criterion the "do not touch" list makes impossible. A
-brief whose required subjects were forbidden by another of its own rules
-stopped its worker until the PM answered. Found one → fix the brief or the
+**6. Validate before dispatch.** Read the brief against the issue's acceptance
+criteria for a contradiction, such as a criterion the "do not touch" list makes
+impossible: one stopped its worker until the PM answered. Fix the brief or the
 issue, then read again.
 
-**7. Dispatch.** Use the host's protocol for tracked work: an agent nothing
-tracks reports no status and dies invisibly. Where the host offers none, run
-one worker directly and follow it.
+**7. Dispatch** through the host's protocol for tracked work: an untracked agent
+dies invisibly. Where the host offers none, run one worker directly.
 
 **8. Confirm the start** by something only a started, unblocked worker could
-produce — a first commit or file in its workspace, or a message from it naming
-what it read — never by the host reporting success: a start reported as a
-success left an agent idle at a permission prompt.
+produce, such as a first commit or a message naming what it read, never by the
+host reporting success: one reported start sat idle at a permission prompt.
 
 **9. Judge by output** — commits, a pull request, a comment on the issue —
-never by a heartbeat, a live terminal or silence. Wait on a worker or a long
-verification for one completion signal, by the host's mechanism, rather than
-waking to check: a wake after a wait that outlived the host's cache rewrites
-the whole context, and one project reported that its standing workers' wakes
-from long waits were much of their cost.
-The signal is how you return, not the evidence. Look for output each time you
-return, for any reason, not only when the host signals: a pull request sat
-unreviewed while the wait kept failing, its worker alive, heartbeating and
-done. A stuck worker is repaired in place; a second workspace for the same
-area orphans the first.
+never by a heartbeat, a live terminal or silence. Wait on a worker as step 5
+says, but look for output each time you return, for any reason: a pull request
+sat unreviewed while the wait kept failing. Repair a stuck worker in place; a
+second workspace for its area orphans the first.
 
 ## When a wave goes wrong
 
 - **A worker needs a path outside its issue** → it stops and reports; the PM
-  re-partitions. A worker that edits the path anyway has just put a file in
-  two workers' hands.
-- **Two pull requests in one wave conflict** → the decomposition was wrong. Fix
-  the partition and the coupled groups it came from, not just the merge; the
-  next wave repeats the conflict otherwise.
+  re-partitions, or a file is in two workers' hands.
+- **Two pull requests in one wave conflict** → the partition was wrong. Fix it
+  and the coupled groups it came from, not just the merge, or the next wave
+  repeats the conflict.
 
 ## Retirement and accounting
 
@@ -171,31 +135,19 @@ Retire a standing worker on an observable trigger:
 
 | Trigger | Because |
 |---|---|
-| Its context passed the size threshold the PM set, before compaction | Every call re-reads the whole context; past the threshold (one project set about 400k tokens) that costs more than a fresh brief, and compaction fires too late to save it. |
-| Its context was compacted | What it remembers is a summary: the reason to keep it is gone, the hazard of stale rules remains. |
-| A round produced nothing | The next round would command an agent that is not working. |
+| Its context was compacted | What it remembers is a summary, possibly of stale rules. |
+| A round produced nothing | The next round would command an idle agent. |
 | The partition changed | It no longer owns the area it was briefed on. |
 
-Before retiring one at the threshold, have it write its state to the pull
-request, the issue and its workspace: the next context starts from those
-records, not from a summary.
+Retiring ends what the worker started: its workspace, its branch once merged or
+stale, what its report names. Before releasing it, and once it stops without
+reporting, find what it started by the name step 4 gave it and confirm each
+removal landed: a cleanup reporting success proves no more than a start does.
 
-Retiring ends what the worker started: its workspace, its branch once merged
-or confirmed stale, what its report names. Before it is released, and once it
-is stopped without reporting, find what it started by the name step 4 gave it
-and confirm none of it still runs or remains — a stopped worker's two
-containers were found only by hand, and four monitors a released worker left
-running were traceable only by the deleted workspace they ran in. Confirm
-each removal landed; a cleanup reporting success is no more evidence than a
-start reporting success.
+Ending the PM's session can end its workers mid-task. After any restart, read
+each worker's state from its workspace and pull request, never from memory: a
+restarted PM reported a worker finished whose workspace showed it halfway.
 
-Ending the PM's own session can end the workers it delegated, mid-task, and a
-restart may resume them or never reach them. After any restart, read each
-worker's state from its workspace and its pull request, never from what the PM
-or the worker remembers: a restarted PM reported its worker ran every step
-without a stop, while the worker's workspace showed one halfway.
-
-The accounting outlives the round: a standing worker is still the PM's between
-waves, while nothing is dispatched to it. Close each wave with one line per
-worker — issue, pull request, tier, verified or not, kept or retired and why —
-written where the next reader finds it, not only in a terminal.
+A standing worker is still the PM's between waves. Close each wave with one
+line per worker — issue, pull request, tier, verified or not, kept or retired
+and why — where the next reader finds it, not only in a terminal.
