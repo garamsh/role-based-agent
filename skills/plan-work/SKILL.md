@@ -48,8 +48,9 @@ one is blocked by the other: they then never go out in the same wave.
   duplicate of, superseded by (name the issue), or won't do (say why).
 - **Do not delete**: it destroys the record of what was asked, decided and
   rejected. Reserve it for spam or a test filed by mistake.
-- Before closing as done, ask the forge whether the pull request merged: a
-  squash merge leaves the branch unmerged in git's eyes.
+- Before closing as done, check the default branch's tip actually holds the
+  change, and ask the forge whether the pull request merged: a squash merge
+  leaves the branch unmerged in git's eyes.
 
 ## Backlog pass
 

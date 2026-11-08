@@ -6,7 +6,7 @@ metadata:
   version: "0.3.0"
 ---
 
-# Review work
+# Review PR
 
 The PM operates this; every step is the PM's. It holds the order of a review,
 not its rules: which checks run and what may merge unverified come from

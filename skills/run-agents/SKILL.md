@@ -17,8 +17,11 @@ session id on the roster.
 |---|---|---|
 | The PM; the final review | Implementation only a reader can judge (design, rule documents, a change with no test); a round after the same failure repeated twice locally; the optional independent reviewer; QA | Implementation a test or check judges; the review's first pass; research that needs no web |
 
-No Claude subagent runs on Opus: name Sonnet when starting one, since a
-subagent inherits the PM's model.
+Review stays on Opus because only review would catch a weaker model's mistake
+in a design decision or after a repeated failure; QA runs below it because QA
+files evidence the PM triages, so review still stands behind it. An agent
+changes model only in a new round. No Claude subagent runs on Opus: name
+Sonnet when starting one, since a subagent inherits the PM's model.
 
 ## Sessions and role notes
 
