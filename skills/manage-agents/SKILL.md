@@ -64,8 +64,9 @@ Update it at **every** change — a role added or removed, a scope redrawn, an
 agent started, handed over or retired — in the same step: a roster one change
 behind sends the next issue to the wrong agent.
 
-After any restart, read the roster, then each agent's workspace and pull request, never memory: a
-restarted PM reported a worker finished whose workspace showed it halfway.
+After any restart, read the roster, then each agent's workspace and pull
+request, never memory: a restarted PM reported a worker finished whose
+workspace showed it halfway.
 
 ## Assigning
 
@@ -164,5 +165,6 @@ removal landed: a cleanup reporting success proves no more than a start does.
 
 ## Accounting
 
-Close each round with one comment on the roster issue, a line per agent — role, issue, pull request, tier,
-verified or not, kept or retired and why — where the next reader finds it.
+Close each round with one comment on the roster issue, a line per agent —
+role, issue, pull request, tier, verified or not, kept or retired and why —
+where the next reader finds it.
