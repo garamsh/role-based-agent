@@ -11,16 +11,9 @@ the sandbox rules; a skill's script: CONVENTIONS.md §Shell. Changed only docume
 the three checks a change touching no script still owes.
 -->
 
-## Rule payment — `agents/*.md`
+## Size
 
-<!--
-Only for a change that adds a rule to a role document; otherwise "None". Per
-CONVENTIONS.md §Role documents — `agents/*.md`, list every rule in the file
-before and after the consolidation that pays for the addition, so none is
-lost. Where no consolidation exists that does not cost a named concrete
-failure, list instead every candidate pair in the file and why each fails:
-without that survey, "nothing pays" reads the same as "I did not look".
--->
+<!-- Each changed file's `wc -w` before and after: CONVENTIONS.md §Size. -->
 
 ## Convention concerns
 
