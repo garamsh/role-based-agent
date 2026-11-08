@@ -3,7 +3,7 @@ name: review-work
 description: Reviews one pull request and, on approve, merges it and confirms what landed — reads whatever governs the changed paths before the diff, verifies the merge of head onto base while the review runs, judges every section the pull request body fills, re-reviews only the delta after a request for changes, refuses to merge when the base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review, approve, request changes on or merge a pull request, delegate an independent reviewer, or confirm what a merge landed.
 license: Apache-2.0
 metadata:
-  version: "0.1.1"
+  version: "0.2.0"
 ---
 
 # Review work
@@ -97,23 +97,27 @@ leaves no record of what was checked.
 
 ```sh
 sh scripts/review.sh guard <base> <head> <remote>/<base branch> <head ref>
-sh scripts/review.sh authors <base> <head>
+sh scripts/review.sh authors <base> <head> [<excluded>...]
 ```
 
 Exit 1 means the base or head moved: go back to step 2, and do not merge. Pin
-the host's merge to the head where it can be. Put every author `authors`
-prints into the squash message, in the form step 1 found: a squash with an
-empty body dropped a second author.
+the host's merge to the head where it can be. The project's commit convention
+decides which identities are authors: pass each one it excludes, by its exact
+email, as `<excluded>`; with no such rule pass none, and every identity is an
+author. Put every author `authors` prints into the squash message, in the
+form step 1 found: a squash with an empty body dropped a second author.
 
 **9. Check what landed.** Fetch, then on the commit the base branch now
 points at:
 
 ```sh
-sh scripts/review.sh landed <landed commit> <tree> <base> <head>
+sh scripts/review.sh landed <landed commit> <tree> <base> <head> [<excluded>...]
 ```
 
-Exit 1 names the wrong tree or the missing authors. The merge has happened;
-record the failure where the next reader finds it, so it gets repaired.
+Pass the same `<excluded>` as step 8, so the commit convention decides here
+too which identities must have landed. Exit 1 names the wrong tree or the
+missing authors. The merge has happened; record the failure where the next
+reader finds it, so it gets repaired.
 
 ## Re-review after a request for changes
 
