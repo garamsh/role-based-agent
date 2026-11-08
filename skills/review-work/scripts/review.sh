@@ -8,8 +8,10 @@ usage() {
 usage: review.sh record   <base-ref> <head-ref>
        review.sh worktree <base> <head> <dir>
        review.sh guard    <base> <head> <base-ref> <head-ref>
-       review.sh authors  <base> <head>
-       review.sh landed   <landed-commit> <tree> <base> <head>
+       review.sh authors  <base> <head> [<excluded>...]
+       review.sh landed   <landed-commit> <tree> <base> <head> [<excluded>...]
+excluded: an identity the project's commit convention says is no author, as
+          an email or a "name <email>" line; that exact email is not required
 exit:  0 pass, 1 refused, 2 usage or git error, 3 merge conflict
 EOF
   exit 2
@@ -53,6 +55,35 @@ authors() { identities --no-merges "$1..$2"; }
 # stays. Hosts and people vary its case. A line with no <...> stays whole.
 email() { sed 's/^.*<\([^>]*\)>.*$/\1/' | tr '[:upper:]' '[:lower:]'; }
 
+# The authors a squash must keep: authors() less each identity the PM names
+# from the project's commit convention. The PM names them because the script
+# cannot know who is an agent: on mvmd, where an agent is no author, every
+# merge that followed that rule was refused. Whole emails only, so a person
+# who shares an excluded identity's domain is still required.
+required() {
+  _b=$1; _h=$2; shift 2
+  _all=$(authors "$_b" "$_h")
+  _ex=$(for _x in "$@"; do printf '%s\n' "$_x"; done | email)
+  printf '%s\n' "$_all" | while IFS= read -r _a; do
+    [ -n "$_a" ] || continue
+    _e=$(printf '%s\n' "$_a" | email)
+    # Without the -n test, no exclusion is one empty line, which would match
+    # an identity whose email is empty.
+    if [ -n "$_ex" ] && printf '%s\n' "$_ex" | grep -Fqx -- "$_e"; then
+      printf 'review.sh: not required, excluded: %s\n' "$_a" >&2
+    else
+      printf '%s\n' "$_a"
+    fi
+  done
+}
+
+# An empty argument excludes nobody; refused, it cannot pass for a rule.
+exclusions() {
+  for _x in "$@"; do
+    [ -n "$(printf '%s\n' "$_x" | email)" ] || die "empty excluded identity"
+  done
+}
+
 case ${1:-} in
   record)
     [ $# -eq 3 ] || usage
@@ -86,14 +117,15 @@ case ${1:-} in
     printf 'base=%s\nhead=%s\n' "$b" "$h" ;;
 
   authors)
-    [ $# -eq 3 ] || usage
-    b=$(commit "$2"); h=$(commit "$3")
-    authors "$b" "$h" ;;
+    [ $# -ge 3 ] || usage
+    b=$(commit "$2"); h=$(commit "$3"); shift 3; exclusions "$@"
+    required "$b" "$h" "$@" ;;
 
   landed)
-    [ $# -eq 5 ] || usage
+    [ $# -ge 5 ] || usage
     l=$(commit "$2"); b=$(commit "$4"); h=$(commit "$5")
     t=$(git rev-parse --verify --quiet "$3^{tree}") || die "not a tree: $3"
+    shift 5; exclusions "$@"
     # As with merge-tree, 1 is an answer and anything higher is a failure.
     _st=0; git merge-base --is-ancestor "$b" "$l" || _st=$?
     case $_st in
@@ -107,7 +139,7 @@ case ${1:-} in
       printf 'review.sh: REFUSED: landed tree %s, verified %s\n' "$lt" "$t" >&2
       bad=1
     fi
-    want=$(authors "$b" "$h")
+    want=$(required "$b" "$h" "$@")
     # base..landed covers every merge method: the squash commit alone, or the
     # merge commit with the branch commits it brought.
     have=$(identities "$b..$l"); have=$(printf '%s\n' "$have" | email)
