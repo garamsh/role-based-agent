@@ -35,7 +35,11 @@ Each was a filed bug. Changing one is a decision, not a detail.
 - Every link's removal verdict is taken before the first removal, so the order
   of `SUPPORTED` cannot change one. A profile's verdict reads only its own
   bytes, so it is taken in place.
-- `uninstall.sh` is the only path that removes installed files. The installer
+- `uninstall.sh` is the only path that removes installed files, except that
+  `install.sh` removes a skill link it wrote itself once that skill is gone from
+  this checkout: the link sits in a skills directory it installs into, and its
+  link text is exactly the path this checkout would have written for that
+  skill. The installer
   may clean up its own temporary files while staging a profile.
 - `install.sh` takes no flags; configuration is by environment variable,
   because a flag through `curl … | sh` needs `sh -s --` plumbing.
