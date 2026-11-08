@@ -3,14 +3,14 @@ name: manage-issues
 description: Keeps a project's issue backlog small enough to schedule from — searches before filing, merges issues whose target paths overlap or that must land in one pull request, and closes stale, duplicate or finished issues with a reason instead of deleting them. Use when the PM is about to file an issue, triage findings, groom, clean up or deduplicate the backlog, or choose the next wave of work and cannot tell from the open issues which ones can run at once.
 license: Apache-2.0
 metadata:
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # Manage issues
 
 The PM operates this; every step is the PM's. Its product is a backlog from
 which the next wave can be chosen **by reading it, not by remembering it** —
-the input `assign-work` schedules on.
+the input `manage-agents` assigns from.
 
 An issue's fields are the ones the role document lists; no issue template is
 assumed. What this skill adds is what those fields are for: **target paths are
