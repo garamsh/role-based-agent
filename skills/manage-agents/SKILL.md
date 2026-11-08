@@ -3,7 +3,7 @@ name: manage-agents
 description: Keeps a standing agent per role, each implementation role owning a disjoint scope of paths, records them in a pinned roster issue, and assigns issues to roles instead of starting an agent per issue. Use when the PM is about to dispatch, assign or parallelise issues, plan a round, write a brief, create or redraw a role, choose an agent's tier, handle an agent needing paths outside its scope, recover after a restart, or retire an agent.
 license: Apache-2.0
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Manage agents
@@ -27,7 +27,9 @@ reused round after round, so its context amortises.
 - **Tier.** Implementation runs one tier below the most capable model the host
   offers. Review, a design decision the pull request records, and a round
   after the same failure repeated run on the top tier: there only review would
-  catch a weaker model's mistake. An agent changes tier only in a new round.
+  catch a weaker model's mistake. QA runs one tier below the top, because QA
+  files evidence the PM triages, so review still stands behind it. An agent
+  changes tier only in a new round.
 
 ## Draw scopes from coupling; do not guess it
 
