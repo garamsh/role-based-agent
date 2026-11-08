@@ -1,6 +1,6 @@
 ---
 name: review-work
-description: Reviews one pull request and, on approve, merges it and confirms what landed — verifies the merge of head onto base while the review runs, judges every section of the body, re-reviews only the delta after a request for changes, refuses to merge when base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review or merge a pull request, delegate an independent reviewer, or confirm what landed.
+description: Reviews one pull request and, on approve, merges it and confirms what landed — verifies the merge of head onto base while the review runs, judges every section of the body, re-reviews only the delta after a request for changes, refuses to merge when base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review, approve, request changes on or merge a pull request, delegate an independent reviewer, or confirm what landed.
 license: Apache-2.0
 metadata:
   version: "0.3.0"
@@ -38,14 +38,14 @@ Check off:
 ```
 Review of #<n>:
 [ ] 1. What governs
-[ ] 2. Record; verify early
-[ ] 3. Conventions, then the diff
+[ ] 2. Record; verify
+[ ] 3. Conventions, diff
 [ ] 4. (Optional) Independent reviewer
-[ ] 5. Pull request body
+[ ] 5. Body
 [ ] 6. Read verification's outcome; per-check result
 [ ] 7. Post
-[ ] 8. Guard; merge, every author kept
-[ ] 9. Check what landed
+[ ] 8. On approve: guard; merge, every author kept
+[ ] 9. Landed
 ```
 
 **1. Find what governs, and read it**, before the diff: from the project's
