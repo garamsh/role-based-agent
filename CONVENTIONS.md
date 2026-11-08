@@ -6,10 +6,16 @@ The project has these kinds of file: two POSIX shell installers, a role
 document per role, a skill per procedure and the POSIX shell script a skill
 may bundle, a README, the pull request template, the licence, and this. A file
 of another kind is the user's decision; the PM lists it here in the change that
-admits it, since this file is not a worker's to edit (#58 found the list
-already wrong). There is no build step and no test harness (a check runner was tried and
-removed as disproportionate). Verification is
-manual: paste the real output, and report a check you did not run as not run.
+admits it, since this file is not a worker's to edit. There is no build step
+and no test harness. Verification is manual: paste the real output, and report
+a check you did not run as not run.
+
+## Size
+
+The project does not grow. A change that adds words or lines removes as many
+from the files it changes; its pull request gives each file's `wc -w` before
+and after. Fix an incident where it happened, adding no rule or code for a
+single case. Growth is the user's decision.
 
 ## Shell — `install.sh`, `uninstall.sh`, `skills/*/scripts/*.sh`
 
@@ -99,11 +105,6 @@ Every word is paid for on every run.
 - The YAML frontmatter is load-bearing: Claude Code and opencode select by
   `name`; Codex profiles use the filename. Do not touch it.
 - They name no platform and no paths.
-- Do not grow them. Pay for an added rule by consolidating a duplication, and
-  list every rule before and after. Where no consolidation avoids losing a
-  named failure, list every candidate pair and why each fails, and let the
-  growth be decided: without the survey, "nothing pays" reads the same as "I
-  did not look".
 
 ## Skills — `skills/*/SKILL.md`
 
