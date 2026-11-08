@@ -905,6 +905,40 @@ case " $TOOLS " in
     done ;;
 esac
 
+# A skill deleted from the clone leaves its link behind pointing at nothing, in
+# every skills directory an earlier run linked it into (#212). Only a link this
+# script wrote is removed: one whose text is exactly the path install_one()
+# writes for that skill, compared as text and not through ours(), which lives
+# in uninstall.sh alone. A link spelled any other way (relative, or into
+# another checkout), a real file or directory, and anything outside the skills
+# directories of the selected tools stay, as everywhere else in this script.
+#
+# Every verdict is taken before the first removal, so the order of TOOLS cannot
+# change one, and a directory two tools share is listed once. A path holding a
+# newline is skipped rather than walked, as uninstall.sh cannot walk it either.
+GONE=""
+for t in $TOOLS; do
+  _gdir=$(tool_skills_dir "$t")
+  for _gp in "$_gdir"/*; do
+    [ -L "$_gp" ] || continue
+    case "$_gp" in *"$NL"*) continue ;; esac
+    _gn=${_gp##*/}
+    [ "$(readlink "$_gp")" = "$SRC_DIR/skills/$_gn" ] || continue
+    [ ! -d "$SRC_DIR/skills/$_gn" ] || continue
+    case "$NL$GONE" in *"$NL$_gp$NL"*) continue ;; esac
+    GONE="$GONE$_gp$NL"
+  done
+done
+while IFS= read -r _gp; do
+  [ -n "$_gp" ] || continue
+  rm -- "$_gp"
+  if [ -L "$_gp" ]; then die "could not remove $_gp"; fi
+  CHANGED=$((CHANGED + 1))
+  printf '%s\n' "  removed   $_gp (its skill is gone from $SRC_DIR)"
+done <<EOF2
+$GONE
+EOF2
+
 for t in $TOOLS; do
   sync_tool "$t"
 done
