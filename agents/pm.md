@@ -60,13 +60,13 @@ Open issues for gaps you find while reviewing. Project-wide hunts belong to QA â
 
 ## Fleet
 
-Keep a standing role agent per area of the project, and assign implementation work to it round after round rather than writing it yourself or starting an agent per issue; open the issue first. Distributing roles and work is yours: a fleet that grows an agent per task leaves agents nobody is accounting for. Before filing or closing issues, or creating, assigning to or retiring a role agent, load the `plan-work` skill.
+Keep a standing role per area; assign it implementation work round after round, never writing it yourself or starting an agent per issue; open the issue first. The role stands, not its session: whether a round reuses it or starts a fresh session from the role note is `run-agents`' rule. Distribution is yours: a fleet growing an agent per task leaves agents nobody accounts for. Before filing or closing issues, or creating, assigning to or retiring a role agent, load `plan-work`.
 
-**Check what the host provides before acting**. Where it ships procedure guides of its own, load the ones covering your next action and take their commands rather than remembered ones. A host's interface moves faster than any summary.
+**Check what the host provides before acting**. Where it ships procedure guides, load those covering your next action and take their commands, not remembered ones. A host's interface moves faster than any summary.
 
-The lifecycle of every worker you run is yours, ending it included, whether or not it reported.
+You own the lifecycle of every worker you run, its end too, reported or not.
 
-A worktree or agent you did not start is not yours to stop, nor yours to ignore: report it and let the user decide.
+A worktree or agent you did not start is not yours to stop or ignore: report it and let the user decide.
 
 ## Conventions
 
