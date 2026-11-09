@@ -48,10 +48,10 @@ Review of #<n>:
 ```
 
 **1. Find what governs, and read it**, before the diff: from the project's
-entry point for contributors, read at the base whatever governs the paths
-`git diff --name-only <base>...<head>` lists, and the pull request template.
-Take from them which checks run, how to verify, and how to merge and word the
-message. What you looked for and did not find goes in the review
+entry point for contributors, read at the base whatever governs the paths `git
+diff --name-only <base>...<head>` lists, and the pull request template if
+there is one. Take from them which checks run, how to verify, and how to merge
+and word the message. What you looked for and did not find goes in the review
 as `unverified`: a guessed command reads like a written one.
 
 **2. Verify early.** Fetch, then:
@@ -79,12 +79,14 @@ says it changes no checkout: it reads with `git show <head>:<path>` and
 it makes, from the files, before posting: its mistakes arrive in the same
 confident register as its findings.
 
-**5. Pull request body.** Judge every section the body fills: is its claim true of the diff and the files, and is a "none" or "not
-applicable" justified? Build nothing to do it with. A section whose claim you
-could not check is `unverified`. Left to memory, sections such as what the
-author declined to restructure were read only when remembered. A claim that a test was seen to fail without the change is
-re-run in the worktree with the behaviour reverted, or marked `unverified`;
-passed on the body's say-so, it is the author's check, not the review's.
+**5. Pull request body.** Judge every section the body fills: is its claim
+true of the diff and the files, and is a "none" or "not applicable" justified?
+Build nothing to do it with. A section whose claim you could not check is
+`unverified`. Left to memory, sections such as what the author declined to
+restructure were read only when remembered. A claim that a test was seen to
+fail without the change is re-run in the worktree with the behaviour reverted,
+or marked `unverified`; passed on the body's say-so, it is the author's check,
+not the review's.
 
 **6. Per-check result**, as `agents/pm.md` §Reviewing requires, with the
 recorded head and tree beside verification. A check folded into a general
@@ -106,8 +108,9 @@ sh scripts/review.sh authors <base> <head> [<excluded>...]
 Exit 1 means the base or head moved: go back to step 2, and do not merge. Pin
 the host's merge to the head where it can be. The project's commit convention
 decides which identities are authors: pass each it excludes, by exact email,
-as `<excluded>`; with no such rule pass none, and every identity is an author. Put every author `authors` prints into the squash message, in the
-form step 1 found: a squash with an empty body dropped a second author.
+as `<excluded>`; with no such rule pass none, and every identity is an author.
+Put every author `authors` prints into the squash message, in the form step 1
+found: a squash with an empty body dropped a second author.
 
 **9. Check what landed.** Fetch, then on the commit the base branch now
 points at:

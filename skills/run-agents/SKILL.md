@@ -14,7 +14,10 @@ terminal handle and session id on the roster.
 
 | Opus (Claude Code) | Sonnet (Claude Code) | Local model (opencode) |
 |---|---|---|
-| The PM; the final review | Implementation only a reader can judge (design, rule documents, a change with no test); a round after the same failure repeated twice locally; the optional independent reviewer; QA | Implementation a test or check the agent itself can run judges: the default for it, not root-only tests only CI can run (mvmd: supervision, nftables), and its PM under-used local until the user asked; the review's first pass; research that needs no web |
+| The PM; the final review | Implementation only a reader can judge (design, rule documents, a change with no test); a round after the same failure repeated twice locally; the optional independent reviewer; QA | Implementation a test or check the agent itself can run judges (the default for such work); the review's first pass; research that needs no web |
+
+Root-only tests only CI can run (mvmd: supervision, nftables) do not qualify
+for local; mvmd's PM under-used local until the user asked.
 
 Review stays on Opus because only review would catch a weaker model's mistake
 in a design decision or after a repeated failure; QA runs below it because it
@@ -32,9 +35,10 @@ in which its context passed about 150k, read by the PM from the subagent
 transcript's usage. Compaction alone fires near 1M, too late: knowno reached
 965k after 34 resumes, mvmd 690k. Each round's end, a Sonnet role leaves a
 **role note** (1–2k tokens: structure learnt, pitfalls, state) as a roster
-issue comment; a fresh session's brief says to read the latest first. Subagent `memory` was measured and rejected: `local` lives
-inside the worktree, so it shows as untracked and is lost when the worktree is
-removed; `user` is one file shared by every project.
+issue comment; a fresh session's brief says to read the latest first. Subagent
+`memory` was measured and rejected: `local` lives inside the worktree, so it
+shows as untracked and is lost when the worktree is removed; `user` is one
+file shared by every project.
 
 ## The local agent is a terminal that stays open
 
