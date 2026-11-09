@@ -1,21 +1,21 @@
 ---
 name: plan-work
-description: Plans the PM's work — keeps the issue backlog small enough to schedule from (searches before filing, merges issues whose target paths overlap, closes with a reason), keeps a standing agent per role, each implementation role owning a disjoint scope of paths, in a pinned roster issue, and assigns issues to roles with a brief instead of starting an agent per issue. Use when the PM is about to file, triage, groom or close issues, choose the next wave, dispatch, assign or parallelise work, plan a round, write a brief, create or redraw a role, handle an agent needing paths outside its scope, recover after a restart, or retire an agent.
+description: Plans the PM's work. Keeps the issue backlog small enough to schedule from (searches before filing, merges issues whose target paths overlap, closes with a reason). Keeps a standing agent per role on a pinned roster issue, each implementation role owning a disjoint scope of paths. Assigns issues to roles with a brief instead of starting an agent per issue. Use when the PM is about to file, triage, groom or close issues, choose the next round, assign or parallelise work, plan a round, write a brief, create or redraw a role, handle an agent needing paths outside its scope, or recover after a restart.
 license: Apache-2.0
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Plan work
 
 The PM operates every step. The product is a backlog and a roster from which
-the next wave can be chosen **by reading them, not by remembering them**.
+the next round can be chosen **by reading them, not by remembering them**.
 **The host owns how an agent is started, waited on, reused and ended**: load
 the host's guide for those. Where this skill and a host guide decide the same
 mechanism, the host wins. Which model a role runs on, and how, is `run-agents`.
 
 An issue's fields are the ones the role document lists; no issue template is
-assumed. **Target paths are what a wave is scheduled on.** An issue without
+assumed. **Target paths are what a round is scheduled on.** An issue without
 them cannot be placed except by re-reading its body and guessing, so it is not
 ready to dispatch.
 
@@ -32,29 +32,29 @@ ready to dispatch.
 
 | Two open issues | Do | Because |
 |---|---|---|
-| Target paths overlap | Merge into one | They cannot run in the same wave. Left split, they go to two workers, collide, and one is rebased and re-reviewed. |
-| One makes a claim false that the other fixes | Merge into one | A change that falsifies a claim fixes it in the same pull request. Here this deadlocked: a file-count sentence only the PM may edit, falsified by a pull request only a worker may write. |
+| Target paths overlap | Merge into one | They cannot run in the same round. Left split, they go to two workers, collide, and one is rebased and re-reviewed. |
+| One makes a claim false that the other fixes | Merge into one | A change that falsifies a claim fixes it in the same PR. Here this deadlocked: a file-count sentence only the PM may edit, falsified by a PR only a worker may write. |
 | Same subject, disjoint paths | Keep both; link them | They can run in parallel; merging makes one worker do serially what two could do at once. |
 
 To merge: keep the issue others already cite, copy the other's acceptance
 criteria and target paths into it, close the other as a duplicate pointing at
-the survivor. When the merged issue would be too large for one pull request, or
+the survivor. When the merged issue would be too large for one PR, or
 would hold a ready issue behind one still in triage, keep both and record that
-one is blocked by the other: they then never go out in the same wave.
+one is blocked by the other: they then never go out in the same round.
 
 ## Closing
 
-- **Close with a reason in a comment**: done (name the pull request),
+- **Close with a reason in a comment**: done (name the PR),
   duplicate of, superseded by (name the issue), or won't do (say why).
 - **Do not delete**: it destroys the record of what was asked, decided and
   rejected. Reserve it for spam or a test filed by mistake.
 - Before closing as done, check the default branch's tip actually holds the
-  change, and ask the forge whether the pull request merged: a squash merge
+  change, and ask the host whether the PR merged: a squash merge
   leaves the branch unmerged in git's eyes.
 
 ## Backlog pass
 
-Run before choosing a wave:
+Run before choosing a round:
 
 ```
 - [ ] Every open issue names its target paths
@@ -62,7 +62,7 @@ Run before choosing a wave:
 - [ ] No open issue is done, duplicated or superseded
 - [ ] No issue's change will falsify a claim another open issue owns
 - [ ] Each issue still describes the default branch's tip, not the code it was written against
-- [ ] A wave can be read off: issues with pairwise-disjoint target paths
+- [ ] A round can be read off: issues with pairwise-disjoint target paths
 ```
 
 The pass fails if any line needs memory to answer ("I know that one is nearly
@@ -75,7 +75,7 @@ reused round after round, so its context amortises.
 
 - **Implementation roles** are split by code area. Each has a scope, the paths
   it owns, and no path is in two scopes: two owners of one file produce
-  conflicting pull requests only the PM can sequence. Paths only the PM edits
+  conflicting PRs only the PM can sequence. Paths only the PM edits
   are in no scope.
 - **Review and QA** are fixed roles. Each task runs on a fresh agent: one that
   has seen the area checks it against memory.
@@ -104,16 +104,16 @@ it once: search the open issues for that title; if none exists, file it with
 this table as its body and pin it.
 
 ```
-| Role | Kind | Scope | Model | Agent (workspace, session) | Status |
+| Role | Kind | Scope | Model | Agent (worktree, terminal handle, session id) | Status |
 |---|---|---|---|---|---|
-| parser | implementation | src/parser/, tests/parser/ | local | <workspace>, <session> | working #12 |
+| parser | implementation | src/parser/, tests/parser/ | local | <worktree>, <handle>, <id> | working #12 |
 ```
 
 Update it at **every** change — a role added or removed, a scope redrawn, an
 agent started, handed over or retired — in the same step: a roster one change
 behind sends the next issue to the wrong agent. After any restart, read the
-roster, then each agent's workspace and pull request, never memory: a
-restarted PM reported a worker finished whose workspace showed it halfway.
+roster, then each agent's worktree and PR, never memory: a
+restarted PM reported a worker finished whose worktree showed it halfway.
 
 ## Assigning
 
@@ -137,7 +137,7 @@ their coupled groups.
 - [ ] 5. Validate it against its issue
 - [ ] 6. Dispatch, tracked
 - [ ] 7. Confirm each start
-- [ ] 8. Judge by output; review each pull request
+- [ ] 8. Judge by output; review each PR
 - [ ] 9. Account on the roster; retire on a trigger
 ```
 
@@ -147,7 +147,7 @@ chain of replacement workers.
 
 **3. Contested names.** Assign at dispatch anything two agents could both
 claim: a branch, a number, a port. Four agents choosing their own took the
-same number. Give whatever an agent starts outside its workspace — a
+same number. Give whatever an agent starts outside its worktree — a
 container, a scratch service, a long job — a name carrying the issue number: a
 stopped agent reports none of it.
 
@@ -177,17 +177,17 @@ agent dies invisibly. Where the host offers none, run one agent directly.
 produce, such as a first commit or a message naming what it read, never by the
 host reporting success: one reported start sat idle at a permission prompt.
 
-**8. Judge by output** — commits, a pull request, a comment on the issue —
+**8. Judge by output** — commits, a PR, a comment on the issue —
 never by a heartbeat, a live terminal or silence. Look for output each time you
-return, for any reason: a pull request sat unreviewed while the wait kept
-failing. Repair a stuck agent in place; a second workspace for its area
+return, for any reason: a PR sat unreviewed while the wait kept
+failing. Repair a stuck agent in place; a second worktree for its area
 orphans the first.
 
 ## When a round goes wrong
 
 - **An agent needs a path outside its scope** → it stops and reports; the PM
   redraws the scopes and updates the roster, or a file is in two roles' hands.
-- **Two pull requests in one round conflict** → the scopes were wrong. Fix them
+- **Two PRs in one round conflict** → the scopes were wrong. Fix them
   and the coupled groups behind them, not just the merge, or the next round
   repeats the conflict.
 - **The same failure repeats twice** → the next round runs on the next model
@@ -203,7 +203,7 @@ agent; its scope changed, so it no longer owns what it was briefed on. A new
 agent takes the role, and the roster records the handover: old handle, new
 handle, trigger. A role is removed only when its scope is gone.
 
-Retiring ends what the agent started: its workspace, its branch once merged or
+Retiring ends what the agent started: its worktree, its branch once merged or
 stale, what its report names. Before releasing it, and once it stops without
 reporting, find what it started by the name step 3 gave it and confirm each
 removal landed: a cleanup reporting success proves no more than a start does.
@@ -211,5 +211,5 @@ removal landed: a cleanup reporting success proves no more than a start does.
 ## Accounting
 
 Close each round with one comment on the roster issue, a line per agent —
-role, issue, pull request, model, verified or not, kept or retired and why —
+role, issue, PR, model, verified or not, kept or retired and why —
 where the next reader finds it.
