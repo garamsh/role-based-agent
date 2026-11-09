@@ -4,7 +4,7 @@ description: Runs the PM's role agents on the model that fits the work — Opus 
 compatibility: Needs orca-ide, opencode, gh, Claude Code, a local model server (127.0.0.1:8080).
 license: Apache-2.0
 metadata:
-  version: "1.1.1"
+  version: "1.2.0"
 ---
 
 # Run agents
@@ -30,7 +30,7 @@ Sonnet when starting one, since a subagent inherits the PM's model.
 
 A local role's opencode session stays open and gets every round until its
 footer passes about 80%; the next round gets a new session id. A Sonnet
-session is reused only while work continues (about an hour), and starts fresh, from its role note, at the end of the round
+session is reused only while work continues (within the cache TTL), and starts fresh, from its role note, at the end of the round
 in which its context passed about 150k, read by the PM from the subagent
 transcript's usage. Compaction alone fires near 1M, too late: knowno reached
 965k after 34 resumes, mvmd 690k. Each round's end, a Sonnet role leaves a
@@ -138,7 +138,8 @@ guessing.
 
 ## Observed, not documented: re-check after an upgrade
 
-- A provider's cache expires after about an hour.
+- A subagent's prompt cache lasts five minutes, or an hour with
+  `subagentPromptCacheTtl: "1h"` in user settings.
 - Subagent `memory`, rejected: `local` lives inside the worktree, so it shows as
   untracked and is lost when the worktree is removed; `user` is one file shared
   by every project.
