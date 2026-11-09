@@ -1,29 +1,29 @@
 ---
 name: sync-conventions
-description: Bring a conventions template repository into this project and keep it current — first-time adoption, initial bootstrap, and later updates. Use when asked to adopt, apply, bootstrap, or update project conventions, architecture document structure, or shared GitHub templates from a template repository.
+description: Brings a conventions template repository into this project and keeps it current — first-time adoption, initial bootstrap, and later updates. Use when asked to adopt, apply, bootstrap, or update project conventions, architecture document structure, or shared GitHub templates from a template repository.
 license: Apache-2.0
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Sync conventions from a template repository
 
-One procedure covering three moments in a project's life: adopting a conventions template for the first time, bootstrapping the project on top of it, and pulling later template updates. Which one runs is decided by what the repository already has.
+One procedure for three moments: adopting a conventions template, bootstrapping the project on top of it, and pulling later updates. A step is cited as mode and number: Bootstrap 6.
 
 The PM operates it. The conventions it rewrites are the PM's to maintain, and
 a user invoking the skill is the explicit instruction the PM needs for what
-**Bootstrap** writes on top of them: the `Makefile`, hooks and CI workflow of
-5, the architecture documents and ADRs of 6, and the project `README.md` of 7.
-One instruction reaches all three because the PM's role document routes
-substantive documentation exactly as it routes code, and code is the PM's to
-write on the user's explicit instruction. It is the invocation and nothing
-wider — **Step 1** confirms the mode with the user before anything changes, and
-**Bootstrap** 9 leaves the merge their call — so a PM writing a project's
-`README.md` off its own judgement has no cover from here. Every other step is
-conventions, documentation, or reversible repository configuration, and every
-one of them lands in the pull request the user merges.
+Bootstrap writes on top of them: the `Makefile`, hooks and CI workflow of
+Bootstrap 5, the architecture documents and ADRs of Bootstrap 6, the project
+`README.md` of Bootstrap 7. One instruction reaches all three because the PM's
+role document routes substantive documentation exactly as it routes code, and
+code is the PM's to write on the user's explicit instruction. It is the
+invocation and nothing wider: Step 1 confirms the mode with the user before
+anything changes, and Bootstrap 9 leaves the merge their call, so a PM writing
+a project's `README.md` off its own judgement has no cover from here. Every
+other step is conventions, documentation, or reversible repository
+configuration, and lands in the PR the user merges.
 
-Everything lands via pull request. Never push to `main`.
+Everything lands via PR. Never push to `main`.
 
 ## Principles
 
@@ -46,10 +46,9 @@ git remote -v | grep '^template'
   The remote is the only record needed; do not write a config file for it.
 
 Then fetch. It is not a merge: it creates no local branch, moves no tracked
-file, and records `template/main` for the commands below to read. It does copy
-the template's whole history — every commit and file version — into this
-repository's object store, the database git keeps them in, where it stays
-beside the project's own with nothing marking which is which:
+file, and records `template/main`. It does copy the template's whole history
+into this repository, beside the project's own with nothing marking which is
+which:
 
 ```bash
 git fetch template
@@ -68,7 +67,12 @@ Copy one verbatim with `git checkout template/main -- <path>`.
 
 Confirm the mode with the user in one sentence before making changes. That one confirmation is deliberate — the rules this skill writes or adapts are agreed at the PR, not one at a time as it works.
 
-Pre-flight for every mode: `git status` is clean, and you are on a task branch, not `main`.
+Pre-flight for every mode: `git status` is clean, and you are on a task branch, not `main`. Check off Bootstrap or Update:
+
+```
+Bootstrap: ☐ 1 identify ☐ 2 select ☐ 3 adapt ☐ 4 .gitignore ☐ 5 CI ☐ 6 architecture ☐ 7 README ☐ 8 index ☐ 9 verify, PR
+Update:    ☐ 1 walk ☐ 2 re-select ☐ 3 classify ☐ 4 verify, PR
+```
 
 ## Selection — which convention files the project keeps
 
@@ -95,7 +99,7 @@ answers it from a filename. Read the template's convention index — the
 
 Selection is not settled at bootstrap. A change that alters what the index
 selects on — the project's stack, the shape it is partitioned into — carries
-the selection with it, in the same pull request. It is the PM's to make: a
+the selection with it, in the same PR. It is the PM's to make: a
 worker whose change triggers a selection does not make it.
 
 ## Adopt — bring the template in
@@ -123,7 +127,7 @@ worker whose change triggers a selection does not make it.
 ## Bootstrap — make the template this project's
 
 1. **Identify the project.**
-   Ask the user, or infer from existing code: purpose, primary stack, and tooling (package manager, linter, formatter, test runner).
+   Ask the user, or infer from existing code: purpose, primary stack, and tooling.
 
 2. **Select the convention files.**
    Apply **Selection** above, and delete the files it does not keep.
@@ -141,7 +145,7 @@ worker whose change triggers a selection does not make it.
 
 6. **Write the project's own architecture documents.**
    These are the project's: responsibility documents and ADRs, in the directory the template reserves for them.
-   The architecture *convention* — the template's file naming the structure a project is partitioned into — is a convention file, selected in step 2 and not written here.
+   The architecture *convention* — the template's file naming the structure a project is partitioned into — is a convention file, selected in Bootstrap 2 and not written here.
    Write one responsibility document per major domain, following the skeleton in that directory's README, record any initial decisions as ADRs, and fill in the index.
    Not everything the template puts there is a skeleton to write against: where it supplies a set of alternatives a project can only run one of, choosing among them is this step's work — make and record the choice as that README directs.
    Then delete the set: it is what the choice was made from, and shipping it whole ships every alternative as a convention, none of them chosen.
@@ -151,7 +155,7 @@ worker whose change triggers a selection does not make it.
 
 8. **Refresh the convention index** so its tables name only the files the project kept.
 
-9. **Open one PR** titled `chore: bootstrap project conventions`.
+9. **Verify** as Adopt 4 does; fix, check again, then **open one PR** titled `chore: bootstrap project conventions`.
    Merging it is the user's call: it settles the project's whole convention set at once.
 
 Do not invent conventions beyond the chosen stack's needs; the template defaults are the baseline.
@@ -174,11 +178,11 @@ Do not invent conventions beyond the chosen stack's needs; the template defaults
    Apply **Selection** again: the template may have added a section, a file, or a base since adoption.
    Take what the project now qualifies for — a file added upstream after adoption included — and drop what it no longer qualifies for.
    A set of alternatives sits in no index, so Selection never reaches one, and
-   the project holds none of it, so step 3 never does. **Bootstrap** 6 decides
+   the project holds none of it, so Update 3 never does. Bootstrap 6 decides
    it, of the set and not of bootstrap — so on whichever sync one first lands.
 
 3. Classify before adopting. Whose content the file holds decides the row, and
-   step 1's walk has answered it: a copy still matching an upstream commit was
+   Update 1's walk has answered it: a copy still matching an upstream commit was
    never adapted, one matching none carries an adaptation. Whichever row a base
    falls under, read its change against every file extending it.
 
@@ -200,12 +204,12 @@ the `-` lines of `git log -p --since=<D> template/main -- <path>` whose content
 of the file — earlier if copied from an older fetch, or what fell between is
 missed. Content the project's file still carries, however re-wrapped or
 adapted, is a removal. Delete it here. A removing commit often adds the
-replacement in the same commit, so adopt the commit whole, as step 1 reads it:
+replacement in the same commit, so adopt the commit whole, as Update 1 reads it:
 taking only the addition leaves the retracted text beside its replacement.
 This is content inside a file the project keeps; a file the project deleted
 stays deleted.
 
-4. Open one PR titled `chore: sync template updates`.
+4. Verify as Bootstrap 9 does, then open one PR titled `chore: sync template updates`.
    The body lists what was adopted, adapted, and deliberately skipped — an upstream removal kept here included — skipped items are not re-proposed on later syncs.
 
 ## Rules
