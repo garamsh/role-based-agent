@@ -17,7 +17,7 @@ terminal handle and session id on the roster.
 |---|---|---|
 | The PM; the final review | Implementation only a reader can judge (design, rule documents, a change with no test), any research ("find out why or how"), and any doubt; the next model after an escalation; the optional independent reviewer; QA | Implementation when all hold: checks the agent runs itself decide acceptance, with the same result in CI; no research; the PM expects to merge after one look. The review's first pass; research that needs no web |
 
-Escalate to the next model at once on a wrong-direction fix (it addresses
+Escalate to the next model on a wrong-direction fix (it addresses
 something other than what was named, or treats the symptom), and after a
 second round on a repeated finding; "same failure twice" stays only for flaky
 or environmental failures. A local PR needing 2–3 review rounds costs the PM more than a Sonnet PR
@@ -35,10 +35,9 @@ A local role's opencode session stays open and gets every round until its
 footer passes about 80%; the next round gets a new session id. A Sonnet
 session serves one issue: its PR and that PR's review round-trips. It ends at
 merge or at about 150k, read by the PM from the subagent transcript's usage,
-whichever comes first; one past 150k and under 200k still finishes a review
-round of one or two findings itself, since a fresh session re-reads its whole
-context to fix a missing control. The next issue starts fresh from its role
-note. Compaction alone fires near 1M, too late. Each round's end, a Sonnet role leaves a
+whichever comes first. One past 150k and under 200k still finishes a review
+round of one or two findings itself: a fresh session re-reads its whole context
+to fix a missing control. The next issue starts fresh from its role note. Compaction alone fires near 1M, too late. Each round's end, a Sonnet role leaves a
 **role note** (1–2k tokens: structure learnt, pitfalls, state) as a roster
 issue comment; a fresh session's brief says to read the latest first. Subagent
 `memory` is rejected.

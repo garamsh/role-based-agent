@@ -45,7 +45,7 @@ they then never go out in the same round.
 - **Close with a reason in a comment**: done (name the PR),
   duplicate of, superseded by (name the issue), or won't do (say why).
 - **Do not delete**: it destroys the record of what was asked, decided and
-  rejected; only spam or a test filed by mistake.
+  rejected. Delete only spam or a test filed by mistake.
 - Before closing as done, check the default branch's tip actually holds the
   change, and ask the host whether the PR merged: a squash merge
   leaves the branch unmerged in git's eyes.

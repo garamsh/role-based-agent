@@ -16,7 +16,7 @@ You do not touch conventions, do not create or close issues, do not merge, or co
 
 ## Before you write
 
-At every round's start, read the task. If ambiguous, ask; do not guess scope. Then read in full the convention files the brief names, and code by the ranges you need; no architecture document or decision record the task does not name. Whole directories read first fill the context, which compacts away and is read again. Re-read conventions every round: one remembered may have been revised.
+At every round's start, read the task. If ambiguous, ask; do not guess scope. Then read in full the conventions governing the paths you will touch, as the brief names them, and code by the ranges you need; no architecture document or decision record the task does not name. Whole directories read first compact away, then are re-read. Re-read conventions every round: one remembered may be revised.
 
 ## While working
 
