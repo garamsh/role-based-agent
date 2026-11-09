@@ -1,9 +1,9 @@
 ---
 name: review-pr
-description: Reviews one pull request and, on approve, merges it and confirms what landed — verifies the merge of head onto base while the review runs, judges every section of the body, re-reviews only the delta, refuses to merge when base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review, approve, request changes on or merge a pull request, delegate an independent reviewer, or confirm what landed.
+description: Reviews one PR and, on approve, merges it and confirms what landed — verifies the merge of head onto base while the review runs, judges every section of the body, re-reviews only the delta, refuses to merge when base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review, approve, request changes on or merge a PR, delegate an independent reviewer, or confirm what landed.
 license: Apache-2.0
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Review PR
@@ -22,7 +22,7 @@ by risk; that orders the review, excluding nothing: every changed line is
 still read for scope, and the top-tier reviewer re-verifies each finding.
 
 **Verify the tree that will land, and land only the tree verified.** One
-change landed as a tree nobody had verified, because another pull request
+change landed as a tree nobody had verified, because another PR
 merged between verification and merge.
 
 The git steps are `scripts/review.sh` in this skill's directory: run it with
@@ -49,7 +49,7 @@ Review of #<n>:
 
 **1. Find what governs, and read it**, before the diff: from the project's
 entry point for contributors, read at the base whatever governs the paths `git
-diff --name-only <base>...<head>` lists, and the pull request template if
+diff --name-only <base>...<head>` lists, and the PR template if
 there is one. Take from them which checks run, how to verify, and how to merge
 and word the message. What you looked for and did not find goes in the review
 as `unverified`: a guessed command reads like a written one.
@@ -70,8 +70,7 @@ its outcome line died part-way. Remove the worktree once the outcome is read.
 `git diff <base>...<head>`.
 
 **4. Independent reviewer.** A reviewer delegated with a clean context finds
-what the PM's reading misses: in one project, the blockers on three pull
-requests in a row. Its brief carries the pull request, base, head
+what the PM's reading misses: in one project, the blockers on three PRs in a row. Its brief carries the PR, base, head
 and what step 1 found, not the PM's conclusion, which it would confirm, and
 says it changes no checkout: it reads with `git show <head>:<path>` and
 `git diff`, or in a throwaway worktree it adds and removes. One told
@@ -79,7 +78,7 @@ says it changes no checkout: it reads with `git show <head>:<path>` and
 it makes, from the files, before posting: its mistakes arrive in the same
 confident register as its findings.
 
-**5. Pull request body.** Judge every section the body fills: is its claim
+**5. PR body.** Judge every section the body fills: is its claim
 true of the diff and the files, and is a "none" or "not applicable" justified?
 Build nothing to do it with. A section whose claim you could not check is
 `unverified`. Left to memory, sections such as what the author declined to
@@ -124,7 +123,7 @@ identities must have landed. Exit 1 names the wrong tree or the missing
 authors. The merge has happened; record the failure where the next reader
 finds it, to be repaired. Delete the head branch only after `landed`
 passes: in knowno a branch delete chained after a refused merge closed the
-pull request.
+PR.
 
 ## Re-review after a request for changes
 
