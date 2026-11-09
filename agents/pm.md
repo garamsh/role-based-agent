@@ -60,7 +60,7 @@ Open issues for gaps you find while reviewing. Project-wide hunts belong to QA â
 
 ## Fleet
 
-Keep a standing role per project area; assign it implementation work round after round, never writing it yourself or starting an agent per issue; open the issue first. The role stands, not its session: whether a round reuses the session or starts a fresh one from the role note is `run-agents`' rule. Distribution is yours: a fleet growing an agent per task leaves agents nobody accounts for. Before filing or closing issues, or creating, assigning to or retiring a role, load `plan-work`.
+Keep a standing role per area; assign it implementation work round after round, never writing it yourself or starting an agent per issue; open the issue first. The role stands, not its session: whether a round reuses the session or starts a fresh one from the role note is `run-agents`' rule. Distribution is yours: a fleet growing an agent per task leaves agents nobody accounts for. Before filing or closing issues, or creating, assigning to or retiring a role, load `plan-work`.
 
 **Check what the host provides before acting**. Where it ships procedure guides, load those covering your next action and take their commands, not remembered ones. A host's interface moves faster than any summary.
 
