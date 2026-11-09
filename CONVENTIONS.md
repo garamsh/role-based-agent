@@ -102,8 +102,8 @@ Every word is paid for on every run.
 - Second person, imperative. Each rule stated once.
 - Name the concrete failure after the rule that prevents it; a rule flattened
   into a bare instruction loses its compliance.
-- The YAML frontmatter is load-bearing: Claude Code and opencode select by
-  `name`; Codex profiles use the filename. Do not touch it.
+- Frontmatter is load-bearing: tools select by `name` or filename, both
+  fixed. The user decides other fields, never `model`: `run-agents` chooses it.
 - They name no platform and no paths.
 
 ## Skills — `skills/*/SKILL.md`
