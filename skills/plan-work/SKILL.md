@@ -3,7 +3,7 @@ name: plan-work
 description: Plans the PM's work. Keeps the issue backlog small enough to schedule from (searches before filing, merges issues whose target paths overlap, closes with a reason). Keeps a standing agent per role on a pinned roster issue, each implementation role owning a disjoint scope of paths. Assigns issues to roles with a brief instead of starting an agent per issue. Use when the PM is about to file, triage, groom or close issues, choose the next round, assign or parallelise work, plan a round, write a brief, create or redraw a role, handle an agent needing paths outside its scope, recover after a restart, or retire an agent.
 license: Apache-2.0
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Plan work
@@ -70,8 +70,8 @@ done"). Write what memory knows into the issue, then re-run it.
 
 ## Roles
 
-A role is a code area plus a kind of work. An implementation role's agent is
-reused round after round, so its context amortises.
+A role is a code area plus a kind of work. A local implementation agent is
+reused round after round; a Sonnet one serves one issue (`run-agents`).
 
 - **Implementation roles** are split by code area. Each has a scope, the paths
   it owns, and no path is in two scopes: two owners of one file produce
@@ -142,12 +142,10 @@ their coupled groups.
 ```
 
 **1. Split.** An issue an agent cannot finish in one fresh context, or that
-bundles independently deliverable problems, is split first: one ran through a
-chain of replacement workers.
+bundles independently deliverable problems, is split first.
 
 **3. Contested names.** Assign at dispatch anything two agents could both
-claim: a branch, a number, a port. Four agents choosing their own took the
-same number. Give whatever an agent starts outside its worktree — a
+claim: a branch, a number, a port. Give whatever an agent starts outside its worktree — a
 container, a scratch service, a long job — a name carrying the issue number: a
 stopped agent reports none of it.
 
@@ -159,7 +157,7 @@ stopped agent reports none of it.
 - the names and numbers assigned in step 3;
 - that a check not run is reported as not run, never as passed;
 - that the agent waits on a long job for one completion signal and reads a
-  long output by its tail: a wake rewrites the whole context, and a whole
+  long output by its tail plus exit code: a wake rewrites the whole context, and a whole
   output is re-read every turn;
 - what ends a round that is not converging, such as the same failure
   repeating: the agent stops and reports, or a stuck agent loops;
@@ -190,9 +188,9 @@ orphans the first.
 - **Two PRs in one round conflict** → the scopes were wrong. Fix them
   and the coupled groups behind them, not just the merge, or the next round
   repeats the conflict.
-- **The same failure repeats twice** → the next round runs on the next model
-  up (`run-agents`); on Sonnet, re-scope the brief, split the issue or report
-  to the PM.
+- **A wrong-direction fix, a finding repeated after a second round, or a flaky
+  failure twice** → the next round runs on the next model up (`run-agents`); on
+  Sonnet, re-scope the brief, split the issue or report to the PM.
 
 ## Retiring an agent
 
