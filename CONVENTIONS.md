@@ -8,7 +8,9 @@ may bundle, a README, the pull request template, the licence, and this. A file
 of another kind is the user's decision; the PM lists it here in the change that
 admits it, since this file is not a worker's to edit. There is no build step
 and no test harness. Verification is manual: paste the real output, and report
-a check you did not run as not run.
+a check you did not run as not run. A change to `agents/` or `skills/` also
+gets `review-pr`'s independent reviewer, short path included: the PM usually
+wrote it too.
 
 ## Size
 
@@ -116,11 +118,10 @@ paid when it runs, not every session.
 - Name the role that operates it, and keep every step inside that role's
   authority: `sync-conventions` once told its operator to do the PM's work.
 - Write it to the skill-authoring guide the tools publish, read rather than
-  remembered, and evaluate it with the host's skill-authoring tool where one
-  ships (Claude Code: `skill-creator`); keep no copy of either here.
+  remembered; keep no copy here.
 - Name it as the skills here are named.
-- Validate with `uvx --from skills-ref agentskills validate <dir>`, not a
-  check written for the occasion that nobody else can re-run. Where a
+- Validate with `uvx --from skills-ref agentskills validate <dir>`, not an
+  ad-hoc check nobody else can re-run. Where a
   tool ships its own validator that accepts a skill directory, run it beside,
   never instead; where none does, say so.
 - A change to a skill bumps its `metadata.version` in the same pull request:
