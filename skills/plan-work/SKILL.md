@@ -1,9 +1,9 @@
 ---
 name: plan-work
-description: Plans the PM's work. Keeps the issue backlog small enough to schedule from (searches before filing, merges issues whose target paths overlap, closes with a reason). Keeps a standing agent per role on a pinned roster issue, each implementation role owning a disjoint scope of paths. Assigns issues to roles with a brief instead of starting an agent per issue. Use when the PM is about to file, triage, groom or close issues, choose the next round, assign or parallelise work, plan a round, write a brief, create or redraw a role, handle an agent needing paths outside its scope, recover after a restart, or retire an agent.
+description: Plans the PM's work. Keeps the issue backlog small enough to schedule from (searches before filing, merges issues whose target paths overlap, closes with a reason). Keeps a standing role per code area on a pinned roster issue, each implementation role owning a disjoint scope of paths. Assigns issues to roles with a brief, each issue to a fresh agent briefed with the role's latest note. Use when the PM is about to file, triage, groom or close issues, choose the next round, assign or parallelise work, plan a round, write a brief, create or redraw a role, handle an agent needing paths outside its scope, recover after a restart, or retire an agent.
 license: Apache-2.0
 metadata:
-  version: "1.3.0"
+  version: "1.4.0"
 ---
 
 # Plan work
@@ -68,8 +68,8 @@ done"): write it into the issue, then re-run.
 
 ## Roles
 
-A role is a code area plus a kind of work. A local implementation agent is
-reused round after round; a Sonnet one serves one issue (`run-agents`).
+A role is a code area plus a kind of work. A Sonnet implementation agent
+serves one issue (`run-agents`).
 
 - **Implementation roles** are split by code area. Each has a scope, the paths
   it owns, and no path is in two scopes: two owners of one file produce
@@ -102,9 +102,9 @@ it once: if no open issue has that title, file it with this table as its body
 and pin it.
 
 ```
-| Role | Kind | Scope | Model | Agent (worktree, terminal handle, session id) |
+| Role | Kind | Scope | Model | Agent (worktree, agent id) |
 |---|---|---|---|---|
-| parser | implementation | src/parser/, tests/parser/ | local | <worktree>, <handle>, <id> |
+| parser | implementation | src/parser/, tests/parser/ | Sonnet | <worktree>, <id> |
 ```
 
 Update it when a role is added or removed, a scope is redrawn, or an agent is
@@ -190,8 +190,8 @@ in place; a second worktree for its area orphans the first.
   and the coupled groups behind them, not just the merge, or the next round
   repeats the conflict.
 - **A wrong-direction fix, a finding repeated after a second round, or a flaky
-  failure twice** → the next round runs on the next model up (`run-agents`); on
-  Sonnet, re-scope the brief, split the issue or report to the PM.
+  failure twice** → re-scope the brief, split the issue or report to the PM
+  (`run-agents`).
 
 ## Retiring an agent
 
@@ -199,8 +199,8 @@ Retiring a role's agent is not removing the role. Retire on an observable
 trigger: its context was compacted, so it remembers a summary, possibly of
 stale rules; a round produced nothing, so the next would command an idle
 agent; its scope changed, so it no longer owns what it was briefed on. A new
-agent takes the role, and the roster records the handover: old handle, new
-handle, trigger. A role is removed only when its scope is gone.
+agent takes the role, and the roster records the handover: old id, new id,
+trigger. A role is removed only when its scope is gone.
 
 Retiring ends what the agent started: its worktree, its branch once merged or
 stale, what its report names. Before releasing it, or once it stops without
