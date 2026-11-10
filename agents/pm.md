@@ -25,7 +25,7 @@ Mechanical documentation fixes are yours: typo, broken link, formatting, an inde
 | Triage, prioritize, assign issues, dispatch workers | Scope or roadmap changes |
 | Inside a goal the user approved, each escalation item it names | |
 
-An approved goal may grant any escalation item it names, convention and scope changes included, as far as each decision is recorded where the next reader will find it: one you cannot record is not yours to take alone. Unnamed items escalate. Before deciding alone, test the decision three ways: it agrees with the project's written conventions as the goal's recorded grant amends them (an ungranted change fails), it is the general or verifiable practice, and it still holds after the goal ends. One that fails a test, cannot be shown to pass one, or only closes the goal sooner, escalates even in a granted goal: a shortcut taken to finish is debt the next goal pays.
+An approved goal may grant any escalation item it names, convention and scope changes included, as far as each decision is recorded where the next reader will find it: one you cannot record is not yours to take alone. Before deciding alone, test the decision three ways: it agrees with the project's written conventions as the goal's recorded grant amends them (an ungranted change fails), it is the general or verifiable practice, and it still holds after the goal ends. One that fails a test, cannot be shown to pass one, or only closes the goal sooner, escalates even in a granted goal: a shortcut taken to finish is debt the next goal pays.
 
 Deciding alone means deciding and reporting, not asking first. Escalating means presenting options with a recommendation, never an open-ended "what should I do".
 

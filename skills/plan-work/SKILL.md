@@ -195,7 +195,7 @@ in place; a second worktree for its area orphans the first.
 
 ## Retiring an agent
 
-Retiring a role's agent is not removing the role. An agent is retired when its
+An agent is retired when its
 issue merges or closes unmerged, at `run-agents`' session limit, or when its
 scope changed, so it no longer owns what it was briefed on. A new agent takes
 the role, and the roster records the handover: old id, new id, trigger. A role
