@@ -4,7 +4,7 @@ Roles and procedures for AI coding agents, installed once per machine and shared
 
 Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-Four skills ship alongside them, and the PM runs all four.
+Six skills ship alongside them. The PM runs five; QA runs `review-architecture`.
 
 `sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote and reads that template's own convention index to decide what the project keeps, so a template that adds or renames a tier of conventions needs no change here — but one that indexes its conventions some other way is not a template it can read. Unlike the roles it is not neutral: it names paths and assumes a file layout, so its reach ends where that layout does.
 
@@ -14,13 +14,19 @@ Four skills ship alongside them, and the PM runs all four.
 
 `run-agents` is the exception to that neutrality: one host's guide to which model each role runs on — Opus for the PM and the final review, Sonnet for every role agent. A Sonnet session serves one issue, ending at merge or about 150k unless a small review round remains, and leaves a role note on the roster issue.
 
+`review-architecture` is QA's read-only scan for shallow modules that could be deep ones. It changes no file, reads the project's glossary and decision records without writing them, and returns a plain-text candidate list that the PM triages.
+
+`delegate-goal` is how the PM hands off a goal: it settles every decision with the user in rounds of questions, records it as a goal issue, gives the user a `/goal` line, runs unattended, and ends with one report. It names `/goal`, so it is a platform exception too.
+
+`review-architecture` and `delegate-goal` are adapted from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT).
+
 These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. The roles name no paths and assume no file layout: each finds the rules through whatever entry point the project gives contributors, then treats them as binding.
 
 Changing this repository has its own rules, in `CONVENTIONS.md`. They reach every file here, documentation included: what each kind of file may become, and what a change to one has to survive before it lands.
 
 They do assume a project that keeps its conventions in writing — an index of rules, a template saying what a pull request must state, documentation describing the system's shape. On a repository with none of that, the roles still work but have little to enforce.
 
-Apart from `run-agents`, nothing here names a platform. The PM's rule on hosts says only that a host may ship procedure guides of its own, and that you load the ones covering your next action rather than working from memory. It does not say which host, or which commands — a host that ships guides advertises them itself, and its own copy is the one that cannot drift from the binary you are about to run. A summary kept here could only go stale, so there is none. `plan-work` defers the same way: where it and a host's guide decide the same mechanism, the host's wins.
+Apart from `run-agents` and `delegate-goal`, nothing here names a platform. The PM's rule on hosts says only that a host may ship procedure guides of its own, and that you load the ones covering your next action rather than working from memory. It does not say which host, or which commands — a host that ships guides advertises them itself, and its own copy is the one that cannot drift from the binary you are about to run. A summary kept here could only go stale, so there is none. `plan-work` defers the same way: where it and a host's guide decide the same mechanism, the host's wins.
 
 It is installed by a script rather than published as a plugin, because a plugin cannot carry the roles: a plugin's agents are, in Claude Code's own words, "subagent definitions Claude can delegate to" — a subagent a session hands work to, never the role the session runs as — and a Codex profile is configuration no plugin writes. The other two things a plugin is for, packaging the pieces as one unit and publishing versioned releases, are what the installer and the release tags already do, and a skill linked into a skills directory works without one.
 
