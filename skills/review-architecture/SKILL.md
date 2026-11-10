@@ -11,7 +11,7 @@ metadata:
 QA operates this; every step is a read. You change no file and create no
 glossary or ADR. You file no issue from this scan: the PM triages the list,
 accepting, prioritizing or dropping each candidate, and a chosen one becomes
-a worker's issue. `agents/qa.md` §Authority holds your limits. A candidate
+the next goal's agenda. `agents/qa.md` §Authority holds your limits. A candidate
 that proposes a change to a rule or a settled decision is a proposal, never a
 finding.
 
@@ -49,7 +49,9 @@ be checked.
 
 1. **Read the standard first.** Find the project's conventions through its
    entry point. Read its glossary and its decision records, if any, for the
-   area you scan. Name modules in the glossary's words. A settled decision is
+   area you scan. Name modules in the glossary's words. A missing term or
+   unrecorded decision goes in your report for the PM, who records it through
+   an issue and a worker PR. A settled decision is
    not a candidate: surface one only when the friction is real enough to
    reopen it, and name it.
 2. **Choose where to look.** Take a direction the invocation names. Otherwise
