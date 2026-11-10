@@ -17,7 +17,8 @@ wrote it too.
 The project does not grow. A change that adds words or lines removes as many
 from the files it changes; its pull request gives each file's `wc -w` before
 and after. Fix an incident where it happened, adding no rule or code for a
-single case. Growth is the user's decision.
+single case. Growth is the user's decision: #256 grants `review-architecture`
+900 words and `delegate-goal` 600.
 
 ## Shell — `install.sh`, `uninstall.sh`, `skills/*/scripts/*.sh`
 
