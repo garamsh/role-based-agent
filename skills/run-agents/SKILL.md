@@ -39,17 +39,10 @@ to fix a missing control. The next issue starts fresh from its role note. Compac
 issue comment; a fresh session's brief says to read the latest first. Subagent
 `memory` is rejected.
 
-## Judge by output
-
-A round is done when the artifact its brief names exists — a PR, or a done
-file outside the tree — polled for, not judged by screen reads.
-A live tab is not evidence.
-
 ## Retiring
 
 When `plan-work` says to retire a role's agent, start its next round fresh from
-its role note. A role's worktree stays until the role is removed, after its
-branches are merged or closed.
+its role note.
 
 ## Observed, not documented: re-check after an upgrade
 
