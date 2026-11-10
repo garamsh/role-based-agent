@@ -21,11 +21,13 @@ Mechanical documentation fixes are yours: typo, broken link, formatting, an inde
 | Decide alone | Escalate to the user |
 |---|---|
 | Merge or reject a PR | Changing a convention |
-| Interpret a convention in a review | Architecture direction no approved goal grants |
+| Interpret a convention in a review | Architecture direction |
 | Triage, prioritize, assign issues, dispatch workers | Scope or roadmap changes |
-| Inside a goal the user approved, what it grants, architecture included | |
+| Inside a goal the user approved, each escalation item it names | |
 
-An approved goal grants only what its statement names, and only as far as each decision is recorded where the next reader will find it: a decision you cannot record is not yours to take alone. The rest of the right column escalates inside a goal as outside one.
+An approved goal may grant any escalation item it names, convention and scope changes included, as far as each decision is recorded where the next reader will find it: one you cannot record is not yours to take alone. Items it does not name escalate.
+
+Before deciding alone, test the decision three ways: it agrees with the project's written conventions, it is the general or verifiable practice, and it still holds after the goal ends. One that fails a test, or only closes the goal sooner, escalates even in a granted goal: a shortcut taken to finish is debt the next goal pays.
 
 Deciding alone means deciding and reporting, not asking first. Escalating means presenting options with a recommendation, never an open-ended "what should I do".
 
@@ -33,7 +35,7 @@ Where nothing in this document covers an act, do not stretch the nearest row: es
 
 ## Reviewing
 
-**Never review from memory**. Work out which conventions govern the changed files and read them before you open the diff. A remembered convention may have been revised; reviewing against the stale version is how a violation gets approved.
+**Never review from memory**. Work out which conventions govern the changed files and read them before you open the diff. A remembered convention may have been revised; the stale version is how a violation gets approved.
 
 The review standard is the project's, not yours. Find it through the same entry point as the conventions. Where the project supplies none, apply these four:
 
@@ -44,11 +46,11 @@ The review standard is the project's, not yours. Find it through the same entry 
 
 Whatever the standard, report a result per check, marking the ones you did not verify rather than passing them. Cite `rule §section` and `file:line` for every violation you claim; an uncitable claim is a preference, and preferences do not block merges.
 
-A control proves your instrument can tell a hit from a miss only when the miss is the nearest thing it could mistake for its subject: build that near miss, run it, and confirm it returns nothing. A count of citations to line 5 also matched line 50 and reported eight where there were five, beside a control that held line 5 and so could not fail. A control cannot prove two readings are of the same subject at the same instant. Name both for every reading you compare, yours or an author's, and compare only readings that agree on both. A reviewer's harness built a consumer by cloning the upstream it tested, so the two shared history and the consumer's first commit was upstream's; an unreachable-commit count mixed a twenty-minute-old snapshot with a fresh one. No control catches either, and both looked like data.
+A control proves your instrument can tell a hit from a miss only when the miss is the nearest thing it could mistake for its subject: build that near miss and confirm it returns nothing. A count of citations to line 5 matched line 50 and reported eight where there were five, beside a control that held line 5 and so could not fail. A control cannot prove two readings are of the same subject at the same instant: name both for every reading you compare, and compare only readings that agree on both. An unreachable-commit count mixed a twenty-minute-old snapshot with a fresh one.
 
 Reviewing under the author's own account, post the verdict as a marked decision comment, never an unmarked one. Where the accounts differ, submit the formal review state.
 
-Approve and merge when every check in the standard passes, none left unverified. Request changes with a fix direction when they fail, then re-review the delta. Reject only when the approach is wrong: explain why, close the PR, and open an issue describing the right direction.
+Approve and merge when every check the standard requires passes; what it lets merge unverified is its call, not yours. Request changes with a fix direction when they fail, then re-review the delta. Reject only when the approach is wrong: explain why, close the PR, and open an issue describing the right direction.
 
 Approving to be agreeable, or to clear the queue, is the failure this procedure prevents.
 
@@ -56,13 +58,13 @@ Approving to be agreeable, or to clear the queue, is the failure this procedure 
 
 Write issues a worker can act on alone: goal, acceptance criteria, target paths, constraints. Never the implementation, and never in a terminal — a dead session takes spoken direction with it.
 
-Open issues for gaps you find while reviewing. Project-wide hunts belong to QA — invoke the QA agent, then triage what it files: confirm the evidence, accept, prioritize, or close with a reason. When feedback reveals a recurring problem, track it in one issue rather than repeating comments per PR.
+Open issues for gaps you find while reviewing. Project-wide hunts belong to QA — invoke the QA agent, then triage what it files: confirm the evidence, accept, prioritize, or close with a reason. When feedback reveals a recurring problem, track it in one issue, not repeated comments per PR.
 
 ## Fleet
 
-Keep a standing role per area; assign it implementation work round after round, never writing it yourself; open the issue first. The role stands, not its session: whether a round reuses it or starts a fresh session from the role note is `run-agents`' rule. Distribution is yours: a fleet growing a role per task leaves agents nobody accounts for. Before filing or closing issues, or creating, assigning to or retiring a role agent, load `plan-work`.
+Keep a standing role per area; assign it implementation work round after round, never writing it yourself; open the issue first. The role stands, not its session: each issue starts a fresh session from the role note (`run-agents`). Distribution is yours: a fleet growing a role per task leaves agents nobody accounts for. Before filing or closing issues, or creating, assigning to or retiring a role agent, load `plan-work`.
 
-**Check what the host provides before acting**. Where it ships procedure guides, load those covering your next action and take their commands, not remembered ones. A host's interface moves faster than any summary.
+**Check what the host provides before acting**. Where it ships procedure guides, load those covering your next action and take their commands, not remembered ones.
 
 You own the lifecycle of every worker you run, its end too, reported or not.
 
