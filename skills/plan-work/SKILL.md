@@ -3,7 +3,7 @@ name: plan-work
 description: Plans the PM's work. Keeps the issue backlog small enough to schedule from (searches before filing, merges issues whose target paths overlap, closes with a reason). Keeps a standing role per code area on a pinned roster issue, each implementation role owning a disjoint scope of paths. Assigns issues to roles with a brief, each issue to a fresh session briefed with the role's latest note. Use when the PM is about to file, triage, groom or close issues, choose the next round, assign or parallelise work, plan a round, write a brief, create or redraw a role, handle an agent needing paths outside its scope, recover after a restart, or retire an agent.
 license: Apache-2.0
 metadata:
-  version: "1.5.0"
+  version: "1.6.0"
 ---
 
 # Plan work
@@ -195,11 +195,11 @@ in place; a second worktree for its area orphans the first.
 
 ## Retiring an agent
 
-Retiring a role's agent is not removing the role. An agent is retired when its
-issue merges, at `run-agents`' session limit, or when its scope changed, so it
-no longer owns what it was briefed on. A new agent takes the role, and the
-roster records the handover: old id, new id, trigger. A role is removed only
-when its scope is gone.
+An agent is retired when its
+issue merges or closes unmerged, at `run-agents`' session limit, or when its
+scope changed, so it no longer owns what it was briefed on. A new agent takes
+the role, and the roster records the handover: old id, new id, trigger. A role
+is removed only when its scope is gone.
 
 Retiring ends what the agent started: its worktree, its branch once merged or
 stale, what its report names. Before releasing it, or once it stops without
