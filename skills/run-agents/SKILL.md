@@ -4,7 +4,7 @@ description: Runs the PM's role agents on the model that fits the work — Opus 
 compatibility: Needs Claude Code.
 license: Apache-2.0
 metadata:
-  version: "2.0.1"
+  version: "2.1.0"
 ---
 
 # Run agents
@@ -19,13 +19,14 @@ independent reviewer.
 
 On a wrong-direction fix (it addresses something other than what was named,
 or treats the symptom), and after a second round on a repeated finding,
-re-scope the brief, split the issue or report to the PM. A failure twice counts
-only when flaky or environmental.
+re-scope the brief, split the issue or report to the PM. A failure repeated
+twice triggers this only when flaky or environmental.
 
 Review stays on Opus because only review would catch a mistake
 in a design decision or after a repeated failure; QA runs below it because it
-files evidence the PM triages, so review still stands behind it. No Claude subagent runs on Opus: name
-Sonnet when starting one, since a subagent inherits the PM's model.
+files evidence the PM triages, so review still stands behind it. No Claude
+subagent runs on Opus: name Sonnet when starting one, since a subagent
+inherits the PM's model.
 
 ## Sessions and role notes
 

@@ -25,9 +25,7 @@ Mechanical documentation fixes are yours: typo, broken link, formatting, an inde
 | Triage, prioritize, assign issues, dispatch workers | Scope or roadmap changes |
 | Inside a goal the user approved, each escalation item it names | |
 
-An approved goal may grant any escalation item it names, convention and scope changes included, as far as each decision is recorded where the next reader will find it: one you cannot record is not yours to take alone. Items it does not name escalate.
-
-Before deciding alone, test the decision three ways: it agrees with the project's written conventions, it is the general or verifiable practice, and it still holds after the goal ends. One that fails a test, or only closes the goal sooner, escalates even in a granted goal: a shortcut taken to finish is debt the next goal pays.
+An approved goal may grant any escalation item it names, convention and scope changes included, as far as each decision is recorded where the next reader will find it: one you cannot record is not yours to take alone. Items it does not name escalate. Before deciding alone, test the decision three ways: it agrees with the project's written conventions, it is the general or verifiable practice, and it still holds after the goal ends. One that fails a test, cannot be shown to pass one, or only closes the goal sooner, escalates even in a granted goal: a shortcut taken to finish is debt the next goal pays.
 
 Deciding alone means deciding and reporting, not asking first. Escalating means presenting options with a recommendation, never an open-ended "what should I do".
 
@@ -46,7 +44,7 @@ The review standard is the project's, not yours. Find it through the same entry 
 
 Whatever the standard, report a result per check, marking the ones you did not verify rather than passing them. Cite `rule §section` and `file:line` for every violation you claim; an uncitable claim is a preference, and preferences do not block merges.
 
-A control proves your instrument can tell a hit from a miss only when the miss is the nearest thing it could mistake for its subject: build that near miss and confirm it returns nothing. A count of citations to line 5 matched line 50 and reported eight where there were five, beside a control that held line 5 and so could not fail. A control cannot prove two readings are of the same subject at the same instant: name both for every reading you compare, and compare only readings that agree on both. An unreachable-commit count mixed a twenty-minute-old snapshot with a fresh one.
+A control proves your instrument can tell a hit from a miss only when the miss is the nearest thing it could mistake for its subject: build that near miss and confirm it returns nothing. A count of citations to line 5 matched line 50 and reported eight where there were five, beside a control that held line 5 and so could not fail. A control cannot prove two readings are of the same subject at the same instant: name both for every reading you compare, yours or an author's, and compare only readings that agree on both. A reviewer's harness built a consumer by cloning the upstream it tested, so the two shared history and the consumer's first commit was upstream's; an unreachable-commit count mixed a twenty-minute-old snapshot with a fresh one. No control catches either, and both looked like data.
 
 Reviewing under the author's own account, post the verdict as a marked decision comment, never an unmarked one. Where the accounts differ, submit the formal review state.
 
@@ -58,13 +56,13 @@ Approving to be agreeable, or to clear the queue, is the failure this procedure 
 
 Write issues a worker can act on alone: goal, acceptance criteria, target paths, constraints. Never the implementation, and never in a terminal — a dead session takes spoken direction with it.
 
-Open issues for gaps you find while reviewing. Project-wide hunts belong to QA — invoke the QA agent, then triage what it files: confirm the evidence, accept, prioritize, or close with a reason. When feedback reveals a recurring problem, track it in one issue, not repeated comments per PR.
+Open issues for gaps you find while reviewing. Project-wide hunts belong to QA — invoke QA, then triage what it files: confirm the evidence, then accept, prioritize or close. When feedback reveals a recurring problem, track it in one issue, not repeated comments per PR.
 
 ## Fleet
 
 Keep a standing role per area; assign it implementation work round after round, never writing it yourself; open the issue first. The role stands, not its session: each issue starts a fresh session from the role note (`run-agents`). Distribution is yours: a fleet growing a role per task leaves agents nobody accounts for. Before filing or closing issues, or creating, assigning to or retiring a role agent, load `plan-work`.
 
-**Check what the host provides before acting**. Where it ships procedure guides, load those covering your next action and take their commands, not remembered ones.
+**Check what the host provides before acting**. Where it ships procedure guides, load those covering your next action and take their commands, not remembered ones. A host's interface moves faster than any summary.
 
 You own the lifecycle of every worker you run, its end too, reported or not.
 
@@ -72,6 +70,6 @@ A worktree or agent you did not start is not yours to stop or ignore: report it 
 
 ## Conventions
 
-You maintain the conventions day to day; workers may not. When one changes, update its index in the same PR.
+When a convention changes, update its index in the same PR.
 
 Treat a worker's convention complaint as a proposal: resolve the straightforward ones in review, escalate the rest. Keep individual rules short; a rule that cannot be stated in a few lines needs an example, not more prose.
