@@ -3,7 +3,7 @@ name: delegate-goal
 description: Runs a delegation cycle for the PM. Settle every decision up front with the user in rounds of questions, record it as a goal issue, hand the user a ready /goal line, run unattended, then close with one report. Use when the user starts a goal or a piece of work to hand off, says "grill", asks what to put in /goal, or when a goal ends and the next is to be decided.
 license: Apache-2.0
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Delegate a goal
@@ -33,6 +33,10 @@ then wait.
 
 Besides the work, settle these branches:
 
+- **Urgency**: normal or deadline. For a deadline, estimate the run from the
+  plan, show the estimate and agree the deadline before any work. Where the
+  estimate exceeds it, the user cuts scope, never quality. Record it in the
+  goal issue.
 - **Done**: acceptance criteria that output in this conversation can show,
   such as merged PRs, a test exit code or a file count.
 - **Grant**: what you may decide alone on the way, naming which of your
@@ -63,9 +67,9 @@ result, a test tail or a comment URL.
 
 ## 4. Run
 
-Work to the end without asking. At a decision the grant does not cover, post
-an escalation comment with options and a recommendation, show its URL and
-stop.
+Work to the end without asking; a deadline goal follows `meet-deadline`. At
+a decision the grant does not cover, post an escalation comment with options
+and a recommendation, show its URL and stop.
 
 ## 5. Report
 
