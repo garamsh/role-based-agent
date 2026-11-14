@@ -10,8 +10,8 @@ metadata:
 
 The PM operates this; every step is the PM's. It is `delegate-goal`'s run for
 a goal whose urgency is deadline. It trades waiting time only: on a naru run
-of 47 PRs, per-PR verification was 27% of the 77-hour span, while review found
-real defects in about half the PRs.
+of 47 PRs, per-PR verification was 27% of the 77-hour span, while about half of
+review's findings were real defects.
 
 1. **Branch.** Cut a goal branch from the default branch; every worker's PR
    targets it. The default branch takes nothing until step 7, so it stays
@@ -26,25 +26,24 @@ real defects in about half the PRs.
    Verifying each PR on a branch that moves with every merge would repeat the
    12 re-verifications after the base moved (3.7 hours).
 
-   `review-pr` changes at these steps:
-   - Step 2: skip the worktree and verification.
-   - Step 6: report verification as `deferred to final check`, not passed.
-   - Step 8: skip `guard`, which protects a verified tree none exists of.
-     Still run `authors`, and keep every author in the squash.
-   - Step 9: skip the tree comparison; confirm the authors landed.
-
-   Steps 1, 3, 4, 5 and 7 apply unchanged, the independent reviewer and the
-   short path included.
+   Of `review-pr`, skip step 2's worktree and verification, and step 8's wait
+   for CI or update-branch. Step 6 reports verification as `deferred to final
+   check`, not passed. The rest applies, `record`, `guard`, `authors`, `landed`
+   and the independent reviewer included: `guard` still refuses a head pushed
+   after review. When it refuses only because another goal PR merged,
+   re-record; nothing is re-verified.
 5. **Final check.** After the last PR merges and the indexes are updated,
-   fetch. If the default branch moved, merge it into the goal branch first.
-   Run the changed paths and their dependents where the project defines how
-   to find them; where it does not, run the full suite. Never guess a subset.
-   Run it once.
-6. **Failures.** Trace each failure to the PR that caused it and fix it on the
-   goal branch, then re-run what the fix touched and its dependents.
-7. **Land.** Run `review-pr` steps 8 and 9 with the goal branch as head. If the
-   default branch moved since step 5, go back to step 5: verify the tree that
-   will land. The default branch takes exactly the verified tree.
+   fetch. If the default branch moved, merge it into the goal branch. Run
+   `review-pr` step 2 on that pair: the changed paths and their dependents
+   where the project defines how to find them; where it does not, the full
+   suite. Never guess a subset.
+6. **Failures.** Trace each failure to the PR that caused it. A worker fixes
+   it in a PR into the goal branch, reviewed as in step 4; then re-run what it
+   touched and its dependents.
+7. **Land.** Open the goal branch's PR into the default branch and take
+   `review-pr` steps 6 to 9. Verification counts as passed only for the
+   recorded tree. If the default branch moved, go back to step 5: verify the
+   tree that will land. The default branch takes exactly the verified tree.
 
 ## Not shortcuts
 
