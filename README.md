@@ -16,7 +16,7 @@ Seven skills ship alongside them: QA runs `review-architecture`, the PM the othe
 
 `review-architecture` is QA's read-only scan for shallow modules that could be deep ones; it returns a plain-text candidate list for the PM to triage.
 
-`delegate-goal` settles a goal with the user in rounds of questions, records it as an issue, hands over a `/goal` line and reports once at the end. In deadline mode it hands off to `meet-deadline`, which cuts waiting, never quality. It names `/goal`. Both are adapted from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT).
+`delegate-goal` settles a goal with the user in rounds of questions, records it as an issue, hands over a `/goal` line and reports once at the end. In deadline mode it hands off to `meet-deadline`, which cuts waiting, never quality. It names `/goal`. `review-architecture` and `delegate-goal` are adapted from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT).
 
 These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. The roles name no paths and assume no file layout: each finds the rules through whatever entry point the project gives contributors, then treats them as binding.
 
