@@ -3,12 +3,12 @@
 Rules binding every pull request here.
 
 The project has these kinds of file: two POSIX shell installers, a role
-document per role, a skill per procedure and the POSIX shell script a skill
+document per role, a skill per procedure and the POSIX shell script it
 may bundle, a README, the pull request template, the licence, and this. A file
 of another kind is the user's decision; the PM lists it here in the change that
 admits it, since this file is not a worker's to edit. There is no build step
-and no test harness. Verification is manual: paste the real output, and report
-a check you did not run as not run. A change to `agents/` or `skills/` also
+or test harness. Verification is manual: paste the real output, and report a
+check not run as not run. A change to `agents/` or `skills/` also
 gets `review-pr`'s independent reviewer, short path included: the PM usually
 wrote it too.
 
@@ -18,7 +18,7 @@ The project does not grow. A change that adds words or lines removes as many
 from the files it changes; its pull request gives each file's `wc -w` before
 and after. Fix an incident where it happened, adding no rule or code for a
 single case. Growth is the user's decision: #256 grants `review-architecture`
-≤ 900 words and `delegate-goal` ≤ 600, needing no offset.
+≤ 900 words, #263 `meet-deadline` ≤ 500 and `delegate-goal` ≤ 650, no offset.
 
 ## Shell — `install.sh`, `uninstall.sh`, `skills/*/scripts/*.sh`
 
