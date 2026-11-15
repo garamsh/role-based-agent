@@ -4,7 +4,7 @@ Roles and procedures for AI coding agents, installed once per machine and shared
 
 Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-Seven skills ship alongside them: QA runs `review-architecture`, the PM the other six.
+Eight skills ship alongside them: QA runs `review-architecture` and `review-craft`, the PM the other six.
 
 `sync-conventions` brings a conventions template repository into a project and keeps it current — first-time adoption, initial bootstrap, and later updates. It records the template as a git remote and reads that template's own convention index to decide what the project keeps, so a template that adds or renames a tier of conventions needs no change here — but one that indexes its conventions some other way is not a template it can read. Unlike the roles it is not neutral: it names paths and assumes a file layout, so its reach ends where that layout does.
 
@@ -14,7 +14,7 @@ Seven skills ship alongside them: QA runs `review-architecture`, the PM the othe
 
 `run-agents` is an exception to that neutrality: one host's guide to which model each role runs on — Opus for the PM and the final review, Sonnet for every role agent. A Sonnet session serves one issue, ending at merge or about 150k unless a small review round remains, and leaves a role note on the roster issue.
 
-`review-architecture` is QA's read-only scan for shallow modules that could be deep ones; it returns a plain-text candidate list for the PM to triage.
+`review-architecture` is QA's read-only scan for shallow modules that could be deep ones; it returns a plain-text candidate list for the PM to triage. `review-craft` is QA's read-only scan for workmanship, with web-sourced candidates.
 
 `delegate-goal` settles a goal with the user in rounds of questions, records it as an issue, hands over a `/goal` line and reports once at the end. In deadline mode it hands off to `meet-deadline`, which cuts waiting, never quality. It names `/goal`. `review-architecture` and `delegate-goal` are adapted from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT).
 
@@ -81,7 +81,7 @@ curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/unins
 
 It removes unedited generated Codex profiles even if their source checkout is gone. It also removes symlinks that name a role-based-agent checkout — by the link's text, not by what it still resolves to. A relative link text is read against the link's own directory, so where you run it from cannot change what it removes. A profile whose region is unedited is removed whole, with any settings Codex or you added below it. Other real files and directories, profile symlinks, and profiles with an edited region are preserved. Edited profiles retaining their marker are reported as kept.
 
-To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place; a link or unedited generated profile an earlier run made from another clone is kept and reported rather than repointed or regenerated, so every tool goes on serving that one clone until you move or delete them and re-run. Installing from a URL requires `git`; profile generation uses standard shell utilities and needs no Python or Node runtime. That clone has to hold the roles it is being asked to install: an `agents/` directory with no role document in it stops the run before installing anything. Skills are not required — a clone carrying none installs the roles as usual and says that it linked no skill. A clone you run `install.sh` from supplies links and generated profiles and is never pulled, so your edits there survive every run. The clone the piped one-liner keeps at `~/.local/share/role-based-agent` is the one it fast-forwards, so an edit there is what the blocked update above is about — recoverable, and it costs nothing until an incoming commit lands on that same file.
+To keep the clone elsewhere or edit the roles yourself, run `install.sh` from your own clone and it is used in place; a link or unedited generated profile an earlier run made from another clone is kept and reported rather than repointed or regenerated, so every tool goes on serving that one clone until you move or delete them and re-run. Installing from a URL requires `git`; profile generation uses standard shell utilities and needs no Python or Node runtime. That clone has to hold the roles it is being asked to install: an `agents/` directory with no role document in it stops the run before installing anything. Skills are not required — a clone carrying none installs the roles as usual and says that it linked no skill. A clone you run `install.sh` from supplies links and generated profiles and is never pulled, so your edits there survive every run. The clone the piped one-liner keeps at `~/.local/share/role-based-agent` is the one it fast-forwards, so an edit there is what the blocked update above is about — recoverable.
 
 ## Use
 
