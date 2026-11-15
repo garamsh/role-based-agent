@@ -47,7 +47,9 @@ A finding missing either is dropped.
 deprecation notice or a successor announcement. Model memory alone is not
 evidence. A recommendation from memory is stated confidently and may already be
 stale: a deprecated tool named as the successor, or an API since removed. A
-finding without a source is dropped, not marked Speculative.
+finding without a source is dropped, not marked Speculative. Where web search
+is unavailable, say so and report the scan as not run, never as finding
+nothing: dropping every finding would look like a clean result.
 
 ## Procedure
 
