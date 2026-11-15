@@ -18,7 +18,7 @@ from the files it changes; its pull request gives each file's `wc -w` before and
 after. Fix an incident where it happened, adding no rule or code for a single
 case. Growth is the user's decision; each grant needs no offset: #256
 `review-architecture` ≤ 900 words; #263 `meet-deadline` ≤ 500, `delegate-goal`
-≤ 650.
+≤ 650; #266 `review-craft` ≤ 700.
 
 ## Shell — `install.sh`, `uninstall.sh`, `skills/*/scripts/*.sh`
 
@@ -34,7 +34,7 @@ case. Growth is the user's decision; each grant needs no offset: #256
 
 ## Invariants — do not regress these without saying so
 
-Each was a filed bug. Changing one is a decision, not a detail.
+Each was a filed bug.
 
 - The role documents are the source of truth, in each tool's native format:
   symlinks for Claude Code and opencode roles and for all skills, generated
