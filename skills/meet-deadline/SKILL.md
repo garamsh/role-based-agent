@@ -27,8 +27,8 @@ run, trading waiting time only: per-PR verification took 27% of a
 
    Of `review-pr`, skip step 2's worktree and verification, and step 8's wait
    for CI or update-branch. Step 6 reports verification as `deferred to final
-   check`, not passed. The rest applies, the independent reviewer, and `guard`
-   still refuses a head pushed after review.
+   check`, not passed. The rest applies, the independent reviewer included, and
+   `guard` still refuses a head pushed after review.
 5. **Final check.** After the last PR merges and the indexes update, fetch and
    merge new default-branch commits into the goal branch. Run every check
    workers deferred and `review-pr` step 2 on that pair: the changed paths and

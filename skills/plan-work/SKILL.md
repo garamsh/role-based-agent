@@ -29,9 +29,21 @@ A role is a code area plus a kind of work.
   the area checks it against memory.
 
 Draw scopes from coupling; do not guess it. Files that change together belong
-to one scope. Count co-changes over recent history (`git log --name-only`):
-commits changing both files, over commits changing either. A file changing with
-everything, like a README, is an index, not a coupling.
+to one scope. Count co-changes over recent history:
+
+```sh
+git log -60 --name-only --format='format:@' | awk '
+  /^@$/ { for (a in f) for (b in f) if (a < b) n[a " + " b]++; delete f; next }
+  NF    { f[$0] = 1; c[$0]++ }
+  END   { for (a in f) for (b in f) if (a < b) n[a " + " b]++
+          for (p in n) { split(p, x, " [+] ")
+            printf "%d %.2f %s\n", n[p], n[p] / (c[x[1]] + c[x[2]] - n[p]), p } }' |
+  sort -rn | head -20
+```
+
+Each line: commits changing both, Jaccard (both ÷ either), the pair; coupled
+groups top the list. A file changing with everything, like a README, is an
+index, not a coupling.
 
 ## The roster
 
@@ -134,8 +146,9 @@ their coupled groups.
    - that a check not run is reported as not run, never as passed;
    - that the agent waits on a long job for one completion signal and reads a
      long output by its tail plus exit code;
-   - when the agent stops and reports instead of looping, and its model, both
-     from `run-agents`.
+   - what ends a round that is not converging, such as the same failure
+     repeating: the agent stops and reports;
+   - its model, from `run-agents`.
 5. **Validate before dispatch.** Read the brief against the issue's acceptance
    criteria for a contradiction, such as a criterion the "not to touch" list
    makes impossible. Fix it, then read again.
