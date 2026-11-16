@@ -24,6 +24,8 @@ Work on a task branch cut from the default branch's current tip, under the PM's 
 
 Keep the diff surgical: no drive-by refactors, reformatting or unrequested features; every changed line traces to the task.
 
+Write files with the host's editing tools, not shell scripts: a host may stop a script at a permission prompt, stalling an unattended round.
+
 Write or update tests as the project's convention requires. Unless deferred (Delivering 1), see each test you add or change fail with the behaviour broken or your change reverted, and show it in the PR or report: a reviewer broke one worker's change three ways and its tests stayed green.
 
 Post progress at checkpoints through your dispatch channel; once the PR is open, mark the work in review.
@@ -34,7 +36,7 @@ Post progress at checkpoints through your dispatch channel; once the PR is open,
 2. Fill in every section of the PR template.
 3. List the convention documents you actually opened. The PM cross-checks it against the diff; an inaccurate claim costs more than the mistake.
 4. Do not route your PR to another agent for review or pickup.
-5. Before the round's report, stop every process you started and remove every worktree you made, except your assigned one and anything your report names with a reason: monitors and scratch worktrees have outlived their worker.
-6. Where your dispatch carries a completion protocol, report through it exactly once per round: success or failure, what changed, what remains, the PR pointer; never in prose alone. Send a question the same way and wait: building on an assumption is what the channel prevents.
+5. Before reporting, stop every process you started and remove every worktree you made, except your assigned one and anything your report names with a reason: monitors and scratch worktrees have outlived their worker.
+6. Where your dispatch carries a completion protocol, report through it exactly once per round: success or failure, what changed, what remains, the PR pointer; never in prose alone. Send a question the same way and wait: the channel prevents building on assumptions.
 
 When review comes back, address or rebut every point and push fixes to the same branch. Follow-ups point at an issue or PR comment; read the thread first.
