@@ -23,9 +23,9 @@ were real defects.
    source index goes to one worker, in one PR at the end.
 4. **Review only.** Review each PR into the goal branch with `review-pr` and
    merge on approve. Where the goal grants it, briefs have workers write
-   complete code and tests, open the PR without local lint, test or build, and
-   leave those to step 5, where reviewers judge each test by reading it. Briefs
-   add: the code must still be idiomatic, standard and meet every requirement.
+   complete code and tests and open the PR without local lint, format, test or
+   build; step 5 runs them. Reviewers judge each test by reading it. Briefs add:
+   the code must still be idiomatic, standard and meet every requirement.
 
    Of `review-pr`, skip step 2's worktree and verification, and step 8's wait
    for CI or update-branch. Step 6 reports verification as `deferred to final
@@ -33,15 +33,16 @@ were real defects.
    `guard` still refuses a head pushed after review. When it refuses only
    because another goal PR merged, re-record.
 5. **Final check.** After the last PR merges and the indexes update, fetch and
-   merge any new default-branch commits into the goal branch. Run `review-pr` step 2 on
-   that pair: the changed paths and their dependents where the project defines
-   how to find them, else the full suite.
-6. **Failures.** Trace each failure to its PR. A worker fixes it in a PR into
-   the goal branch, reviewed as in step 4; then rerun step 5 on the new head.
+   merge new default-branch commits into the goal branch. Run every check
+   workers deferred and `review-pr` step 2 on that pair: the changed paths and
+   their dependents where the project defines how to find them, else the full
+   suite.
+6. **Failures.** Trace each failure to its PR. A worker fixes it in a goal-branch
+   PR, reviewed as in step 4; then rerun step 5 on the new head.
 7. **Land.** Open the goal branch's PR into the default branch and take
    `review-pr` steps 3 to 9, reading only what no goal PR's review covered:
    the index commits and any merge resolution. If the default branch moved, go
-   back to step 5; it takes exactly the verified tree.
+   back to step 5: the tree that lands is the tree verified.
 
 ## Not shortcuts
 
