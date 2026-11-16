@@ -4,7 +4,7 @@ Roles and procedures for AI coding agents, installed once per machine and shared
 
 Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-Eight skills ship alongside them: QA runs `review-architecture` and `review-craft`, the PM the other six. Each skill's own description says what it does and when; in short:
+Eight skills ship alongside them: QA runs `review-architecture` and `review-craft`, the PM the other six. Each skill's description says what and when; in short:
 
 - `sync-conventions`: brings a conventions template repository into a project and keeps it current. It names paths and assumes a file layout, so its reach ends where that layout does.
 - `plan-work`: keeps the issue backlog small and sends work to standing roles, each issue to a fresh session.
@@ -20,7 +20,7 @@ These live on your machine rather than in a project repo because they describe h
 
 Apart from `run-agents` and `delegate-goal`, nothing here names a platform. Where a host ships procedure guides of its own, the PM loads the ones covering its next action instead of working from memory, and `plan-work` defers to them on the same mechanism.
 
-It is installed by a script rather than published as a plugin, because a plugin cannot carry the roles: a plugin's agents are "subagent definitions Claude can delegate to", never the role the session runs as, and a Codex profile is configuration no plugin writes. Packaging and versioned releases are what the installer and the release tags already do.
+It is installed by a script rather than published as a plugin, because a plugin cannot carry the roles: a plugin's agents are "subagent definitions Claude can delegate to", never the role the session runs as, and a Codex profile is configuration no plugin writes. The installer and release tags already package and version.
 
 ## Install
 
@@ -38,7 +38,7 @@ Clones to `~/.local/share/role-based-agent`, then lists the tools it finds on th
 
 The role documents in `agents/` are the source of truth. Claude Code and opencode roles, and every tool's skills, are symlinks to the clone, so they always read current. Codex roles are generated TOML profiles holding the role body as `developer_instructions`: a snapshot, refreshed by re-running the installer after a role changes. Real files, directories, other links and Codex profiles that are not unedited generated ones of this clone are left alone and reported as kept; move them yourself and re-run. Your base `config.toml` is never changed.
 
-A generated profile starts with a region of marker, checksum, source path, `# Commit:` and the `developer_instructions` line. Only an unedited region is replaced or removed; everything after it (Codex writes its own settings there) is kept byte for byte on refresh. The checksum detects edits and is not a security signature. A profile is current while its `# Commit:` matches `git -C <clone> log -1 --format=%H -- agents/<role>.md`; it ends in `+ uncommitted edits` when generated from an uncommitted edit. Releases are tagged `vN.N.N`, and each skill carries `metadata.version` in its frontmatter. A running session loaded its role document at start, so an update reaches new sessions and the workers they dispatch, not one already running.
+A generated profile starts with a region of marker, checksum, source path, `# Commit:` and the `developer_instructions` line. Only an unedited region is replaced or removed; everything after it (Codex writes its own settings there) is kept byte for byte. The checksum detects edits and is not a security signature. A profile is current while its `# Commit:` matches `git -C <clone> log -1 --format=%H -- agents/<role>.md`; it ends in `+ uncommitted edits` when generated from an uncommitted edit. Releases are tagged `vN.N.N`, and each skill carries `metadata.version` in its frontmatter. A running session loaded its role document at start, so an update reaches new sessions and their workers, not one already running.
 
 Codex 0.134.0 or later is required for `NAME.config.toml` profiles selected with `codex -p NAME`; the installer itself does not need the Codex binary. See the [official profile format](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles).
 
@@ -52,7 +52,7 @@ The piped form updates its clone by fast-forward only. If a file you edited ther
 
 ### Environment
 
-`install.sh` takes no arguments; configure it by environment variable, which survives a pipe (`curl … | sh` cannot take a flag without `sh -s --`).
+`install.sh` takes no arguments; configure it by environment variable, which survives a pipe (`curl … | sh` cannot take a flag without `sh -s --`). The scripts set this list: the names either one expands and never assigns.
 
 | Variable | Effect |
 |---|---|
@@ -61,11 +61,11 @@ The piped form updates its clone by fast-forward only. If a file you edited ther
 | `ROLE_AGENT_DIR` | Where the piped form keeps its clone. |
 | `XDG_DATA_HOME` | The clone lives at `$XDG_DATA_HOME/role-based-agent` when `ROLE_AGENT_DIR` is unset. |
 | `CLAUDE_CONFIG_DIR` | Claude Code's config directory in place of `~/.claude`. |
-| `XDG_CONFIG_HOME` | In place of `~/.config`, under which opencode's directory is found. |
+| `XDG_CONFIG_HOME` | In place of `~/.config`, where opencode's directory is. |
 | `CODEX_HOME` | Codex's config directory in place of `~/.codex`. Skills stay at `~/.agents/skills/`. |
 | `HOME` | The base every default is built from. |
 
-`ROLE_AGENT_TOOLS` wins over `ROLE_AGENT_NONINTERACTIVE`, and either beats the prompt. `uninstall.sh` reads the last four too, and needs the values install had: without them it looks in the defaults and warns that directories were not there.
+`ROLE_AGENT_TOOLS` wins over `ROLE_AGENT_NONINTERACTIVE`, and either beats the prompt. `uninstall.sh` reads `CLAUDE_CONFIG_DIR`, `XDG_CONFIG_HOME`, `CODEX_HOME` and `HOME` too, and needs the values install had: without them it looks in the defaults and warns of missing directories.
 
 ### Uninstall
 
