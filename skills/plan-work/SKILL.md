@@ -3,7 +3,7 @@ name: plan-work
 description: Plans the PM's work. Keeps the issue backlog small enough to schedule from (searches before filing, merges issues whose target paths overlap, closes with a reason). Keeps a standing role per code area on a pinned roster issue, each implementation role owning a disjoint scope of paths. Assigns issues to roles with a brief, each issue to a fresh session briefed with the role's latest note. Use when the PM is about to file, triage, groom or close issues, choose the next round, assign or parallelise work, plan a round, write a brief, create or redraw a role, handle an agent needing paths outside its scope, recover after a restart, or retire an agent.
 license: Apache-2.0
 metadata:
-  version: "1.7.0"
+  version: "1.8.0"
 ---
 
 # Plan work
@@ -28,7 +28,7 @@ A role is a code area plus a kind of work.
 - Review and QA are fixed roles, each task on a fresh agent: one that has seen
   the area checks it against memory.
 
-Draw scopes from coupling; do not guess it. Files that change together belong
+Draw scopes from coupling, not guesses. Files that change together belong
 to one scope. Count co-changes over recent history:
 
 ```sh
@@ -59,7 +59,7 @@ open issue has that title, file it with this table as its body and pin it.
 Update it in the same step as any role added or removed, scope redrawn, or
 agent started, handed over or retired: a roster one change behind sends the
 next issue to the wrong agent. Per-issue status goes in the round-close
-comment, not a Status cell. After any restart, read the roster, then each
+comment, not a Status cell. After a restart, read the roster, then each
 agent's worktree and PR, never memory.
 
 ## Before filing
@@ -79,7 +79,7 @@ agent's worktree and PR, never memory.
 | Same subject, disjoint paths | Keep both; link them | They can run in parallel. |
 
 To merge: keep the issue others already cite, copy the other's acceptance
-criteria and target paths into it, close the other as a duplicate of it. When
+criteria and target paths into it, close the other as its duplicate. When
 the merged issue would be too large for one PR, or would hold a ready issue
 behind one still in triage, keep both and record one as blocked by the other:
 they then never go out in the same round.
@@ -143,23 +143,24 @@ their coupled groups.
      document or decision record the task does not name;
    - what not to touch: other roles' scopes and the PM's paths;
    - the names and numbers assigned in step 3;
-   - that a check not run is reported as not run, never as passed;
+   - that a check not run is reported as not run;
    - that the agent waits on a long job for one completion signal and reads a
      long output by its tail plus exit code;
    - what ends a round that is not converging, such as the same failure
      repeating: the agent stops and reports;
+   - the role's latest note, to read first, and the request for a new one
+     (`run-agents`);
    - its model, from `run-agents`.
 5. **Validate before dispatch.** Read the brief against the issue's acceptance
    criteria for a contradiction, such as a criterion the "not to touch" list
-   makes impossible. Fix it, then read again.
+   makes impossible. Fix it and re-read.
 6. **Dispatch** through the host's protocol for tracked work: an untracked
    agent dies invisibly. Where the host offers none, run one agent directly.
 7. **Confirm the start** by something only a started, unblocked agent could
    produce, such as a first commit or a message naming what it read, not by the
    host reporting success.
 8. **Judge by output** (commits, a PR, a comment on the issue), not by a
-   heartbeat, a live terminal or silence. Look for output each time you
-   return. Repair a stuck agent in place; a second worktree for its area
+   heartbeat, a live terminal or silence. Repair a stuck agent in place; a second worktree for its area
    orphans the first.
 9. **Account.** Close the round with one comment on the roster issue, a line
    per agent: role, issue, PR, model, verified or not, kept or retired and why.
