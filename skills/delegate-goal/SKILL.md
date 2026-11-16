@@ -3,7 +3,7 @@ name: delegate-goal
 description: Runs a delegation cycle for the PM. Settle every decision up front with the user in rounds of questions, record it as a goal issue, hand the user a ready /goal line, run unattended, then close with one report. Use when the user starts a goal or a piece of work to hand off, says "grill", asks what to put in /goal, or when a goal ends and the next is to be decided.
 license: Apache-2.0
 metadata:
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Delegate a goal
@@ -16,8 +16,8 @@ the run.
 
 Map the work as a **design tree**: each decision branches into the decisions
 that hang off it. Work it in rounds. The **frontier** is every decision whose
-prerequisites are settled, askable without guessing at answers not yet
-heard. Ask the whole frontier in one round, in as many calls as it takes,
+prerequisites are settled, askable without guessing at unheard
+answers. Ask the whole frontier in one round, in as many calls as it takes,
 then wait.
 
 - With a question tool from the host, put at most 4 questions per call, the
@@ -34,16 +34,15 @@ then wait.
 Besides the work, settle these branches:
 
 - **Urgency**: normal or deadline. For a deadline, estimate the run from the
-  plan, show the estimate and agree the deadline before any work. Where the
-  estimate exceeds it, the user cuts scope, never quality. Record it in the
-  goal issue.
+  plan with and without workers' local checks, show both, let the user choose
+  and agree the deadline before any work. Where the estimate exceeds it, the
+  user cuts scope, never quality. Record deadline and choice in the goal issue.
 - **Done**: acceptance criteria that output in this conversation can show,
   such as merged PRs, a test exit code or a file count.
 - **Grant**: what you may decide alone on the way, naming which of your
   role's §Deciding escalate-to-user items (convention changes, scope,
   architecture) you may take. Anything not named stops the run.
-- **Bounds**: what must not change. Set no turn cap unless the user asks for
-  one.
+- **Bounds**: what must not change.
 - **Final check**: what the user will look at to accept the result.
 
 ## 2. Record
