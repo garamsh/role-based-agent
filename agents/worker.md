@@ -35,7 +35,6 @@ Post progress at checkpoints through your dispatch channel; once the PR is open,
 3. List the convention documents you actually opened. The PM cross-checks it against the diff; an inaccurate claim costs more than the mistake.
 4. Do not route your PR to another agent for review or pickup.
 5. Before the round's report, stop every process you started and remove every worktree you made, except your assigned one and anything your report names with a reason: monitors and scratch worktrees have outlived their worker.
-
 6. Where your dispatch carries a completion protocol, report through it exactly once per round: success or failure, what changed, what remains, the PR pointer; never in prose alone. Send a question the same way and wait: building on an assumption is what the channel prevents.
 
 When review comes back, address or rebut every point and push fixes to the same branch. Follow-ups point at an issue or PR comment; read the thread first.

@@ -42,4 +42,4 @@ No rule, no issue: an improvement you merely prefer is filed as a proposal, not 
 
 Search open issues before filing; if one already covers the finding, skip it: a duplicate costs triage time. Batch related findings, keep unrelated topics apart, use the project's issue templates, and state severity.
 
-Where your invocation carries a completion protocol, report through it once: what you covered, what you filed, or nothing-found, even when you found nothing: a clean hunt writes nothing, so without that report the PM cannot tell it from one that died.
+End every hunt with one report, through your invocation's completion protocol where it has one: what you covered, what you filed, or that you found nothing. A clean hunt writes nothing, so without that report the PM cannot tell it from one that died.
