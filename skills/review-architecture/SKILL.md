@@ -3,17 +3,15 @@ name: review-architecture
 description: Scans a codebase read-only for deepening opportunities, where shallow modules could become deep ones, and returns a plain-text candidate list for the PM to triage. Use when QA is invoked to look for architectural friction, testability or navigability problems, or refactoring candidates in the project or a named area.
 license: Apache-2.0
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Review architecture
 
-QA operates this; every step is a read. You change no file and create no
-glossary or ADR. You file no issue from this scan: the PM triages the list,
-accepting, prioritizing or dropping each candidate, and a chosen one becomes
-the next goal's agenda. `agents/qa.md` §Authority holds your limits. A candidate
-that proposes a change to a rule or a settled decision is a proposal, never a
-finding.
+QA operates this; every step is a read. You change no file, create no
+glossary or ADR and file no issue: the PM triages the list, accepting,
+prioritizing or dropping each candidate, and a chosen one becomes the next
+goal's agenda. `agents/qa.md` §Authority holds your limits.
 
 ## Vocabulary
 
@@ -35,8 +33,6 @@ be checked.
 
 ## Principles
 
-- Depth belongs to the interface, not the implementation: a deep module may
-  hold small parts behind internal seams.
 - **Deletion test**: imagine deleting the module. If complexity vanishes, it
   was a pass-through; if it reappears across N callers, it earned its keep.
   A candidate must pass as "deleting would concentrate complexity".
@@ -51,14 +47,14 @@ be checked.
    entry point. Read its glossary and its decision records, if any, for the
    area you scan. Name modules in the glossary's words. A missing term or
    unrecorded decision goes in your report for the PM, who records it through
-   an issue and a worker PR. A settled decision is
-   not a candidate: surface one only when the friction is real enough to
+   an issue and a worker PR. A settled decision or
+   rule is not a candidate: surface one only when the friction is real enough to
    reopen it, and name it.
 2. **Choose where to look.** Take a direction the invocation names. Otherwise
    read the commit history far enough to find the hot spots, the files that
    keep changing, and start there, since deepening pays by making future
    change easier. Scattered changes mean widen the net.
-3. **Walk the code and note friction**, without fixed heuristics:
+3. **Walk the code and note friction**:
    - understanding one concept means bouncing between many small modules;
    - a shallow module whose interface rivals its body;
    - pure functions extracted only for tests while the real bugs hide in how
@@ -68,14 +64,12 @@ be checked.
 4. **Apply the deletion test** to each suspect.
 5. **Classify the dependencies** of each surviving candidate; the category
    fixes how the deepened module is tested across its seam:
-   - *In-process*: pure computation or in-memory state. Merge the modules and
-     test through the new interface; no adapter.
-   - *Local-substitutable*: a local stand-in exists (an embedded database, an
-     in-memory filesystem). Test with the stand-in; the seam stays internal.
-   - *Remote but owned*: your own service across a network. Define a port at
-     the seam; production uses a transport adapter, tests an in-memory one.
-   - *True external*: a third party. Inject it as a port; tests use a mock
-     adapter.
+   - *In-process*: pure computation or in-memory state. Merge; test through
+     the new interface.
+   - *Local-substitutable*: a local stand-in exists. Test with it.
+   - *Remote but owned*: your own service. A port at the seam, a transport
+     adapter in production and an in-memory one in tests.
+   - *True external*: a third party. A port, with a mock adapter in tests.
 
    Propose a port only where two adapters are justified. Tests on the
    deepened module replace the old tests of the shallow modules rather than
@@ -86,8 +80,8 @@ be checked.
 
 ## Output
 
-Plain text, in your report to the PM; no file, no HTML. Propose no interface
-shape yet. One block per candidate:
+Plain text, in your report to the PM. Propose no interface shape yet. One
+block per candidate:
 
     Candidate N: <name, in glossary words>
     Paths: <target paths>
@@ -97,5 +91,4 @@ shape yet. One block per candidate:
     Strength: Strong | Worth exploring | Speculative
     Conflicts: <the ADR or convention it contradicts, or none>
 
-End with the one candidate you would take first and why. Say when you found
-nothing: a scan that reports nothing looks the same as one that died.
+End with the one candidate you would take first and why.
