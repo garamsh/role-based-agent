@@ -47,14 +47,14 @@ be checked.
    entry point. Read its glossary and its decision records, if any, for the
    area you scan. Name modules in the glossary's words. A missing term or
    unrecorded decision goes in your report for the PM, who records it through
-   an issue and a worker PR. A settled decision is
-   not a candidate: surface one only when the friction is real enough to
+   an issue and a worker PR. A settled decision or
+   rule is not a candidate: surface one only when the friction is real enough to
    reopen it, and name it.
 2. **Choose where to look.** Take a direction the invocation names. Otherwise
    read the commit history far enough to find the hot spots, the files that
    keep changing, and start there, since deepening pays by making future
    change easier. Scattered changes mean widen the net.
-3. **Walk the code and note friction**, :
+3. **Walk the code and note friction**:
    - understanding one concept means bouncing between many small modules;
    - a shallow module whose interface rivals its body;
    - pure functions extracted only for tests while the real bugs hide in how
@@ -80,7 +80,8 @@ be checked.
 
 ## Output
 
-Plain text, in your report to the PM. Propose no interface shape yet. One block per candidate:
+Plain text, in your report to the PM. Propose no interface shape yet. One
+block per candidate:
 
     Candidate N: <name, in glossary words>
     Paths: <target paths>

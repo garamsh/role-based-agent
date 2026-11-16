@@ -18,7 +18,7 @@ review procedure decides every mechanic it covers.
 can merge between verification and merge.
 
 The git steps are `scripts/review.sh` in this skill's directory: run it with
-`sh` inside the repository under review, never retyping its commands.
+`sh` inside the repository under review, never retyping its commands. It says why it refuses on stderr.
 
 ## Running a review
 
