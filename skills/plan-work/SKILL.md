@@ -28,7 +28,7 @@ A role is a code area plus a kind of work.
 - Review and QA are fixed roles, each task on a fresh agent: one that has seen
   the area checks it against memory.
 
-Draw scopes from coupling, not guesses. Files changing together belong
+Draw scopes from coupling. Files changing together belong
 to one scope. Count co-changes over recent history:
 
 ```sh
@@ -66,7 +66,7 @@ agent's worktree and PR, never memory.
 
 1. Search the open issues for the same target paths, then the same subject. A
    duplicate costs a triage; two issues on one file are a collision.
-2. Found one → add the new evidence to it. Do not file.
+2. Found one → add the evidence to it. Do not file.
 3. None → file it, with target paths. If they are unknown, read the code the
    issue is about first.
 
@@ -159,8 +159,9 @@ their coupled groups.
 7. **Confirm the start** by something only a started, unblocked agent could
    produce, such as a first commit or a message naming what it read, not by the
    host reporting success.
-8. **Judge by output** (commits, a PR, a comment on the issue), not by a
-   heartbeat, a live terminal or silence. Repair a stuck agent in place; a second worktree for its area
+8. **Judge by output** (commits, a PR, an issue comment), not by a
+   heartbeat, a live terminal or silence. Look for output each time you
+   return. Repair a stuck agent in place; a second worktree for its area
    orphans the first.
 9. **Account.** Close the round with one comment on the roster issue, a line
    per agent: role, issue, PR, model, verified or not, kept or retired and why.
@@ -169,8 +170,8 @@ their coupled groups.
 
 - An agent needs a path outside its scope → it stops and reports; the PM
   redraws the scopes and updates the roster, or a file is in two roles' hands.
-- Two PRs in one round conflict → the scopes were wrong. Fix them and the
-  coupled groups behind them, not just the merge, or the next round repeats
+- Two PRs in one round conflict → the scopes were wrong. Fix them and their
+  coupled groups, not just the merge, or the next round repeats
   the conflict.
 - A wrong-direction fix, a repeated finding or a repeated failure → `run-agents`.
 
