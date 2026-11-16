@@ -3,7 +3,7 @@ name: review-pr
 description: Reviews one PR and, on approve, merges it and confirms what landed — verifies the merge of head onto base while the review runs, judges every section of the body, re-reviews only the delta, refuses to merge when base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review, approve, request changes on or merge a PR, delegate an independent reviewer, or confirm what landed.
 license: Apache-2.0
 metadata:
-  version: "0.5.1"
+  version: "0.5.2"
 ---
 
 # Review PR
@@ -14,20 +14,11 @@ governs the changed paths, and from `agents/pm.md` §Reviewing where nothing
 does. Posting and merging are the host's: take its guide's commands. A project's own
 review procedure decides every mechanic it covers.
 
-A **short path** applies when `git diff --shortstat` shows at most 50 changed
-lines, all in documentation files (`.md`, `.txt`, `.rst`, `.adoc`): skip only
-step 2's worktree and verification, and step 4. A cheaper model may
-first run the mechanical checks and rank the hunks by risk; that orders the
-review and excludes nothing: every changed line is still read for scope, and
-the top-tier reviewer re-verifies each finding.
-
-**Verify the tree that will land, and land only the tree verified.** One change
-landed unverified because another PR merged between verification and merge.
+**Verify the tree that will land, and land only the tree verified**: another PR
+can merge between verification and merge.
 
 The git steps are `scripts/review.sh` in this skill's directory: run it with
-`sh` inside the repository under review, never retyping its commands. It
-exits 0 pass, 1 refused, 2 usage or git error, 3 merge conflict, and says why
-on stderr.
+`sh` inside the repository under review, never retyping its commands.
 
 ## Running a review
 
@@ -46,12 +37,19 @@ Review of #<n>:
 [ ] 9. Landed
 ```
 
+A **short path** applies when `git diff --shortstat` shows at most 50 changed
+lines, all in documentation files (`.md`, `.txt`, `.rst`, `.adoc`): skip only
+step 2's worktree and verification, and step 4. A cheaper model may first run
+the mechanical checks and rank the hunks by risk; that orders the review and
+excludes nothing: every changed line is still read for scope, and the top-tier
+reviewer re-verifies each finding.
+
 **1. Find what governs, and read it**, before the diff: from the project's
 entry point for contributors, read at the base whatever governs the paths `git
 diff --name-only <base>...<head>` lists, and the PR template if
 there is one. Take from them which checks run, how to verify, and how to merge
 and word the message. What you looked for and did not find goes in the review
-as `unverified`: a guessed command reads like a written one.
+as `unverified`, since a guessed command reads like a written one.
 
 **2. Verify early.** Fetch, then:
 
@@ -60,40 +58,35 @@ sh scripts/review.sh record <remote>/<base branch> <head ref>
 sh scripts/review.sh worktree <base> <head> <scratch dir>
 ```
 
-Exit 3 is a conflict: request changes. Skip a check the host's CI passed on exactly the recorded tree, confirmed from
-the host: rerunning a suite CI had passed caught nothing and cost an hour. Run
-the rest in the worktree in the background and review while it runs; run
-after, an hour-long verification queues every review behind it. A run that
-ended without its outcome line died part-way. Remove the worktree once the
-outcome is read.
+Exit 3 is a conflict: request changes. Skip a check the host's CI passed on
+exactly the recorded tree, confirmed from the host. Run the rest in the
+worktree in the background and review while it runs, so a long verification
+does not queue every review behind it. A run that ended without its outcome
+line died part-way. Remove the worktree once the outcome is read.
 
 **3. Conventions, then the diff.** Read in full what step 1 found, then
 `git diff <base>...<head>`.
 
-**4. Independent reviewer.** A reviewer delegated with a clean context finds
-what the PM's reading misses: in one project, the blockers on three PRs in a row. Its brief carries the PR, base, head
-and what step 1 found, not the PM's conclusion, which it would confirm; it
-changes no checkout: it reads with `git show <head>:<path>` and
-`git diff`, or in a throwaway worktree it adds and removes. One told
-"read-only" checked out a branch in the base checkout. Re-verify every claim
-it makes from the files before posting: its mistakes arrive in the same
-confident register as its findings.
+**4. Independent reviewer.** A reviewer with a clean context finds what the
+PM's reading misses. Its brief carries the PR, base, head and what step 1
+found, not the PM's conclusion, which it would confirm. It changes no
+checkout, not even when told "read-only": it reads with `git show
+<head>:<path>` and `git diff`, or in a throwaway worktree it adds and removes.
+Re-verify every claim it makes from the files before posting: its mistakes
+arrive in the same confident register as its findings.
 
 **5. PR body.** Judge every section the body fills: is its claim
 true of the diff and the files, and is a "none" or "not applicable" justified?
 Build nothing to do it with. A section whose claim you could not check is
-`unverified`. Left to memory, sections such as what the author declined to
-restructure were read only when remembered. A claim that a test was seen to
-fail without the change is re-run in the worktree with the behaviour reverted,
-or marked `unverified`; passed on the body's say-so, it is the author's check,
-not the review's.
+`unverified`. A claim that a test was seen to fail without the change is
+re-run in the worktree with the behaviour reverted, or marked `unverified`:
+on the body's say-so it is the author's check, not the review's.
 
 **6. Per-check result**, as `agents/pm.md` §Reviewing requires, with the
-recorded head and tree beside verification. A check folded into a general
-pass is how one nobody ran merges as passed.
+recorded head and tree beside verification; a check folded into a general
+pass can merge as passed without being run.
 
-**7. Post** through the host before merging: a merge with no posted review
-leaves no record of the checks.
+**7. Post** through the host before merging, so the checks leave a record.
 
 **8. Guard.** Where the host requires the branch to be up to date, update it
 first, then run step 2 again on the new pair. Wait for CI in one blocking wait
@@ -110,7 +103,7 @@ host's merge to the head where it can be. The project's commit convention
 decides which identities are authors: pass each it excludes, by exact email,
 as `<excluded>`; with no such rule pass none, and every identity is an author.
 Put every author `authors` prints into the squash message, in the form step 1
-found: a squash with an empty body dropped a second author.
+found, since a squash with an empty body drops a second author.
 
 **9. Check what landed.** Fetch, then on the commit the base branch now
 points at:
@@ -122,9 +115,8 @@ sh scripts/review.sh landed <landed commit> <tree> <base> <head> [<excluded>...]
 Pass step 8's `<excluded>`: the commit convention decides here too which
 identities must have landed. Exit 1 names the wrong tree or the missing
 authors. The merge has happened; record the failure where the next reader
-finds it, to be repaired. Delete the head branch only after `landed`
-passes: a branch delete chained after a refused merge closed the
-PR.
+finds it, to be repaired. Delete the head branch only after `landed` passes:
+a delete chained after a refused merge closes the PR.
 
 ## Re-review after a request for changes
 
