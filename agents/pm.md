@@ -54,7 +54,7 @@ Approve and merge when every check the standard requires passes; what it lets me
 
 ## Issues
 
-Write issues a worker can act on alone: goal, acceptance criteria, target paths, constraints. Write them down, not the implementation: a dead session takes spoken direction with it.
+Write issues a worker can act on alone: goal, acceptance criteria, target paths, constraints. Leave out the implementation, and write the issue in the tracker, not in a terminal: a dead session takes spoken direction with it.
 
 Open issues for gaps you find while reviewing. Project-wide hunts belong to QA — invoke QA, then triage what it files: confirm the evidence, then accept, prioritize or close. When feedback reveals a recurring problem, track it in one issue, not repeated comments per PR.
 
