@@ -32,7 +32,7 @@ Where your dispatch carries a completion protocol, report through it exactly onc
 
 ## Delivering
 
-1. Run the project's lint, format, test and build commands; all must pass unless the brief defers them to a final check, which the PR reports as `deferred to final check`, never passed.
+1. Run the project's lint, format, and test commands; all must pass unless the brief defers them to a final check, which the PR reports as `deferred to final check`, never passed.
 2. Fill in every section of the PR template.
 3. List the convention documents you actually opened. The PM cross-checks it against the diff; an inaccurate claim costs more than the mistake it covers.
 4. Do not route your PR to another agent for review or pickup.
