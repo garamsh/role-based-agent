@@ -5,8 +5,8 @@ Rules binding every pull request here.
 The project has these kinds of file: two POSIX shell installers, a role document
 per role, a skill per procedure and the POSIX shell script it may bundle, a
 README, the pull request template, the licence, and this. A file of another kind
-is the user's decision; the PM lists it here in the change that admits it, since
-this file is not a worker's to edit. There is no build step or test harness.
+is the user's decision; the PM lists it here in the change that admits it.
+There is no build step or test harness.
 Verification is manual: paste the real output, and report a check not run as not
 run. A change to `agents/` or `skills/` also gets `review-pr`'s independent
 reviewer, short path included.
@@ -18,7 +18,7 @@ from the files it changes; its pull request gives each file's `wc -w` before and
 after. Fix an incident where it happened, adding no rule or code for a single
 case. Growth is the user's decision, and a grant needs no offset: #256
 `review-architecture` ≤ 900 words; #263 `meet-deadline` ≤ 500, `delegate-goal`
-≤ 650; #266 `review-craft` ≤ 700.
+≤ 650; #266 `review-craft` ≤ 700; #277 `agents/worker.md` ≤ 512.
 
 ## Role documents — `agents/*.md`
 
