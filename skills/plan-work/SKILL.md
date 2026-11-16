@@ -28,7 +28,7 @@ A role is a code area plus a kind of work.
 - Review and QA are fixed roles, each task on a fresh agent: one that has seen
   the area checks it against memory.
 
-Draw scopes from coupling, not guesses. Files that change together belong
+Draw scopes from coupling, not guesses. Files changing together belong
 to one scope. Count co-changes over recent history:
 
 ```sh
