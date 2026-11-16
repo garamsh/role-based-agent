@@ -10,11 +10,11 @@ metadata:
 
 One procedure for three moments: adopting a conventions template, bootstrapping the project on top of it, and pulling later updates. A step is cited as mode and number: Bootstrap 6.
 
-The PM operates it. A user invoking the skill is the explicit instruction the PM needs to write what Bootstrap writes on top of the conventions: the `Makefile`, hooks and CI workflow (5), architecture documents and ADRs (6), the project `README.md` (7). That cover reaches no further: Step 1 confirms the mode first, and Bootstrap 9 leaves the merge to the user.
+The PM operates it, and the conventions it rewrites are the PM's to maintain. A user invoking the skill is the explicit instruction the PM needs to write what Bootstrap writes on top of the conventions: the `Makefile`, hooks and CI workflow (5), architecture documents and ADRs (6), the project `README.md` (7). That cover reaches no further: Step 1 confirms the mode first, and Bootstrap 9 leaves the merge to the user.
 
 ## Rules
 
-- Everything lands via PR, never a push to `main`, and not during active feature work.
+- Everything lands via a PR the user merges, never a push to `main`, and not during active feature work.
 - The template is a read-only source: no merges, no shared history. The project keeps its own origin.
 - Take file contents verbatim. Adapt only where the project requires it (paths, stack, ownership) and record each adaptation in the PR body.
 - Take only what the project will enforce, and invent no conventions beyond the chosen stack's needs.
@@ -54,7 +54,7 @@ Update:    ☐ 1 walk ☐ 2 re-select ☐ 3 classify ☐ 4 verify, PR
 Read the template's convention index, the `README.md` beside its convention files, and do what it says; never decide from a filename glob, which sees only the tiers that existed when it was written.
 
 1. **Take each section that lists convention files** as its prose states: all of them, the one that fits, or the ones that apply. Sections this skill has never heard of included.
-2. **Keep what a kept file depends on.** Where a table names a base for a file, keeping the file keeps its base.
+2. **Keep what a kept file depends on.** Where a table names a base for a file, keeping the file keeps its base, and never delete a file while something the project keeps still names it.
 3. **Keeping none of a section is an answer.** Write no new convention file to fill it.
 
 A change that alters what the index selects on (the stack, the partitioning) carries the selection in the same PR. The PM makes it, not the worker whose change triggered it.
