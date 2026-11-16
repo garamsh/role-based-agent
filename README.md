@@ -4,7 +4,7 @@ Roles and procedures for AI coding agents, installed once per machine and shared
 
 Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-Eight skills ship alongside them: QA runs `review-architecture` and `review-craft`, the PM the other six. Each skill's description says what and when; in short:
+Eight skills ship alongside them: QA runs `review-architecture` and `review-craft`, the PM the other six. Each skill's description says what and when:
 
 - `sync-conventions`: brings a conventions template repository into a project and keeps it current. It names paths and assumes a file layout, so its reach ends where that layout does.
 - `plan-work`: keeps the issue backlog small and sends work to standing roles, each issue to a fresh session.
@@ -38,7 +38,7 @@ Clones to `~/.local/share/role-based-agent`, then lists the tools it finds on th
 
 The role documents in `agents/` are the source of truth. Claude Code and opencode roles, and every tool's skills, are symlinks to the clone, so they always read current. Codex roles are generated TOML profiles holding the role body as `developer_instructions`: a snapshot, refreshed by re-running the installer after a role changes. Real files, directories, other links and Codex profiles that are not unedited generated ones of this clone are left alone and reported as kept; move them yourself and re-run. Your base `config.toml` is never changed.
 
-A generated profile starts with a region of marker, checksum, source path, `# Commit:` and the `developer_instructions` line. Only an unedited region is replaced or removed; everything after it (Codex writes its own settings there) is kept byte for byte. The checksum detects edits and is not a security signature. A profile is current while its `# Commit:` matches `git -C <clone> log -1 --format=%H -- agents/<role>.md`; it ends in `+ uncommitted edits` when generated from an uncommitted edit. Releases are tagged `vN.N.N`, and each skill carries `metadata.version` in its frontmatter. A running session loaded its role document at start, so an update reaches new sessions and their workers, not one already running.
+A generated profile starts with a region of marker, checksum, source path, `# Commit:` and the `developer_instructions` line. Only an unedited region is replaced or removed; everything after it (Codex writes its own settings there) is kept byte for byte on refresh. The checksum detects edits and is not a security signature. A profile is current while its `# Commit:` matches `git -C <clone> log -1 --format=%H -- agents/<role>.md`; it ends in `+ uncommitted edits` when generated from an uncommitted edit. Releases are tagged `vN.N.N`, and each skill carries `metadata.version` in its frontmatter. A running session loaded its role document at start, so an update reaches new sessions and their workers, not one already running.
 
 Codex 0.134.0 or later is required for `NAME.config.toml` profiles selected with `codex -p NAME`; the installer itself does not need the Codex binary. See the [official profile format](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles).
 
@@ -56,7 +56,7 @@ The piped form updates its clone by fast-forward only. If a file you edited ther
 
 | Variable | Effect |
 |---|---|
-| `ROLE_AGENT_TOOLS` | Install into exactly these tools, space- or comma-separated, e.g. `claude,opencode`. No prompt. An unknown name stops the run before anything is written; a name the host does not appear to have is still installed and said to be undetected. |
+| `ROLE_AGENT_TOOLS` | Install into exactly these tools, space- or comma-separated, e.g. `claude,opencode`. No prompt. An unknown name stops the run before anything is written; a name the host does not appear to have is installed and said to be undetected. |
 | `ROLE_AGENT_NONINTERACTIVE` | Any non-empty value: no prompt, install the set the prompt would have started with. |
 | `ROLE_AGENT_DIR` | Where the piped form keeps its clone. |
 | `XDG_DATA_HOME` | The clone lives at `$XDG_DATA_HOME/role-based-agent` when `ROLE_AGENT_DIR` is unset. |
