@@ -4,7 +4,6 @@ Roles and procedures for AI coding agents, installed once per machine and shared
 
 Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
 
-
 Eight skills ship alongside them: QA runs `review-architecture` and `review-craft`, the PM the other six. Each skill's own description says what it does and when; in short:
 
 - `sync-conventions`: brings a conventions template repository into a project and keeps it current. It names paths and assumes a file layout, so its reach ends where that layout does.
@@ -49,7 +48,7 @@ Codex 0.134.0 or later is required for `NAME.config.toml` profiles selected with
 
 Re-run the same command. The list starts with your installed set checked and enter refreshes exactly that set; unchecking limits what is refreshed and never removes anything. Run without a terminal (CI, cron), it refreshes in place and never prompts. Nothing re-runs it for you: a role or skill new to the clone has no link or profile until you do, and is linked to the clone that run came from, so keep to one clone. A skill removed from the clone has the link the installer wrote removed by the next run, in the tools that run covers.
 
-The piped form updates its clone by fast-forward only. If a file you edited there, or a commit of your own, is in the way, the run installs nothing, changes no file or HEAD, exits non-zero, names the files and offers a `git stash` sequence (or, for commits, what to do with them), and lists the files the update would have brought, marking those with an installed link or unedited profile, which stay in use. Nothing is stashed, reset or discarded for you. If the remote cannot be reached, the run says so, names the commit it installs from and refreshes from the clone as it stands, so a network failure does not break an unattended run; re-run once it is reachable.
+The piped form updates its clone by fast-forward only. If a file you edited there, or a commit of your own, is in the way, the run installs nothing, changes no file or HEAD, exits non-zero, says what to do with commits of yours and, where a file of yours is in the way, names it and offers a `git stash` sequence, and lists the files the update would have brought, marking those with an installed link or unedited profile, which stay in use. Nothing is stashed, reset or discarded for you. If the remote cannot be reached, the run says so, names the commit it installs from and refreshes from the clone as it stands, so a network failure does not break an unattended run; re-run once it is reachable.
 
 ### Environment
 
