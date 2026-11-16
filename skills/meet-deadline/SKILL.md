@@ -43,6 +43,5 @@ run, trading waiting time only: per-PR verification took 27% of a
 
 ## Not shortcuts
 
-`agents/pm.md` §Deciding's three-way test still applies: a design that makes
-only the feature work, a skipped test or a stubbed path does not pass. When the
-deadline cannot be met without one, escalate; the user cuts scope.
+`agents/pm.md` §Deciding still applies. When the deadline cannot be met without
+a shortcut it rules out, escalate; the user cuts scope, never quality.
