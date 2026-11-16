@@ -3,21 +3,19 @@ name: meet-deadline
 description: Runs a goal against a deadline for the PM by cutting waiting, never quality — a goal branch, review-only PRs, one final verification, shared indexes updated once. Use when a goal is urgent, has a deadline, must finish by today, or the user says to skip waiting on per-PR verification.
 license: Apache-2.0
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Meet a deadline
 
 The PM operates this; every step is the PM's. It is `delegate-goal`'s deadline
-run, trading waiting time only: on a naru run of 47 PRs, per-PR
-verification was 27% of the 77-hour span, while about half of review's findings
-were real defects.
+run, trading waiting time only: per-PR verification took 27% of a
+47-PR run, while about half of review's findings were real defects.
 
 1. **Branch.** Cut a goal branch from the default branch; workers' PRs target
    it and the default branch takes nothing until step 7.
 2. **Disjoint paths.** Give workers pairwise-disjoint paths, and tell them not
-   to rebase on each other. Both real conflicts on that run were in one shared
-   index, and each rebase forces a re-review.
+   to rebase on each other: each rebase forces a re-review.
 3. **Shared indexes.** A documentation index many PRs touch, synced
    mechanically, is the PM's alone, updated once after the last PR merges. A
    source index goes to one worker, in one PR at the end.
@@ -29,9 +27,8 @@ were real defects.
 
    Of `review-pr`, skip step 2's worktree and verification, and step 8's wait
    for CI or update-branch. Step 6 reports verification as `deferred to final
-   check`, not passed. The rest applies, the independent reviewer included:
-   `guard` still refuses a head pushed after review. When it refuses only
-   because another goal PR merged, re-record.
+   check`, not passed. The rest applies, the independent reviewer, and `guard`
+   still refuses a head pushed after review.
 5. **Final check.** After the last PR merges and the indexes update, fetch and
    merge new default-branch commits into the goal branch. Run every check
    workers deferred and `review-pr` step 2 on that pair: the changed paths and
@@ -46,7 +43,6 @@ were real defects.
 
 ## Not shortcuts
 
-`agents/pm.md` §Deciding's three-way test still applies. A design that makes
-only the feature work, a skipped test or a stubbed path does not pass, however
-near the deadline: it is debt the next goal pays. When the deadline cannot be
-met without one, escalate; the user cuts scope.
+`agents/pm.md` §Deciding's three-way test still applies: a design that makes
+only the feature work, a skipped test or a stubbed path does not pass. When the
+deadline cannot be met without one, escalate; the user cuts scope.
