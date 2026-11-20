@@ -6,6 +6,7 @@ license: Apache-2.0
 metadata:
   version: "2.3.0"
 ---
+
 # Run agents
 
 `plan-work` governs the roles; this skill sets each role's model and starts,
@@ -29,11 +30,11 @@ the user, for more, since other projects share the host.
 ## Sessions and role notes
 
 A Sonnet session serves one issue: its PR and that PR's reviews. It ends at
-merge or about 150k (subagent transcript usage). One between 150k and 200k
-still finishes a review round of up to two findings: a fresh session re-reads
-its whole context to fix a missing control. The next issue starts fresh from a
-**role note**: the brief has each session end its completion report with one
-(1-2k tokens: structure learnt, pitfalls, state), the PM posts it as a roster
-issue comment, and the next brief says to read the latest. QA writes none.
-Subagent `memory` is unused: `local` dies with the worktree, `user` spans every
-project.
+merge or about 150k, read by the PM from subagent transcript usage. One
+between 150k and 200k still finishes a review round of up to two findings: a
+fresh session re-reads its whole context to fix a missing control. The next
+issue starts fresh from a **role note**: the brief has each session end its
+completion report with one (1-2k tokens: structure learnt, pitfalls, state),
+the PM posts it as a roster issue comment, and the next brief says to read the
+latest first. QA writes none. Subagent `memory` is unused: `local` dies with
+the worktree, `user` spans every project.

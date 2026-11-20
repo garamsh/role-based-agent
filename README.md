@@ -2,7 +2,7 @@
 
 Roles and procedures for AI coding agents, installed once per machine and shared by every project.
 
-Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from landing in conflicting directions.
+Three roles divide the work: a **PM** on the default branch that reviews, merges, supervises, and runs the workers; **workers** on task branches that implement and deliver PRs; and a **QA** agent that hunts for problems and files them as issues with evidence. One merge authority keeps concurrent work from conflicting.
 
 Eight skills ship alongside them: QA runs `review-architecture` and `review-craft`, the PM the other six. Each skill's description says what and when:
 
@@ -12,7 +12,7 @@ Eight skills ship alongside them: QA runs `review-architecture` and `review-craf
 - `run-agents`: which model each role runs on (Opus for the PM and the final review, Sonnet for every role agent) and how long a session lives.
 - `review-architecture`: QA's read-only scan for shallow modules that could be deep ones.
 - `review-craft`: QA's read-only scan for workmanship, with web-sourced candidates.
-- `delegate-goal`: settles a goal with the user, records it as an issue and hands over a `/goal` line; in deadline mode it hands off to `meet-deadline`, which cuts waiting, never quality.
+- `delegate-goal`: settles a goal with the user, records it as an issue and hands over a `/goal` line, or runs the goal a coordinator agent starts from it; in deadline mode it hands off to `meet-deadline`, which cuts waiting, never quality.
 
 `review-architecture` and `delegate-goal` are adapted from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT).
 
@@ -42,7 +42,7 @@ A generated profile starts with a region of marker, checksum, source path, `# Co
 
 Codex 0.134.0 or later is required for `NAME.config.toml` profiles selected with `codex -p NAME`; the installer itself does not need the Codex binary. See the [official profile format](https://learn.chatgpt.com/docs/config-file/config-advanced#profiles).
 
-`~/.agents/skills/` is shared: other tools keep real skill directories there, which both scripts leave alone, and opencode reads it besides its own directory and `~/.claude/skills/`. A skill installed for several tools is found more than once by opencode, which loads one and logs `duplicate skill name` for the rest; they are links to the same clone, so it makes no difference.
+`~/.agents/skills/` is shared: other tools keep real skill directories there, which both scripts leave alone, and opencode reads it besides its own directory and `~/.claude/skills/`. A skill installed for several tools is found more than once by opencode, which loads one and logs `duplicate skill name` for the rest; they all link to one clone, so it is harmless.
 
 ### Update
 
@@ -91,9 +91,9 @@ claude --agent qa        opencode --agent qa        codex -p qa
 
 In Claude Code and opencode the role document becomes the session's system prompt, so the session *is* that role rather than delegating to a subagent.
 
-To keep a role running as a long-lived coordinator in Claude Code without a terminal, launch it in the background: `claude --bg --name <name> --agent <role>`. The workers it delegates to run inside that session's process, so `claude stop` stops them mid-task. A background session has no terminal to answer a permission prompt, so it blocks at the first one: allow what the role needs before launching it.
+To keep a role running without a terminal in Claude Code, launch it in the background: `claude --bg --name <name> --agent <role>`. The workers it delegates to run inside that session's process, so `claude stop` stops them mid-task. A background session has no terminal to answer a permission prompt, so it blocks at the first one: allow what the role needs before launching it.
 
-Codex selects the generated profile by name. Launch it from the project you want to work on; additional CLI options and a starting prompt work as usual:
+Codex selects the generated profile by name. Launch it from the project to work on; additional CLI options and a starting prompt work as usual:
 
 ```bash
 codex -p pm "Review the open pull requests"
