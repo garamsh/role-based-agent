@@ -18,7 +18,8 @@ from the files it changes; its pull request gives each file's `wc -w` before and
 after. Fix an incident where it happened, adding no rule or code for a single
 case. Growth is the user's decision, and a grant needs no offset: #256
 `review-architecture` ≤ 900 words; #263 `meet-deadline` ≤ 500, `delegate-goal`
-≤ 650; #266 `review-craft` ≤ 700; #277 `agents/worker.md` ≤ 512.
+≤ 650; #266 `review-craft` ≤ 700; #277 `agents/worker.md` ≤ 512; #284
+`agents/pm.md` ≤ 1040, `run-agents` ≤ 354.
 
 ## Role documents — `agents/*.md`
 
