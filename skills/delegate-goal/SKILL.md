@@ -15,7 +15,7 @@ the run.
 ## 1. Decide
 
 Map the work as a **design tree**: each decision branches into those that hang
-off it. Also settle these branches:
+off it. Also settle:
 
 - **Urgency**: normal or deadline. For a deadline, show the run estimate with
   and without workers' local checks; the user chooses and agrees the deadline
@@ -32,7 +32,7 @@ Work the tree in rounds. The **frontier** is every decision whose prerequisites
 are settled, askable without guessing at unheard answers. Ask the whole frontier
 in one round, however many calls it takes, then wait.
 
-- With a question tool from the host, put at most 4 questions per call, the
+- With the host's question tool, put at most 4 questions per call, the
   recommended option first. Without one, number the questions in text, each
   with your recommendation.
 - Stop asking when the frontier is empty and nothing is silently assumed; act
@@ -48,9 +48,10 @@ granted: a session is compacted; the issue outlives it.
 ## 3. Hand over the goal line
 
 Where a coordinator starts goals, its message linking the goal issue and the
-user's recorded approval starts this one; a message without that link starts
-nothing. Steps 1 and 2 are then done: re-ask nothing, file no second issue, hand
-over no line; work until every criterion holds or only escalated work remains.
+user's recorded approval starts this one; without the link, nothing starts: ask
+the coordinator for it. Skip steps 1 and 2: re-ask nothing, file no second
+issue, hand over no line; work until every criterion holds or only escalated
+work remains.
 
 Otherwise only the user can type `/goal` on Claude Code; other hosts use their
 own goal mechanism. End your turn with the line to paste, in a code block,
