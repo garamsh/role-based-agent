@@ -36,7 +36,7 @@ Clones to `~/.local/share/skills`, then lists the tools it finds on the host as 
 | opencode | `~/.config/opencode/{agents,skills}/` | `opencode` on `PATH`, or `~/.config/opencode/` exists |
 | Codex | `~/.codex/qa.config.toml` and `~/.agents/skills/` | `codex` on `PATH`, or `~/.codex/` exists |
 
-The role documents in `agents/` are the source of truth. Claude Code and opencode agents, and every tool's skills, are symlinks to the clone, so they always read current. Codex profiles are generated TOML profiles holding the role body as `developer_instructions`: a snapshot, refreshed by re-running the installer after a role changes. Real files, directories, other links and Codex profiles that are not unedited generated ones of this clone are left alone and reported as kept; move them yourself and re-run. Your base `config.toml` is never changed.
+`agents/` and `skills/` are the source of truth. Claude Code and opencode agents, and every tool's skills, are symlinks to the clone, so they always read current. Codex profiles are generated TOML holding the agent body as `developer_instructions`: a snapshot, refreshed by re-running the installer after an agent definition changes. Real files, directories, other links and Codex profiles that are not unedited generated ones of this clone are left alone and reported as kept; move them yourself and re-run. Your base `config.toml` is never changed.
 
 A generated profile starts with a region of marker, checksum, source path, `# Commit:` and the `developer_instructions` line. Only an unedited region is replaced or removed; everything after it (Codex writes its own settings there) is kept byte for byte on refresh. The checksum detects edits and is not a security signature. A profile is current while its `# Commit:` matches `git -C <clone> log -1 --format=%H -- agents/<role>.md`; it ends in `+ uncommitted edits` when generated from an uncommitted edit. Releases are tagged `vN.N.N`, and each skill carries `metadata.version` in its frontmatter. A running session loaded its role document at start, so an update reaches new sessions and their workers, not one already running.
 
@@ -46,7 +46,7 @@ Codex 0.134.0 or later is required for `NAME.config.toml` profiles selected with
 
 ### Update
 
-Re-run the same command. The list starts with your installed set checked and enter refreshes exactly that set; unchecking limits what is refreshed and never removes anything. Run without a terminal (CI, cron), it refreshes in place and never prompts. Nothing re-runs it for you: a role or skill new to the clone has no link or profile until you do, and is linked to the clone that run came from, so keep to one clone. A skill removed from the clone has the link the installer wrote removed by the next run, in the tools that run covers.
+Re-run the same command. The list starts with your installed set checked and enter refreshes exactly that set; unchecking limits what is refreshed and never removes anything. Run without a terminal (CI, cron), it refreshes in place and never prompts. Nothing re-runs it for you: a role or skill new to the clone has no link or profile until you do, and is linked to the clone that run came from, so keep to one clone. A skill removed from the clone has the link the installer wrote removed by the next run, in the tools that run covers. A removed agent (`pm`, `worker`) is not: its link or Codex profile stays, and a stale profile still runs, until `uninstall.sh` removes it; re-run `install.sh` after.
 
 The piped form updates its clone by fast-forward only. If a file you edited there, or a commit of your own, is in the way, the run installs nothing, changes no file or HEAD, exits non-zero, says what to do with commits of yours and, where a file of yours is in the way, names it and offers a `git stash` sequence, and lists the files the update would have brought, marking those with an installed link or unedited profile, which stay in use. Nothing is stashed, reset or discarded for you. If the remote cannot be reached, the run says so, names the commit it installs from and refreshes from the clone as it stands, so a network failure does not break an unattended run; re-run once it is reachable.
 
@@ -89,7 +89,7 @@ claude --agent qa        opencode --agent qa        codex -p qa
 
 In Claude Code and opencode the role document becomes the session's system prompt, so the session *is* QA rather than delegating to a subagent.
 
-To keep a role running without a terminal in Claude Code, launch it in the background: `claude --bg --name <name> --agent <role>`. The workers it delegates to run inside that session's process, so `claude stop` stops them mid-task. A background session has no terminal to answer a permission prompt, so it blocks at the first one: allow what the role needs before launching it.
+To keep QA running without a terminal in Claude Code, launch it in the background: `claude --bg --name <name> --agent qa`. A background session has no terminal to answer a permission prompt, so it blocks at the first one: allow what QA needs before launching it.
 
 Codex selects the generated profile by name. Launch it from the project to work on; additional CLI options and a starting prompt work as usual:
 

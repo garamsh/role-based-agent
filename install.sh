@@ -815,7 +815,7 @@ profile_body() {
 
 # The commit a role's text was last changed in, for the profile's Commit line.
 # A profile is a snapshot, and one two changes behind read exactly like a
-# current one: this machine ran for hours on a stale PM profile (#172). The
+# current one: a session ran for hours on a stale profile (#172). The
 # commit that last touched the file rather than HEAD, so a commit elsewhere in
 # the clone does not rewrite every profile with an identical body; an edit not
 # yet committed is said, because the body then matches no commit at all. git is
