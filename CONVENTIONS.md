@@ -2,9 +2,9 @@
 
 Rules binding every pull request here.
 
-The project has these kinds of file: two POSIX shell installers, a role document
-per role, a skill per procedure and the POSIX shell script it may bundle, a
-README, the pull request template, the licence, and this. A file of another kind
+The project has these kinds of file: two POSIX shell installers, a skill per
+procedure or role and the POSIX shell script it may bundle, an agent definition
+where a role needs a tool restriction, a README, the pull request template, the licence, and this. A file of another kind
 is the user's decision; the PM lists it here in the change that admits it.
 There is no build step or test harness.
 Verification is manual: paste the real output, and report a check not run as not
@@ -18,17 +18,14 @@ from the files it changes; its pull request gives each file's `wc -w` before and
 after. Fix an incident where it happened, adding no rule or code for a single
 case. Growth is the user's decision, and a grant needs no offset: #256
 `review-architecture` ≤ 900 words; #263 `meet-deadline` ≤ 500, `delegate-goal`
-≤ 650; #266 `review-craft` ≤ 700; #277 `agents/worker.md` ≤ 512; #284
-`agents/pm.md` ≤ 1040, `run-agents` ≤ 354.
+≤ 650; #266 `review-craft` ≤ 700; #284 `run-agents` ≤ 354.
 
-## Role documents — `agents/*.md`
+## Agent definitions — `agents/*.md`
 
-System prompts for Claude Code and opencode, developer instructions for Codex.
-Every word is paid for on every run.
+An agent definition exists only for a tool restriction: frontmatter plus a
+pointer to its skill. A role's method is a skill, loaded when it applies rather
+than paid for on every run.
 
-- Second person, imperative. Each rule stated once.
-- Name the concrete failure after the rule that prevents it, in one clause; a
-  bare rule loses its compliance.
 - Frontmatter is load-bearing: tools select by `name` or filename, both
   fixed. The user decides other fields, never `model`: `run-agents` chooses it.
 - They name no platform and no paths.
@@ -38,8 +35,10 @@ Every word is paid for on every run.
 A skill loads only when its description matches the task, so its length is
 paid when it runs, not every session.
 
-- A skill is for an occasional procedure. One needed constantly sits unloaded
-  when it applies; that belongs in a role document.
+- Methodology only: name no organization, bot, coordinating host or machine.
+  Who supervises whom is each user's own setup, not a skill's.
+- Each rule stated once, with the concrete failure it prevents in one clause; a
+  bare rule loses its compliance.
 - Name the role that operates it, and keep every step inside that role's
   authority: `sync-conventions` once had its operator do the PM's work.
 - Write it to the skill-authoring guide the tools publish, read rather than
@@ -68,9 +67,9 @@ paid when it runs, not every session.
 
 Each was a filed bug.
 
-- The role documents are the source of truth, in each tool's native format:
-  symlinks for Claude Code and opencode roles and for all skills, generated
-  profiles for Codex roles. Refresh profiles on install, not at session launch.
+- Agent definitions and skills are the source of truth, in each tool's native
+  format: symlinks for Claude Code and opencode agents and for all skills,
+  generated profiles for Codex agents. Refresh profiles on install, not at session launch.
 - `ours()` lives in `uninstall.sh` alone. Both scripts check profile format;
   their update and removal decisions must agree.
 - Every link's removal verdict is taken before the first removal, so the order
