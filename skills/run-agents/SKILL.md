@@ -13,7 +13,7 @@ retires their agents.
 
 The user names the models. The strongest runs the PM and the final review; a
 cheaper one runs every role agent: implementation, research, QA and the
-independent reviewer. Review stays on the strongest, the only
+optional independent reviewer. Review stays on the strongest, the only
 check left on a design mistake or a repeated failure; QA runs below it, filing
 evidence the PM triages. Subagent inheritance: a host may start subagents on
 the parent's model (Claude Code does); name the cheaper one.
@@ -26,7 +26,7 @@ only when flaky or environmental.
 ## Sessions and role notes
 
 A session serves one issue, its PR and reviews. It ends at
-merge or at the user's context budget, read from the agent's usage. A nearly spent one still finishes a review round of up to two
+merge or at the user's context budget, read from usage. A nearly spent one still finishes a review round of up to two
 findings: a fresh session re-reads its whole context to fix a missing control. The next
 issue starts fresh from a **role note**: the brief has each session end its
 completion report with one (1-2k tokens: structure learnt, pitfalls, state),
