@@ -3,7 +3,7 @@ name: review-architecture
 description: Scans a codebase read-only for deepening opportunities, where shallow modules could become deep ones, and returns a plain-text candidate list for the PM to triage. Use when QA is invoked to look for architectural friction, testability or navigability problems, or refactoring candidates in the project or a named area.
 license: Apache-2.0
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # Review architecture
@@ -11,7 +11,7 @@ metadata:
 QA operates this; every step is a read. You change no file, create no
 glossary or ADR and file no issue: the PM triages the list, accepting,
 prioritizing or dropping each candidate, and a chosen one becomes the next
-goal's agenda. `agents/qa.md` §Authority holds your limits.
+goal's agenda. `hunt-problems` §Authority holds your limits.
 
 ## Vocabulary
 

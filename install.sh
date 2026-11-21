@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # Install or update role documents and skills for Claude Code, opencode and Codex.
 #
-#   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/garamsh/skills/main/install.sh | sh
 #
 # Installing is all this does, and it takes no arguments. With a terminal
 # attached it lists the tools found here as checkboxes, each with what it would
@@ -13,11 +13,11 @@
 #
 # Removing installed files is uninstall.sh:
 #
-#   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/uninstall.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/garamsh/skills/main/uninstall.sh | sh
 set -eu
 
-REPO_URL="https://github.com/garamsh/role-based-agent.git"
-INSTALL_DIR="${ROLE_AGENT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/role-based-agent}"
+REPO_URL="https://github.com/garamsh/skills.git"
+INSTALL_DIR="${ROLE_AGENT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/skills}"
 
 SUPPORTED="claude opencode codex"
 
@@ -815,7 +815,7 @@ profile_body() {
 
 # The commit a role's text was last changed in, for the profile's Commit line.
 # A profile is a snapshot, and one two changes behind read exactly like a
-# current one: this machine ran for hours on a stale PM profile (#172). The
+# current one: a session ran for hours on a stale profile (#172). The
 # commit that last touched the file rather than HEAD, so a commit elsewhere in
 # the clone does not rewrite every profile with an identical body; an edit not
 # yet committed is said, because the body then matches no commit at all. git is
@@ -961,4 +961,4 @@ if [ "$HAVE_SKILLS" -eq 0 ]; then
   printf '%s\n' "No skills in $SRC_DIR/skills, so none were linked."
 fi
 printf '%s\n' "Source: $SRC_DIR"
-echo "Start a session in a role with:  claude --agent pm  |  opencode --agent pm  |  codex -p pm"
+echo "Start a session in a role with:  claude --agent qa  |  opencode --agent qa  |  codex -p qa"

@@ -3,15 +3,14 @@ name: review-pr
 description: Reviews one PR and, on approve, merges it and confirms what landed — verifies the merge of head onto base while the review runs, judges every section of the body, re-reviews only the delta, refuses to merge when base or head moved since verification, and keeps every author of a squash. Use when the PM is about to review, re-review, approve, request changes on or merge a PR, delegate an independent reviewer, or confirm what landed.
 license: Apache-2.0
 metadata:
-  version: "0.5.2"
+  version: "0.5.3"
 ---
 
 # Review PR
 
 The PM operates this; every step is the PM's. It holds the order of a review,
 not its rules: which checks run and what may merge unverified come from what
-governs the changed paths, and from `agents/pm.md` §Reviewing where nothing
-does. Posting and merging are the host's: take its guide's commands. A project's own
+governs the changed paths; where nothing does, name the standard you applied. Posting and merging are the host's: take its guide's commands. A project's own
 review procedure decides every mechanic it covers.
 
 **Verify the tree that will land, and land only the tree verified**: another PR
@@ -82,7 +81,7 @@ Build nothing to do it with. A section whose claim you could not check is
 re-run in the worktree with the behaviour reverted, or marked `unverified`:
 on the body's say-so it is the author's check, not the review's.
 
-**6. Per-check result**, as `agents/pm.md` §Reviewing requires, with the
+**6. Per-check result**, each unverified check marked as such, with the
 recorded head and tree beside verification; a check folded into a general
 pass can merge as passed without being run.
 

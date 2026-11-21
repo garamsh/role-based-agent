@@ -4,7 +4,7 @@ description: Runs the PM's role agents on the model that fits the work — Opus 
 compatibility: Needs Claude Code.
 license: Apache-2.0
 metadata:
-  version: "2.3.0"
+  version: "3.0.0"
 ---
 
 # Run agents
@@ -22,10 +22,6 @@ On a wrong-direction fix (it fixes something other than what was named, or the
 symptom), and after a second round on a repeated finding, re-scope the brief,
 split the issue or report to the PM. A failure repeated twice triggers this
 only when flaky or environmental.
-
-A host-wide limit the user or coordinator sets, such as concurrent workers or a
-load threshold for heavy jobs, bounds every dispatch: ask the coordinator, else
-the user, for more, since other projects share the host.
 
 ## Sessions and role notes
 
