@@ -1,9 +1,9 @@
 ---
 name: delegate-goal
-description: Runs a delegation cycle for the PM. Settle every decision up front with the user in rounds of questions, record it as a goal issue, hand the user a ready /goal line, run unattended, then close with one report. Use when the user starts a goal or hands off work, says "grill", asks what to put in /goal, or a goal ends and the next is to be decided.
+description: Runs a delegation cycle for the PM. Settle every decision up front with the user in rounds of questions, record it as a goal issue, hand the user a ready goal line, run unattended, then close with one report. Use when the user starts a goal or hands off work, says "grill", asks for the goal line, or a goal ends and the next is to be decided.
 license: Apache-2.0
 metadata:
-  version: "2.0.0"
+  version: "2.0.1"
 ---
 
 # Delegate a goal
@@ -47,9 +47,9 @@ granted: a session is compacted; the issue outlives it.
 
 ## 3. Hand over the goal line
 
-Only the user can type `/goal` on Claude Code; other hosts use their
-own goal mechanism. End your turn with the line to paste, in a code block,
-under 4,000 characters, pointing at the issue without restating it:
+Where the host has a goal command, only the user can type it. End your turn
+with the line to paste, in a code block, within its length limit, pointing at
+the issue without restating it. Example, Claude Code's `/goal`:
 
     /goal Every acceptance criterion in issue #N holds, each shown by output in this session, and a final report comment is posted on #N. Or an escalation comment on #N awaits the user's decision.
 
