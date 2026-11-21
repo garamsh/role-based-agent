@@ -3,7 +3,7 @@ name: meet-deadline
 description: Runs a goal against a deadline for the PM by cutting waiting, never quality — a goal branch, review-only PRs, one final verification, shared indexes updated once. Use when a goal is urgent, has a deadline, must finish by today, or the user says to skip waiting on per-PR verification.
 license: Apache-2.0
 metadata:
-  version: "1.1.1"
+  version: "1.1.2"
 ---
 
 # Meet a deadline
@@ -43,5 +43,5 @@ run, trading waiting time only: per-PR verification took 27% of a
 
 ## Not shortcuts
 
-`agents/pm.md` §Deciding still applies. When the deadline cannot be met without
+`decide-or-escalate` still applies. When the deadline cannot be met without
 a shortcut it rules out, escalate; the user cuts scope, never quality.

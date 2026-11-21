@@ -3,14 +3,14 @@ name: review-craft
 description: Scans a codebase read-only for workmanship and code quality problems, namely folder structure, outdated or legacy code, reinventing the wheel, shell scripts doing a build tool's job, and declining tools, and returns a plain-text candidate list for the PM to triage. Use when QA is invoked to review craft, modernise a project, or look for better tools and idioms.
 license: Apache-2.0
 metadata:
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # Review craft
 
 QA operates this; every step is a read. You change no file and file no issue:
 the PM triages the list, accepting, prioritizing or dropping each candidate.
-`agents/qa.md` §Authority holds your limits.
+`hunt-problems` §Authority holds your limits.
 
 ## Lenses
 

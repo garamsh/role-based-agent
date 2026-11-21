@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 # Remove installed symlinks and unedited generated Codex profiles.
 #
-#   curl -fsSL https://raw.githubusercontent.com/garamsh/role-based-agent/main/uninstall.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/garamsh/skills/main/uninstall.sh | sh
 #
 # Only symlinks of ours are removed: a link is ours when its target names
 # <checkout>/agents/<name>.md or <checkout>/skills/<name> and the link carries
@@ -9,7 +9,7 @@
 # so where this script is run from cannot change what it removes. The target
 # need not still exist, so a link left dangling by deleting the checkout is
 # still removed; while the checkout is on disk it has to still hold install.sh
-# and agents/{pm,qa,worker}.md, so a link into a tool directory or any other
+# and agents/qa.md, so a link into a tool directory or any other
 # tree that only shares the agents/ shape is left alone. Other files and
 # directories are never touched; generated Codex profiles are recognized by
 # their marker and content checksum.
@@ -64,7 +64,7 @@ refuse_unsafe HOME "$HOME"
 # While <root> is on disk it still has to be a checkout, so a link into an
 # unrelated tree that happens to share the shape is not claimed.
 #
-# agents/{pm,qa,worker}.md alone is not a checkout: a tool directory has that
+# agents/qa.md alone is not a checkout: a tool directory has that
 # shape too, from the user's own files with those names or from our role
 # document links,
 # which -f follows, and a foreign ~/.agents/skills/foo -> ../../.claude/skills/foo
@@ -97,8 +97,7 @@ ours() {
   _root=$(dirname "$(dirname "$_target")")
   [ -d "$_root" ] || return 0         # checkout gone: the link text is all there is
   [ -f "$_root/install.sh" ] && [ ! -L "$_root/install.sh" ] &&
-    [ -f "$_root/agents/pm.md" ] && [ -f "$_root/agents/qa.md" ] &&
-    [ -f "$_root/agents/worker.md" ]
+    [ -f "$_root/agents/qa.md" ]
 }
 
 # Keep this format check in step with install.sh. A matching marker alone

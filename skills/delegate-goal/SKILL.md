@@ -1,9 +1,9 @@
 ---
 name: delegate-goal
-description: Runs a delegation cycle for the PM. Settle every decision up front with the user in rounds of questions, record it as a goal issue, hand the user a ready /goal line, run unattended, then close with one report. Use when the user or a coordinator starts a goal or hands off work, says "grill", asks what to put in /goal, or a goal ends and the next is to be decided.
+description: Runs a delegation cycle for the PM. Settle every decision up front with the user in rounds of questions, record it as a goal issue, hand the user a ready /goal line, run unattended, then close with one report. Use when the user starts a goal or hands off work, says "grill", asks what to put in /goal, or a goal ends and the next is to be decided.
 license: Apache-2.0
 metadata:
-  version: "1.3.0"
+  version: "2.0.0"
 ---
 
 # Delegate a goal
@@ -22,8 +22,8 @@ off it. Also settle:
   before any work, and cuts scope, never quality, where the estimate exceeds it.
 - **Done**: acceptance criteria that output in this conversation can show,
   such as merged PRs, a test exit code or a file count.
-- **Grant**: what you may decide alone on the way, naming which of your
-  role's §Deciding escalate-to-user items you may take. Anything not named
+- **Grant**: what you may decide alone on the way, naming which of
+  `decide-or-escalate`'s escalate-to-user items you may take. Anything not named
   stops the run.
 - **Bounds**: what must not change.
 - **Final check**: what the user will check to accept the result.
@@ -47,13 +47,7 @@ granted: a session is compacted; the issue outlives it.
 
 ## 3. Hand over the goal line
 
-Where a coordinator starts goals, its message linking the goal issue and the
-user's recorded approval starts this one; without the link, nothing starts: ask
-the coordinator for it. Skip steps 1 and 2: re-ask nothing, file no second
-issue, hand over no line; work until every criterion holds or only escalated
-work remains.
-
-Otherwise only the user can type `/goal` on Claude Code; other hosts use their
+Only the user can type `/goal` on Claude Code; other hosts use their
 own goal mechanism. End your turn with the line to paste, in a code block,
 under 4,000 characters, pointing at the issue without restating it:
 
@@ -67,12 +61,10 @@ a test tail or a comment URL.
 
 Work to the end; a deadline goal follows `meet-deadline`. At a decision the
 grant does not cover, post an escalation comment with options and a
-recommendation and show its URL. Under a coordinator, send it the URL and keep
-working on what it does not block; otherwise stop.
+recommendation and show its URL. Stop.
 
 ## 5. Report
 
 Post one comment on the goal issue covering what merged, each decision you
 took alone, each check you did not verify, and every departure from what was
-decided. Show its URL, summarize it for the coordinator, or else the user in
-their language, and offer the next cycle.
+decided. Show its URL, summarize it for the user in their language, and offer the next cycle.

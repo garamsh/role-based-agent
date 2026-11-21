@@ -57,7 +57,7 @@ email() { sed 's/^.*<\([^>]*\)>.*$/\1/' | tr '[:upper:]' '[:lower:]'; }
 
 # The authors a squash must keep: authors() less each identity the PM names
 # from the project's commit convention. The PM names them because the script
-# cannot know who is an agent: on mvmd, where an agent is no author, every
+# cannot know who is an agent: on one project, where an agent is no author, every
 # merge that followed that rule was refused. Whole emails only, so a person
 # who shares an excluded identity's domain is still required.
 required() {

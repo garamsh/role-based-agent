@@ -3,7 +3,7 @@ name: plan-work
 description: Plans the PM's work. Keeps the issue backlog small enough to schedule from (searches before filing, merges issues whose target paths overlap, closes with a reason). Keeps a standing role per code area on a pinned roster issue, each implementation role owning a disjoint scope of paths. Assigns issues to roles with a brief, each issue to a fresh session briefed with the role's latest note. Use when the PM is about to file, triage, groom or close issues, choose the next round, assign or parallelise work, plan a round, write a brief, create or redraw a role, handle an agent needing paths outside its scope, recover after a restart, or retire an agent.
 license: Apache-2.0
 metadata:
-  version: "1.8.0"
+  version: "1.8.1"
 ---
 
 # Plan work
@@ -14,7 +14,7 @@ owns how an agent is started, waited on, reused and ended: load its guide;
 where it and this skill decide the same mechanism, the host wins. Model,
 session and repeated-failure rules are `run-agents`.
 
-An issue's fields are the ones the role document lists; no issue template is
+An issue's fields are the ones `decide-or-escalate` lists; no issue template is
 assumed. Target paths are what a round is scheduled on; an issue without them
 cannot be placed except by guessing, so it is not ready to dispatch.
 
