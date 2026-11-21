@@ -9,7 +9,7 @@ Eight more skills hold procedures. Each description says what and when:
 - `sync-conventions`: brings a conventions template repository into a project and keeps it current. It names paths and assumes a file layout, so its reach ends where that layout does.
 - `plan-work`: keeps the issue backlog small and sends work to standing roles, each issue to a fresh session.
 - `review-pr`: holds the order of a PR review and, on approve, merges it.
-- `run-agents`: which model each role runs on (strongest for the PM and final review, cheaper for role agents) and when a session ends.
+- `run-agents`: which model each role runs on and when a session ends.
 - `review-architecture`: QA's read-only scan for shallow modules that could be deep ones.
 - `review-craft`: QA's read-only scan for workmanship, with web-sourced candidates.
 - `delegate-goal`: settles a goal with the user, records it as an issue and hands over a goal line; in deadline mode it hands off to `meet-deadline`, which cuts waiting, never quality.

@@ -53,9 +53,9 @@ the issue without restating it. Example, Claude Code's `/goal`:
 
     /goal Every acceptance criterion in issue #N holds, each shown by output in this session, and a final report comment is posted on #N. Or an escalation comment on #N awaits the user's decision.
 
-Add "Or stop after T turns" only if the user asked for a cap. The evaluator
-reads only this conversation, so show evidence for each claim: a `gh` result,
-a test tail or a comment URL.
+Add a turn cap (Claude Code: "Or stop after T turns") only if asked. A
+check that reads only this conversation, as Claude Code's does, needs evidence
+for each claim: a tracker result, a test tail or a comment URL.
 
 ## 4. Run
 
