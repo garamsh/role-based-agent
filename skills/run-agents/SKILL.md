@@ -1,22 +1,22 @@
 ---
 name: run-agents
-description: Runs the PM's role agents on the model that fits the work — Opus for the PM and the final review, Sonnet for every role agent. Use when the PM, following plan-work, dispatches a round, chooses a role's model, starts, commands or retires a role's agent, or hands a fresh session its role note.
-compatibility: Needs Claude Code.
+description: Runs the PM's role agents on the model that fits the work — the strongest for the PM and the final review, a cheaper one for every role agent. Use when the PM, following plan-work, dispatches a round, chooses a role's model, starts, commands or retires a role's agent, or hands a fresh session its role note.
 license: Apache-2.0
 metadata:
-  version: "3.0.0"
+  version: "3.1.0"
 ---
 
 # Run agents
 
-`plan-work` governs the roles; this skill sets each role's model and starts,
-commands and retires its agent.
+`plan-work` governs the roles; this skill sets their models and starts,
+commands and retires their agents.
 
-Opus runs the PM and the final review. Sonnet runs every role agent:
-implementation, research, QA and the optional independent reviewer. Review
-stays on Opus, the only check left on a design mistake or a repeated failure;
-QA runs below it, filing evidence the PM triages. No Claude subagent runs on
-Opus: name Sonnet when starting one, since a subagent inherits the PM's model.
+The user names the models. The strongest runs the PM and the final review; a
+cheaper one runs every role agent, the optional independent reviewer
+included. Review stays on the strongest, the only check left on a design
+mistake or a repeated failure; QA runs below it, filing evidence the PM
+triages. Subagent inheritance: a host may start subagents on the parent's
+model (Claude Code does); name the cheaper one.
 
 On a wrong-direction fix (it fixes something other than what was named, or the
 symptom), and after a second round on a repeated finding, re-scope the brief,
@@ -25,12 +25,12 @@ only when flaky or environmental.
 
 ## Sessions and role notes
 
-A Sonnet session serves one issue: its PR and that PR's reviews. It ends at
-merge or about 150k, read by the PM from subagent transcript usage. One
-between 150k and 200k still finishes a review round of up to two findings: a
-fresh session re-reads its whole context to fix a missing control. The next
-issue starts fresh from a **role note**: the brief has each session end its
-completion report with one (1-2k tokens: structure learnt, pitfalls, state),
-the PM posts it as a roster issue comment, and the next brief says to read the
-latest first. QA writes none. Subagent `memory` is unused: `local` dies with
-the worktree, `user` spans every project.
+A session serves one issue, its PR and reviews. It ends at merge or at the
+user's context budget, read by the PM from usage. One past the budget still
+finishes a review round of up to two findings: a fresh session re-reads its
+whole context to fix a missing control. The next issue starts fresh from a
+**role note**: the brief has each session end its completion report with one
+(1-2k tokens: structure learnt, pitfalls, state), the PM posts it as a roster
+issue comment, and the next brief says to read the latest first. QA writes
+none. Host agent memory is unused: it dies with a worktree or spans projects;
+the role note is the record.

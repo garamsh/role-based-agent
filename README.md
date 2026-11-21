@@ -9,16 +9,16 @@ Eight more skills hold procedures. Each description says what and when:
 - `sync-conventions`: brings a conventions template repository into a project and keeps it current. It names paths and assumes a file layout, so its reach ends where that layout does.
 - `plan-work`: keeps the issue backlog small and sends work to standing roles, each issue to a fresh session.
 - `review-pr`: holds the order of a PR review and, on approve, merges it.
-- `run-agents`: which model each role runs on (Opus for the PM and the final review, Sonnet for every role agent) and how long a session lives.
+- `run-agents`: which model each role runs on and when a session ends.
 - `review-architecture`: QA's read-only scan for shallow modules that could be deep ones.
 - `review-craft`: QA's read-only scan for workmanship, with web-sourced candidates.
-- `delegate-goal`: settles a goal with the user, records it as an issue and hands over a `/goal` line; in deadline mode it hands off to `meet-deadline`, which cuts waiting, never quality.
+- `delegate-goal`: settles a goal with the user, records it as an issue and hands over a goal line; in deadline mode it hands off to `meet-deadline`, which cuts waiting, never quality.
 
 `review-architecture` and `delegate-goal` are adapted from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT).
 
 These live on your machine rather than in a project repo because they describe how *you* operate agents, not what any one codebase is. They name no paths and assume no file layout: each finds the rules through whatever entry point the project gives contributors, then treats them as binding. They do assume a project that keeps its conventions in writing: an index of rules, a pull request template, documentation of the system's shape. Without that they still work but have little to enforce. Changing this repository has its own rules, in `CONVENTIONS.md`, which reach every file here, documentation included.
 
-Apart from `run-agents` and `delegate-goal`, nothing here names a platform. Where a host ships procedure guides of its own, the PM loads the ones covering its next action instead of working from memory, and `plan-work` defers to them on the same mechanism.
+A skill names a host's feature only as an example. Where a host ships procedure guides of its own, the PM loads the ones covering its next action instead of working from memory, and `plan-work` defers to them on the same mechanism.
 
 It is installed by a script rather than published as a plugin, because a plugin cannot carry the roles: a plugin's agents are "subagent definitions Claude can delegate to", never the role the session runs as, and a Codex profile is configuration no plugin writes. The installer and release tags already package and version.
 
